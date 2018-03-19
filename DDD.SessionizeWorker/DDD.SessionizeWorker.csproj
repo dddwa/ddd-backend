@@ -8,4 +8,8 @@
     <WebJobType>Continuous</WebJobType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="newtonsoft.json" Version="11.0.1" />
+  </ItemGroup>
+
 </Project>
