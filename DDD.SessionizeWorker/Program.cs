@@ -1,8 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Domain;
 using DDD.SessionizeWorker.Sessionize;
 
 namespace DDD.SessionizeWorker
@@ -24,19 +21,5 @@ namespace DDD.SessionizeWorker
                 var data = adapter.Convert(sessionizeData);
             }
         }
-    }
-
-    class CategoryItem
-    {
-        public CategoryType Type { get; set; }
-        public int Id { get; set; }
-        public string Title { get; set; }
-    }
-
-    enum CategoryType
-    {
-        SessionFormat,
-        Tags,
-        Level
     }
 }

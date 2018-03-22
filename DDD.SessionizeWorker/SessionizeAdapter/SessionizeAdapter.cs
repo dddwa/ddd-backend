@@ -108,5 +108,19 @@ namespace DDD.SessionizeWorker.SessionizeAdapter
         public const string BlogType = "Blog";
 
         public const string MobileNumberQuestion = "Mobile number";
+
+        class CategoryItem
+        {
+            public CategoryType Type { get; set; }
+            public int Id { get; set; }
+            public string Title { get; set; }
+        }
+
+        enum CategoryType
+        {
+            SessionFormat,
+            Tags,
+            Level
+        }
     }
 }
