@@ -16,10 +16,6 @@ namespace DDD.SessionizeWorker.Sessionize
 
     public class SessionizeSpeakerLink
     {
-        public const string LinkedInType = "LinkedIn";
-        public const string TwitterType = "Twitter";
-        public const string BlogType = "Blog";
-
         public string LinkType { get; set; }
         public string Url { get; set; }
     }

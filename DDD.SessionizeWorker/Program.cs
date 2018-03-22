@@ -1,5 +1,8 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using DDD.Domain;
 using DDD.SessionizeWorker.Sessionize;
 
 namespace DDD.SessionizeWorker
@@ -17,9 +20,23 @@ namespace DDD.SessionizeWorker
             {
                 var apiClient = new SessionizeApiClient(httpClient);
                 var sessionizeData = await apiClient.GetAllData("mdhxdmti");
-
-
+                var adapter = new SessionizeAdapter.SessionizeAdapter();
+                var data = adapter.Convert(sessionizeData);
             }
         }
+    }
+
+    class CategoryItem
+    {
+        public CategoryType Type { get; set; }
+        public int Id { get; set; }
+        public string Title { get; set; }
+    }
+
+    enum CategoryType
+    {
+        SessionFormat,
+        Tags,
+        Level
     }
 }

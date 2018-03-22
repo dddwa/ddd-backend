@@ -11,7 +11,7 @@ namespace DDD.SessionizeWorker.Sessionize
         [JsonProperty("speakers")]
         public string[] SpeakerIds { get; set; }
         [JsonProperty("categoryItems")]
-        public int[] CategoryIds { get; set; }
+        public int[] CategoryItemIds { get; set; }
 
         public SessionizeQuestionAnswer[] QuestionAnswers { get; set; }
     }

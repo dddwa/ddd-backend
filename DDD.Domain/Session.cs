@@ -15,6 +15,7 @@ namespace DDD.Domain
         public SessionFormat Format { get; set; }
         public string Level { get; set; }
         public string[] Tags { get; set; }
+        public string MobilePhoneContact { get; set; }
     }
 
     public enum SessionFormat
