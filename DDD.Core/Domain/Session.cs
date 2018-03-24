@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace DDD.Domain
+namespace DDD.Core.Domain
 {
     public class Session
     {
@@ -10,7 +9,7 @@ namespace DDD.Domain
         public string ExternalId { get; set; }
         public string Title { get; set; }
         public string Abstract { get; set; }
-        public List<Presenter> Presenters { get; set; }
+        public Guid[] PresenterIds { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public SessionFormat Format { get; set; }
         public string Level { get; set; }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DDD.Domain;
+using DDD.Core.Domain;
 using DDD.SessionizeWorker.Sessionize;
 
 namespace DDD.SessionizeWorker.SessionizeAdapter
@@ -42,7 +42,7 @@ namespace DDD.SessionizeWorker.SessionizeAdapter
                     .Select(cId => categories.First(c => c.Id == cId))
                     .Select(c => c.Title)
                     .ToArray(),
-                Presenters = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).ToList(),
+                PresenterIds = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).Select(p => p.Id).ToArray(),
                 MobilePhoneContact = s.QuestionAnswers.Where(qa => qa.QuestionId == mobilePhoneQuestion.Id).Select(qa => qa.AnswerValue).FirstOrDefault()
             }).ToArray();
         }

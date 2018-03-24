@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DDD.Domain
+namespace DDD.Core.Domain
 {
     public class Presenter
     {
