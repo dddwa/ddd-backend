@@ -31,14 +31,17 @@ namespace DDD.SessionizeWorker
 
         static async Task MainAsync(IConfiguration config, ILogger logger)
         {
+            var cosmosSettings = config.GetSection("Cosmos").Get<CosmosSettings>();
+            var cosmosEndpoint = config.GetConnectionString("CosmosEndpoint");
+            var cosmosKey = config.GetConnectionString("CosmosKey");
+            var sessionizeApiKey = config.GetValue<string>("SessionizeApiKey");
+
             using (var httpClient = new HttpClient())
             {
                 var apiClient = new SessionizeApiClient(httpClient);
-                var cosmosSettings = config.GetSection("Cosmos").Get<CosmosSettings>();
-                var repo = new DocumentDbRepository<SessionOrPresenter>(config.GetConnectionString("CosmosEndpoint"),
-                    config.GetConnectionString("CosmosKey"), cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
+
+                var repo = new DocumentDbRepository<SessionOrPresenter>(cosmosEndpoint, cosmosKey, cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
                 await repo.Initialize();
-                var sessionizeApiKey = config.GetValue<string>("SessionizeApiKey");
 
                 await SyncService.Sync(apiClient, sessionizeApiKey, repo);
             }
