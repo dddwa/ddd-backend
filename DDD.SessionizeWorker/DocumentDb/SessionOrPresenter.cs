@@ -28,15 +28,13 @@ namespace DDD.SessionizeWorker.DocumentDb
         public SessionOrPresenter Update(Session session)
         {
             session.Id = Session.Id;
-            Session = session;
-            return this;
+            return new SessionOrPresenter(session);
         }
 
         public SessionOrPresenter Update(Presenter presenter)
         {
             presenter.Id = Presenter.Id;
-            Presenter = presenter;
-            return this;
+            return new SessionOrPresenter(presenter);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 
 namespace DDD.Core.Domain
 {
@@ -20,10 +21,10 @@ namespace DDD.Core.Domain
         {
             return Title == p.Title
                 && Abstract == p.Abstract
-                && string.Join(",", PresenterIds) == string.Join(",", p.PresenterIds)
+                && string.Join(",", PresenterIds.OrderBy(x => x)) == string.Join(",", p.PresenterIds.OrderBy(x => x))
                 && Format == p.Format
                 && Level == p.Level
-                && string.Join("|", Tags) == string.Join("|", p.Tags)
+                && string.Join("|", Tags.OrderBy(x => x)) == string.Join("|", p.Tags.OrderBy(x => x))
                 && MobilePhoneContact == p.MobilePhoneContact;
         }
     }
