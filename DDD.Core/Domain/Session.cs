@@ -15,6 +15,17 @@ namespace DDD.Core.Domain
         public string Level { get; set; }
         public string[] Tags { get; set; }
         public string MobilePhoneContact { get; set; }
+
+        public bool DataEquals(Session p)
+        {
+            return Title == p.Title
+                && Abstract == p.Abstract
+                && string.Join(",", PresenterIds) == string.Join(",", p.PresenterIds)
+                && Format == p.Format
+                && Level == p.Level
+                && string.Join("|", Tags) == string.Join("|", p.Tags)
+                && MobilePhoneContact == p.MobilePhoneContact;
+        }
     }
 
     public enum SessionFormat

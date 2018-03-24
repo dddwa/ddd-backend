@@ -83,7 +83,7 @@ namespace DDD.SessionizeWorker.DocumentDb
 
         public async Task<Document> CreateItemAsync(T item)
         {
-            return await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_databaseId, _collectionId), item);
+            return await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_databaseId, _collectionId), item, disableAutomaticIdGeneration: true);
         }
 
         public async Task<Document> UpdateItemAsync(string id, T item)
