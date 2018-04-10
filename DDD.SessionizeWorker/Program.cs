@@ -40,12 +40,12 @@ namespace DDD.SessionizeWorker
 
             using (var httpClient = new HttpClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient);
+                var apiClient = new SessionizeApiClient(httpClient, sessionizeApiKey);
 
                 var repo = new DocumentDbRepository<SessionOrPresenter>(new DocumentClient(new Uri(cosmosEndpoint), cosmosKey), cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
                 await repo.Initialize();
 
-                await SyncService.Sync(apiClient, sessionizeApiKey, repo);
+                await SyncService.Sync(apiClient, repo, logger);
             }
         }
     }

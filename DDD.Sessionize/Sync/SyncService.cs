@@ -4,23 +4,31 @@ using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Core.Domain;
 using DDD.Sessionize.Sessionize;
+using Microsoft.Extensions.Logging;
 
 namespace DDD.Sessionize.Sync
 {
     public static class SyncService
     {
-        public static async Task Sync(ISessionizeApiClient apiClient, string sessionizeApiKey, DocumentDbRepository<SessionOrPresenter> repo)
+        public static async Task Sync(ISessionizeApiClient apiClient, DocumentDbRepository<SessionOrPresenter> repo, ILogger log)
         {
-            var sessionizeData = await apiClient.GetAllData(sessionizeApiKey);
+            var sessionizeData = await apiClient.GetAllData();
+
+            log.LogInformation("Retrieved {sessionCount} sessions, {presenterCount} presenters from Sessionize API {sessionizeApiUrl}", sessionizeData.Sessions.Length, sessionizeData.Speakers.Length, apiClient.GetUrl());
+
             var adapter = new SessionizeAdapter.SessionizeAdapter();
             var sourceData = adapter.Convert(sessionizeData);
 
+            log.LogInformation("Sessionize data successfully adapted to DDD domain model: {sessionCount} sessions and {presenterCount} presenters", sourceData.Item1.Length, sourceData.Item2.Length);
+
             var destinationData = (await repo.GetAllItemsAsync()).ToArray();
 
-            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData);
+            log.LogInformation("Existing read model retrieved: {sessionCount} sessions and {presenterCount} presenters", destinationData.Count(x => x.Session != null), destinationData.Count(x => x.Presenter != null));
+
+            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log);
         }
 
-        public static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData)
+        public static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log)
         {
             var destinationPresenters = destinationData.Where(x => x.Presenter != null).ToArray();
             var destinationSessions = destinationData.Where(x => x.Session != null).ToArray();
@@ -35,8 +43,14 @@ namespace DDD.Sessionize.Sync
             var editedPresenters = existingPresenters.Where(x => !x.dest.Presenter.DataEquals(x.src)).ToArray();
 
             // Sync presenters
+            if (newPresenters.Any())
+                log.LogInformation("Adding new presenters to read model: {newPresenterIds}", (object) newPresenters.Select(x => x.Id).ToArray());
             await Task.WhenAll(newPresenters.Select(p => repo.CreateItemAsync(new SessionOrPresenter(p))));
+            if (deletedPresenters.Any())
+                log.LogInformation("Deleting presenters from read model: {deletedPresenterIds}", (object) deletedPresenters.Select(x => x.Id).ToArray());
             await Task.WhenAll(deletedPresenters.Select(p => repo.DeleteItemAsync(p.Id.ToString())));
+            if (editedPresenters.Any())
+                log.LogInformation("Updating presenters in read model: {editedPresenterIds}", (object) editedPresenters.Select(x => x.dest.Id).ToArray());
             await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
 
             // Update presenter ids on sessions
@@ -58,8 +72,14 @@ namespace DDD.Sessionize.Sync
             var editedSessions = existingSessions.Where(x => !x.dest.Session.DataEquals(x.src)).ToArray();
 
             // Sync speakers
+            if (newSessions.Any())
+                log.LogInformation("Adding new sessions to read model: {newSessionIds}", (object)newSessions.Select(x => x.Id).ToArray());
             await Task.WhenAll(newSessions.Select(s => repo.CreateItemAsync(new SessionOrPresenter(s))));
+            if (deletedSessions.Any())
+                log.LogInformation("Deleting sessions from read model: {deletedSessionIds}", (object)deletedSessions.Select(x => x.Id).ToArray());
             await Task.WhenAll(deletedSessions.Select(s => repo.DeleteItemAsync(s.Id.ToString())));
+            if (editedSessions.Any())
+                log.LogInformation("Editing sessions in read model: {editedSessionIds}", (object)editedSessions.Select(x => x.dest.Id).ToArray());
             await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
         }
     }
