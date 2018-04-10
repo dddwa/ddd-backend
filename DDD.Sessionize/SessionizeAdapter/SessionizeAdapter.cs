@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using DDD.Core.Domain;
-using DDD.SessionizeWorker.Sessionize;
+using DDD.Sessionize.Sessionize;
 
-namespace DDD.SessionizeWorker.SessionizeAdapter
+namespace DDD.Sessionize.SessionizeAdapter
 {
     public class SessionizeAdapter
     {

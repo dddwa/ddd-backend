@@ -7,7 +7,7 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 
-namespace DDD.SessionizeWorker.DocumentDb
+namespace DDD.Core.DocumentDb
 {
     public class DocumentDbRepository<T> where T : class
     {
@@ -15,11 +15,11 @@ namespace DDD.SessionizeWorker.DocumentDb
         private readonly string _databaseId;
         private readonly string _collectionId;
 
-        public DocumentDbRepository(string endpointUrl, string accessKey, string databaseId, string collectionId)
+        public DocumentDbRepository(DocumentClient client, string databaseId, string collectionId)
         {
             _databaseId = databaseId;
             _collectionId = collectionId;
-            _client = new DocumentClient(new Uri(endpointUrl), accessKey);
+            _client = client;
         }
 
         public async Task Initialize()

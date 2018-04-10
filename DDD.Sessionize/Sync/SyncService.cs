@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DDD.Core.DocumentDb;
 using DDD.Core.Domain;
-using DDD.SessionizeWorker.DocumentDb;
-using DDD.SessionizeWorker.Sessionize;
+using DDD.Sessionize.Sessionize;
 
-namespace DDD.SessionizeWorker.Sync
+namespace DDD.Sessionize.Sync
 {
     public static class SyncService
     {

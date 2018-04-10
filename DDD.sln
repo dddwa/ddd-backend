@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.SessionizeWorker", "DDD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Core", "DDD.Core\DDD.Core.csproj", "{694C5BD7-98DF-489A-9812-32138F1AFF3F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDD.Functions", "DDD.Functions\DDD.Functions.csproj", "{9210235A-A56F-4461-8550-A8F1D990A8E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDD.Sessionize", "DDD.Sessionize\DDD.Sessionize.csproj", "{14D97870-A1C6-4EB5-88E0-461FB597C8DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9210235A-A56F-4461-8550-A8F1D990A8E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9210235A-A56F-4461-8550-A8F1D990A8E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9210235A-A56F-4461-8550-A8F1D990A8E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9210235A-A56F-4461-8550-A8F1D990A8E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14D97870-A1C6-4EB5-88E0-461FB597C8DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14D97870-A1C6-4EB5-88E0-461FB597C8DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14D97870-A1C6-4EB5-88E0-461FB597C8DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14D97870-A1C6-4EB5-88E0-461FB597C8DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

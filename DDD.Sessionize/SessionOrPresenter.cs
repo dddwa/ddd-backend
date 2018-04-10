@@ -2,7 +2,7 @@
 using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
-namespace DDD.SessionizeWorker.DocumentDb
+namespace DDD.Sessionize
 {
     public class SessionOrPresenter : Document
     {

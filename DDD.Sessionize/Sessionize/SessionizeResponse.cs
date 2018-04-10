@@ -1,4 +1,4 @@
-﻿namespace DDD.SessionizeWorker.Sessionize
+﻿namespace DDD.Sessionize.Sessionize
 {
     public class SessionizeResponse
     {

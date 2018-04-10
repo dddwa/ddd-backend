@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using DDD.Core.Domain;
 
-namespace DDD.SessionizeWorker.Sync
+namespace DDD.Sessionize.Sync
 {
-    public class SessionSync : IEqualityComparer<Session>
+    public class PresenterSync : IEqualityComparer<Presenter>
     {
-        public bool Equals(Session x, Session y)
+        public bool Equals(Presenter x, Presenter y)
         {
             return x.ExternalId == y.ExternalId;
         }
 
-        public int GetHashCode(Session obj)
+        public int GetHashCode(Presenter obj)
         {
             return obj.ExternalId.GetHashCode();
         }

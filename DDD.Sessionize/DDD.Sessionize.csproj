@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="microsoft.azure.documentdb.core" Version="1.9.1" />
+    <ProjectReference Include="..\DDD.Core\DDD.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,9 +2,11 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.SessionizeWorker.DocumentDb;
-using DDD.SessionizeWorker.Sessionize;
-using DDD.SessionizeWorker.Sync;
+using DDD.Core.DocumentDb;
+using DDD.Sessionize;
+using DDD.Sessionize.Sessionize;
+using DDD.Sessionize.Sync;
+using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -40,7 +42,7 @@ namespace DDD.SessionizeWorker
             {
                 var apiClient = new SessionizeApiClient(httpClient);
 
-                var repo = new DocumentDbRepository<SessionOrPresenter>(cosmosEndpoint, cosmosKey, cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
+                var repo = new DocumentDbRepository<SessionOrPresenter>(new DocumentClient(new Uri(cosmosEndpoint), cosmosKey), cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
                 await repo.Initialize();
 
                 await SyncService.Sync(apiClient, sessionizeApiKey, repo);

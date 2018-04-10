@@ -1,4 +1,4 @@
-﻿namespace DDD.SessionizeWorker.DocumentDb
+﻿namespace DDD.SessionizeWorker
 {
     public class CosmosSettings
     {

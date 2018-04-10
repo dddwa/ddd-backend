@@ -19,18 +19,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.9.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.environmentvariables" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.json" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.1" />
-    <PackageReference Include="newtonsoft.json" Version="11.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DDD.Core\DDD.Core.csproj" />
+    <ProjectReference Include="..\DDD.Sessionize\DDD.Sessionize.csproj" />
   </ItemGroup>
 
   <ItemGroup>
