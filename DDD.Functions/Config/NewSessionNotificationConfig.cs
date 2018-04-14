@@ -4,32 +4,32 @@ using Microsoft.Azure.WebJobs.Host.Config;
 
 namespace DDD.Functions.Config
 {
-    public class SessionizeReadModelSyncConfig : Attribute
+    public class NewSessionNotificationConfig : Attribute
     {
         [AppSetting(Default = "ConnectionStrings:Sessions")]
         public string ConnectionString { get; set; }
+        [AppSetting(Default = "NewSessionNotificationLogicAppUrl")]
+        public string LogicAppUrl { get; set; }
         [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
         public string CosmosDatabaseId { get; set; }
         [AppSetting(Default = "SessionsDataSourceCosmosCollectionId")]
         public string CosmosCollectionId { get; set; }
-        [AppSetting(Default = "SessionizeApiKey")]
-        public string SessionizeApiKey { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
     [Binding]
-    public class BindSessionizeReadModelSyncConfigAttribute : SessionizeReadModelSyncConfig {}
+    public class BindNewSessionNotificationConfigAttribute : NewSessionNotificationConfig { }
 
-    public class BindSessionizeReadModelSyncConfigExtension : IExtensionConfigProvider
+    public class BindNewSessionNotificationConfigExtension : IExtensionConfigProvider
     {
         public void Initialize(ExtensionConfigContext context)
         {
-            var rule = context.AddBindingRule<BindSessionizeReadModelSyncConfigAttribute>();
+            var rule = context.AddBindingRule<BindNewSessionNotificationConfigAttribute>();
 
             rule.BindToInput(BuildItemFromAttr);
         }
 
-        private SessionizeReadModelSyncConfig BuildItemFromAttr(BindSessionizeReadModelSyncConfigAttribute attr)
+        private NewSessionNotificationConfig BuildItemFromAttr(BindNewSessionNotificationConfigAttribute attr)
         {
             return attr;
         }
