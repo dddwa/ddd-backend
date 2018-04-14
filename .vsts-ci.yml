@@ -9,39 +9,6 @@ variables:
   StorageAccount: 'dddperthdeployments'
   StorageContainer: 'ddd-functions'
 steps:
-- powershell: |
-   $tmp = $env:System_DefaultWorkingDirectory
-   $msi = Join-Path $tmp "cosmos-db.msi"
-   (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/cosmosdb-emulator", $msi)
-    
-
-- task: ivanboyko.vsts-deploy-MSI.ivanboyko.deploy.MSI.ivanboyko.deploy.MSI@2
-  inputs:
-    msiFilesMask: 'cosmos-db.msi'
-
-- powershell: |
-   & "C:\Program Files\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe"  /NoExplorer /NoUI
-   
-   $at = 0
-   $client = New-Object System.Net.Sockets.TcpClient([System.Net.Sockets.AddressFamily]::InterNetwork)
-    
-   do {
-       $at++
-       try {    
-           $client.Connect("127.0.0.1", 8081)
-           write-host "CosmosDB started"
-       }
-       catch {
-           $client.Close()
-           if($at -eq 5) {
-               write-host "CosmosDB was not started"
-           } else {
-               [int]$sleepTime = 3*$attempt
-               sleep $sleepTime;
-           }
-       }
-   }while(!$client.Connected -and $at -lt $max)
-    
 
 - task: DotNetCoreCLI@2
   inputs:

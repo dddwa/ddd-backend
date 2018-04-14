@@ -1,7 +1,5 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Resources;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Sessionize.Sessionize;
@@ -14,9 +12,9 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 {
     public class EmptyReadModelScenario : Scenario
     {
-        public async Task GivenEmptyReadModel()
+        public void GivenEmptyReadModel()
         {
-            _documentDbRepository = await EmptyDocumentDb.InitializeAsync<SessionOrPresenter>(TestDatabaseId, TestCollectionId);
+            _documentDbRepository = new DocumentDbRepositoryMock<SessionOrPresenter>();
         }
         
         public void AndGivenSessionizeHasPresentersAndSessions()
@@ -58,11 +56,9 @@ namespace DDD.Sessionize.Tests.SessionizeSync
         }
 
         private readonly StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
-        private DocumentDbRepository<SessionOrPresenter> _documentDbRepository;
+        private IDocumentDbRepository<SessionOrPresenter> _documentDbRepository;
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;
         private SessionOrPresenter[] _readModel;
-        private const string TestDatabaseId = "EmptyReadModelScenario";
-        private const string TestCollectionId = "Sessions";
     }
 }

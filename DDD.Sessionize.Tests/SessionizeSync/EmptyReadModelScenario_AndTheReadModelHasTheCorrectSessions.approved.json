@@ -7,7 +7,7 @@
     "PresenterIds": [
       "00000000-0000-0000-0000-000000000000"
     ],
-    "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "CreatedDate": "2010-01-01T00:00:00+00:00",
     "ModifiedDate": null,
     "Format": "LightningTalk",
     "Level": null,
@@ -22,7 +22,7 @@
     "PresenterIds": [
       "00000000-0000-0000-0000-000000000003"
     ],
-    "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "CreatedDate": "2010-01-01T00:00:00+00:00",
     "ModifiedDate": null,
     "Format": "FullTalk",
     "Level": "Intermediate",

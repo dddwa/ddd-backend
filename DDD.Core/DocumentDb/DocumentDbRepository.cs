@@ -10,7 +10,18 @@ using Polly;
 
 namespace DDD.Core.DocumentDb
 {
-    public class DocumentDbRepository<T> where T : class
+    public interface IDocumentDbRepository<T> where T : class
+    {
+        Task InitializeAsync();
+        Task<T> GetItemAsync(string id);
+        Task<IEnumerable<T>> GetAllItemsAsync();
+        Task<IEnumerable<T>> GetItemsAsync(Expression<Func<T, bool>> predicate);
+        Task<Document> CreateItemAsync(T item);
+        Task<Document> UpdateItemAsync(string id, T item);
+        Task DeleteItemAsync(string id);
+    }
+
+    public class DocumentDbRepository<T> : IDocumentDbRepository<T> where T : class
     {
         private readonly DocumentClient _client;
         private readonly string _databaseId;

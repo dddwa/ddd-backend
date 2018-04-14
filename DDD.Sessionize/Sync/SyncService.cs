@@ -11,7 +11,7 @@ namespace DDD.Sessionize.Sync
 {
     public static class SyncService
     {
-        public static async Task Sync(ISessionizeApiClient apiClient, DocumentDbRepository<SessionOrPresenter> repo, ILogger log, IDateTimeProvider dateTimeProvider)
+        public static async Task Sync(ISessionizeApiClient apiClient, IDocumentDbRepository<SessionOrPresenter> repo, ILogger log, IDateTimeProvider dateTimeProvider)
         {
             var sessionizeData = await apiClient.GetAllData();
 
@@ -29,7 +29,7 @@ namespace DDD.Sessionize.Sync
             await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log, dateTimeProvider);
         }
 
-        private static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log, IDateTimeProvider dateTimeProvider)
+        private static async Task PerformSync(IDocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log, IDateTimeProvider dateTimeProvider)
         {
             var destinationPresenters = destinationData.Where(x => x.Presenter != null).ToArray();
             var destinationSessions = destinationData.Where(x => x.Session != null).ToArray();

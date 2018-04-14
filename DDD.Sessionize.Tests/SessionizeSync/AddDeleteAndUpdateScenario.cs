@@ -15,9 +15,9 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 {
     public class AddDeleteAndUpdateScenario : Scenario
     {
-        public async Task GivenEmptyReadModel()
+        public void GivenEmptyReadModel()
         {
-            _documentDbRepository = await EmptyDocumentDb.InitializeAsync<SessionOrPresenter>(TestDatabaseId, TestCollectionId);
+            _documentDbRepository = new DocumentDbRepositoryMock<SessionOrPresenter>();
         }
 
         public void AndGivenSessionizeHasPresentersAndSessions()
@@ -86,7 +86,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
         }
 
         private StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
-        private DocumentDbRepository<SessionOrPresenter> _documentDbRepository;
+        private IDocumentDbRepository<SessionOrPresenter> _documentDbRepository;
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;
         private SessionOrPresenter[] _readModel;
