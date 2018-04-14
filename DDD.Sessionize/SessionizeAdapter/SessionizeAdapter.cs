@@ -12,7 +12,7 @@ namespace DDD.Sessionize.SessionizeAdapter
         public Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
         {
             var categories = GetCategories(sessionizeData);
-            var presenters = GetPresenters(sessionizeData);
+            var presenters = GetPresenters(sessionizeData, dateTimeProvider);
             var mobilePhoneQuestion = sessionizeData.Questions.Single(q => q.Question == MobileNumberQuestion);
             var sessions = GetSessions(sessionizeData, categories, presenters, mobilePhoneQuestion, dateTimeProvider);
 
@@ -48,13 +48,14 @@ namespace DDD.Sessionize.SessionizeAdapter
             }).ToArray();
         }
 
-        private static Presenter[] GetPresenters(SessionizeResponse sessionizeData)
+        private static Presenter[] GetPresenters(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
         {
             return sessionizeData.Speakers.Select(s => new Presenter
             {
                 Id = Guid.NewGuid(),
                 ExternalId = s.Id,
                 Name = s.FullName,
+                CreatedDate = dateTimeProvider.Now(),
                 //Email = s.Email,
                 Tagline = s.TagLine,
                 Bio = s.Bio,

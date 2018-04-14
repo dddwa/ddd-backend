@@ -12,6 +12,7 @@ namespace DDD.Core.Domain
         public string Abstract { get; set; }
         public Guid[] PresenterIds { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
+        public DateTimeOffset? ModifiedDate { get; set; }
         public SessionFormat Format { get; set; }
         public string Level { get; set; }
         public string[] Tags { get; set; }

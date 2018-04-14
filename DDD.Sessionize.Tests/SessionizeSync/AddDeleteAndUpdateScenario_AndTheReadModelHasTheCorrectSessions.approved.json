@@ -7,7 +7,8 @@
     "PresenterIds": [
       "00000000-0000-0000-0000-000000000000"
     ],
-    "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "CreatedDate": "2010-01-02T08:00:00+08:00",
+    "ModifiedDate": null,
     "Format": "LightningTalk",
     "Level": "Intermediate",
     "Tags": [],
@@ -22,6 +23,7 @@
       "00000000-0000-0000-0000-000000000009"
     ],
     "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "ModifiedDate": "2010-01-02T08:00:00+08:00",
     "Format": "FullTalk",
     "Level": null,
     "Tags": [

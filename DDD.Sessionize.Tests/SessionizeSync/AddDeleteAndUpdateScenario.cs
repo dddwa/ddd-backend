@@ -37,6 +37,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public async Task WhenPerformingSubsequentSync()
         {
+            _dateTimeProvider = new StaticDateTimeProvider(_dateTimeProvider.Now().AddDays(1));
             await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider);
         }
 
@@ -82,7 +83,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
             Xunit2BddfyTextReporter.Instance.RegisterOutput(output);
         }
 
-        private readonly StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        private StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
         private DocumentDbRepository<SessionOrPresenter> _documentDbRepository;
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;

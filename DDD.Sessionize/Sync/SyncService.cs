@@ -26,10 +26,10 @@ namespace DDD.Sessionize.Sync
 
             log.LogInformation("Existing read model retrieved: {sessionCount} sessions and {presenterCount} presenters", destinationData.Count(x => x.Session != null), destinationData.Count(x => x.Presenter != null));
 
-            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log);
+            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log, dateTimeProvider);
         }
 
-        private static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log)
+        private static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log, IDateTimeProvider dateTimeProvider)
         {
             var destinationPresenters = destinationData.Where(x => x.Presenter != null).ToArray();
             var destinationSessions = destinationData.Where(x => x.Session != null).ToArray();
@@ -52,7 +52,7 @@ namespace DDD.Sessionize.Sync
             await Task.WhenAll(deletedPresenters.Select(p => repo.DeleteItemAsync(p.Id.ToString())));
             if (editedPresenters.Any())
                 log.LogInformation("Updating presenters in read model: {editedPresenterIds}", (object) editedPresenters.Select(x => x.dest.Id).ToArray());
-            await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
+            await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider))));
             if (!newPresenters.Any() && !deletedPresenters.Any() && !editedPresenters.Any())
                 log.LogInformation("Presenters up to date in read model");
 
@@ -83,7 +83,7 @@ namespace DDD.Sessionize.Sync
             await Task.WhenAll(deletedSessions.Select(s => repo.DeleteItemAsync(s.Id.ToString())));
             if (editedSessions.Any())
                 log.LogInformation("Editing sessions in read model: {editedSessionIds}", (object)editedSessions.Select(x => x.dest.Id).ToArray());
-            await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
+            await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider))));
             if (!newSessions.Any() && !deletedSessions.Any() && !editedSessions.Any())
                 log.LogInformation("Sessions up to date in read model");
         }

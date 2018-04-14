@@ -1,5 +1,6 @@
 ﻿using System;
 using DDD.Core.Domain;
+using DDD.Core.Time;
 using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
@@ -26,15 +27,19 @@ namespace DDD.Sessionize
             Id = presenter.Id.ToString();
         }
 
-        public SessionOrPresenter Update(Session session)
+        public SessionOrPresenter Update(Session session, IDateTimeProvider dateTimeProvider)
         {
             session.Id = Session.Id;
+            session.CreatedDate = Session.CreatedDate;
+            session.ModifiedDate = dateTimeProvider.Now();
             return new SessionOrPresenter(session);
         }
 
-        public SessionOrPresenter Update(Presenter presenter)
+        public SessionOrPresenter Update(Presenter presenter, IDateTimeProvider dateTimeProvider)
         {
             presenter.Id = Presenter.Id;
+            presenter.CreatedDate = Presenter.CreatedDate;
+            presenter.ModifiedDate = dateTimeProvider.Now();
             return new SessionOrPresenter(presenter);
         }
 
