@@ -28,7 +28,7 @@ namespace DDD.Sessionize.Sync
             await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log);
         }
 
-        public static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log)
+        private static async Task PerformSync(DocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log)
         {
             var destinationPresenters = destinationData.Where(x => x.Presenter != null).ToArray();
             var destinationSessions = destinationData.Where(x => x.Session != null).ToArray();
@@ -52,6 +52,8 @@ namespace DDD.Sessionize.Sync
             if (editedPresenters.Any())
                 log.LogInformation("Updating presenters in read model: {editedPresenterIds}", (object) editedPresenters.Select(x => x.dest.Id).ToArray());
             await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
+            if (!newPresenters.Any() && !deletedPresenters.Any() && !editedPresenters.Any())
+                log.LogInformation("Presenters up to date in read model");
 
             // Update presenter ids on sessions
             sourceSessions.ToList().ForEach(s => s.PresenterIds = s.PresenterIds.Select(pId =>
@@ -81,6 +83,8 @@ namespace DDD.Sessionize.Sync
             if (editedSessions.Any())
                 log.LogInformation("Editing sessions in read model: {editedSessionIds}", (object)editedSessions.Select(x => x.dest.Id).ToArray());
             await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src))));
+            if (!newSessions.Any() && !deletedSessions.Any() && !editedSessions.Any())
+                log.LogInformation("Sessions up to date in read model");
         }
     }
 }
