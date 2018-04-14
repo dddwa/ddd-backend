@@ -5,15 +5,13 @@ VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.API", "DDD.API\DDD.API.csproj", "{764683EB-7DF4-4F53-8E65-FA9F0C05CEEF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.SessionizeWorker", "DDD.SessionizeWorker\DDD.SessionizeWorker.csproj", "{42DF3603-370D-419F-A6E3-A616F6FF611E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Core", "DDD.Core\DDD.Core.csproj", "{694C5BD7-98DF-489A-9812-32138F1AFF3F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Functions", "DDD.Functions\DDD.Functions.csproj", "{9210235A-A56F-4461-8550-A8F1D990A8E9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Sessionize", "DDD.Sessionize\DDD.Sessionize.csproj", "{14D97870-A1C6-4EB5-88E0-461FB597C8DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDD.Sessionize.Tests", "DDD.Sessionize.Tests\DDD.Sessionize.Tests.csproj", "{F6535FE3-46CF-4048-89FA-8F341D9A5A64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Sessionize.Tests", "DDD.Sessionize.Tests\DDD.Sessionize.Tests.csproj", "{F6535FE3-46CF-4048-89FA-8F341D9A5A64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{764683EB-7DF4-4F53-8E65-FA9F0C05CEEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{764683EB-7DF4-4F53-8E65-FA9F0C05CEEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{764683EB-7DF4-4F53-8E65-FA9F0C05CEEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42DF3603-370D-419F-A6E3-A616F6FF611E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42DF3603-370D-419F-A6E3-A616F6FF611E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42DF3603-370D-419F-A6E3-A616F6FF611E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42DF3603-370D-419F-A6E3-A616F6FF611E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{694C5BD7-98DF-489A-9812-32138F1AFF3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
