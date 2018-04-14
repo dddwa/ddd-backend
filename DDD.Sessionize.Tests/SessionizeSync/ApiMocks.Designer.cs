@@ -63,9 +63,9 @@ namespace DDD.Sessionize.Tests.SessionizeSync {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] EmptyReadModelScenario {
+        internal static byte[] EmptyReadModelScenarioMock {
             get {
-                object obj = ResourceManager.GetObject("EmptyReadModelScenario", resourceCulture);
+                object obj = ResourceManager.GetObject("EmptyReadModelScenarioMock", resourceCulture);
                 return ((byte[])(obj));
             }
         }

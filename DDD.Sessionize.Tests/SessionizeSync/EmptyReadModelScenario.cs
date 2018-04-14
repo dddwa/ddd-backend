@@ -19,7 +19,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public void AndGivenSessionizeHasPresentersAndSessions()
         {
-            _sessionizeApiClient = SessionizeApiClientMock.Get(ApiMocks.EmptyReadModelScenario);
+            _sessionizeApiClient = SessionizeApiClientMock.Get(ApiMocks.EmptyReadModelScenarioMock);
         }
 
         public async Task WhenPerformingSync()
