@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Sessionize.Sessionize;
@@ -19,7 +21,8 @@ namespace DDD.Sessionize.Tests.SessionizeSync
         
         public void AndGivenSessionizeHasPresentersAndSessions()
         {
-            _sessionizeApiClient = SessionizeApiClientMock.Get(_ApiMocks.EmptyReadModelScenarioMock);
+            _sessionizeApiClient = SessionizeApiClientMock.Get(
+                GetResource("EmptyReadModelScenarioMock.json"));
         }
 
         public async Task WhenPerformingSync()

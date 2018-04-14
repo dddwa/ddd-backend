@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
 using Shouldly.Core;
 using TestStack.BDDfy;
 using TestStack.BDDfy.Configuration;
@@ -22,6 +23,15 @@ namespace DDD.Sessionize.Tests.TestHelpers
                 .WithDescriminator($"_{testMethod}")
                 .WithScrubber(_guidScrubber.Scrub)
             );
+        }
+
+        public string GetResource(string fileName)
+        {
+            using (var sr = new StreamReader(GetType().Assembly
+                .GetManifestResourceStream(GetType(), fileName)))
+            {
+                return sr.ReadToEnd();
+            }
         }
 
         [Fact]

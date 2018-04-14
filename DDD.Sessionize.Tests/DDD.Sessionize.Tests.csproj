@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
+    <None Remove="SessionizeSync\EmptyReadModelScenarioMock.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="newtonsoft.json" Version="9.0.1" />
     <PackageReference Include="Polly" Version="5.9.0" />
@@ -18,23 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
+    <EmbeddedResource Include="SessionizeSync\EmptyReadModelScenarioMock.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DDD.Core\DDD.Core.csproj" />
     <ProjectReference Include="..\DDD.Sessionize\DDD.Sessionize.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="SessionizeSync\_ApiMocks.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>_ApiMocks.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="SessionizeSync\_ApiMocks.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>_ApiMocks.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

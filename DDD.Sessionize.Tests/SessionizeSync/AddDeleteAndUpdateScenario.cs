@@ -22,7 +22,8 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public void AndGivenSessionizeHasPresentersAndSessions()
         {
-            _sessionizeApiClient = SessionizeApiClientMock.Get(_ApiMocks.EmptyReadModelScenarioMock);
+            _sessionizeApiClient = SessionizeApiClientMock.Get(
+                GetResource("EmptyReadModelScenarioMock.json"));
         }
 
         public async Task WhenPerformingSync()
@@ -32,7 +33,8 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public void AndGivenSessionizeHasNewUpdatedAndDeletedPresentersAndSessions()
         {
-            _sessionizeApiClient = SessionizeApiClientMock.Get(_ApiMocks.AddDeleteAndUpdateScenarioMock);
+            _sessionizeApiClient = SessionizeApiClientMock.Get(
+                GetResource("AddDeleteAndUpdateScenarioMock.json"));
         }
 
         public async Task WhenPerformingSubsequentSync()
