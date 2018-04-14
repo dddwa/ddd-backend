@@ -25,7 +25,7 @@ namespace DDD.Sessionize.Tests.TestHelpers
         }
 
         [Fact]
-        public void Test()
+        public virtual void Run()
         {
             this.BDDfy(GetType().Name);
         }

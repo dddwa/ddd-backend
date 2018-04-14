@@ -22,14 +22,14 @@ namespace DDD.Sessionize.Tests.SessionizeSync {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ApiMocks {
+    internal class _ApiMocks {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ApiMocks() {
+        internal _ApiMocks() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DDD.Sessionize.Tests.SessionizeSync.ApiMocks", typeof(ApiMocks).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DDD.Sessionize.Tests.SessionizeSync._ApiMocks", typeof(_ApiMocks).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,16 @@ namespace DDD.Sessionize.Tests.SessionizeSync {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] AddDeleteAndUpdateScenarioMock {
+            get {
+                object obj = ResourceManager.GetObject("AddDeleteAndUpdateScenarioMock", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         

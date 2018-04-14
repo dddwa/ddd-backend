@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Polly;
 
 namespace DDD.Core.DocumentDb
 {
@@ -24,8 +25,15 @@ namespace DDD.Core.DocumentDb
 
         public async Task InitializeAsync()
         {
-            await CreateDatabaseIfNotExistsAsync();
-            await CreateCollectionIfNotExistsAsync();
+            await Policy
+                .Handle<DocumentClientException>()
+                .WaitAndRetryAsync(3, retryAttempt =>
+                    TimeSpan.FromMilliseconds(100 * Math.Pow(2, retryAttempt))
+                ).ExecuteAsync(async () =>
+                {
+                    await CreateDatabaseIfNotExistsAsync();
+                    await CreateCollectionIfNotExistsAsync();
+                });
         }
 
         public async Task<T> GetItemAsync(string id)

@@ -6,23 +6,36 @@ using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using DDD.Sessionize.Tests.TestHelpers;
 using Shouldly;
+using TestStack.BDDfy;
+using Xunit;
 using Xunit.Abstractions;
+using Scenario = DDD.Sessionize.Tests.TestHelpers.Scenario;
 
 namespace DDD.Sessionize.Tests.SessionizeSync
 {
-    public class EmptyReadModelScenario : Scenario
+    public class AddDeleteAndUpdateScenario : Scenario
     {
         public async Task GivenEmptyReadModel()
         {
             _documentDbRepository = await EmptyDocumentDb.InitializeAsync<SessionOrPresenter>(TestDatabaseId, TestCollectionId);
         }
-        
+
         public void AndGivenSessionizeHasPresentersAndSessions()
         {
             _sessionizeApiClient = SessionizeApiClientMock.Get(_ApiMocks.EmptyReadModelScenarioMock);
         }
 
         public async Task WhenPerformingSync()
+        {
+            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider);
+        }
+
+        public void AndGivenSessionizeHasNewUpdatedAndDeletedPresentersAndSessions()
+        {
+            _sessionizeApiClient = SessionizeApiClientMock.Get(_ApiMocks.AddDeleteAndUpdateScenarioMock);
+        }
+
+        public async Task WhenPerformingSubsequentSync()
         {
             await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider);
         }
@@ -48,7 +61,22 @@ namespace DDD.Sessionize.Tests.SessionizeSync
             Approve(_logger.ToString());
         }
 
-        public EmptyReadModelScenario(ITestOutputHelper output)
+        [Fact]
+        public override void Run()
+        {
+            this.Given(x => x.GivenEmptyReadModel())
+                .And(x => x.AndGivenSessionizeHasPresentersAndSessions())
+                .When(x => x.WhenPerformingSync())
+                .Given(x => x.AndGivenSessionizeHasNewUpdatedAndDeletedPresentersAndSessions())
+                .When(x => x.WhenPerformingSubsequentSync())
+                .Then(x => x.ThenTheReadModelIsPopulated())
+                .And(x => x.AndTheReadModelHasTheCorrectPresenters())
+                .And(x => x.AndTheReadModelHasTheCorrectSessions())
+                .And(x => x.AndTheLoggerOutputIsCorrect())
+                .BDDfy(GetType().Name);
+        }
+
+        public AddDeleteAndUpdateScenario(ITestOutputHelper output)
         {
             _logger = new Xunit2Logger(output);
             Xunit2BddfyTextReporter.Instance.RegisterOutput(output);
@@ -59,7 +87,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;
         private SessionOrPresenter[] _readModel;
-        private const string TestDatabaseId = "EmptyReadModelScenario";
+        private const string TestDatabaseId = "AddDeleteAndUpdateScenario";
         private const string TestCollectionId = "Sessions";
     }
 }

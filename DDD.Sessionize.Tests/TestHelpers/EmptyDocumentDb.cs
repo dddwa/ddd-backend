@@ -1,6 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Polly;
 
 namespace DDD.Sessionize.Tests.TestHelpers
 {
@@ -12,7 +16,21 @@ namespace DDD.Sessionize.Tests.TestHelpers
             where T : class
         {
             var documentClient = DocumentDbAccount.Parse(DocumentDbEmulator);
-            await documentClient.DeleteDatabaseAsync(UriFactory.CreateDatabaseUri(testDatabaseId));
+
+            try
+            {
+                await Policy
+                    .Handle<DocumentClientException>(e => e.StatusCode != HttpStatusCode.NotFound)
+                    .WaitAndRetryAsync(3, retryAttempt =>
+                        TimeSpan.FromMilliseconds(100 * Math.Pow(2, retryAttempt))
+                    ).ExecuteAsync(async () => await documentClient.DeleteDatabaseAsync(UriFactory.CreateDatabaseUri(testDatabaseId)));
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode != HttpStatusCode.NotFound)
+                    throw;
+            }
+
             var repo = new DocumentDbRepository<T>(documentClient, testDatabaseId, testCollectionId);
             await repo.InitializeAsync();
             return repo;
