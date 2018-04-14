@@ -1,0 +1,77 @@
+resources:
+- repo: self
+queue:
+  name: Hosted VS2017
+  demands: azureps
+
+
+variables:
+  StorageAccount: 'dddperthdeployments'
+  StorageContainer: 'ddd-functions'
+steps:
+- powershell: |
+   $tmp = $env:System_DefaultWorkingDirectory
+   $msi = Join-Path $tmp "cosmos-db.msi"
+   (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/cosmosdb-emulator", $msi)
+    
+
+- task: ivanboyko.vsts-deploy-MSI.ivanboyko.deploy.MSI.ivanboyko.deploy.MSI@2
+  inputs:
+    msiFilesMask: 'cosmos-db.msi'
+
+- powershell: |
+   & "C:\Program Files\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe"  /NoExplorer /NoUI
+   
+   $at = 0
+   $client = New-Object System.Net.Sockets.TcpClient([System.Net.Sockets.AddressFamily]::InterNetwork)
+    
+   do {
+       $at++
+       try {    
+           $client.Connect("127.0.0.1", 8081)
+           write-host "CosmosDB started"
+       }
+       catch {
+           $client.Close()
+           if($at -eq 5) {
+               write-host "CosmosDB was not started"
+           } else {
+               [int]$sleepTime = 3*$attempt
+               sleep $sleepTime;
+           }
+       }
+   }while(!$client.Connected -and $at -lt $max)
+    
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: restore
+    projects: '$(Parameters.RestoreBuildProjects)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    projects: '$(Parameters.RestoreBuildProjects)'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: '$(Parameters.TestProjects)'
+    arguments: '--configuration $(BuildConfiguration) --no-build'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'DDD.Functions\DDD.Functions.csproj'
+    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)\$(Build.BuildNumber)'
+    modifyOutputPath: false
+
+- task: AzureFileCopy@1
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)\$(Build.BuildNumber).zip'
+    azureSubscription: 'Microsoft Azure Sponsorship (dd079971-2023-4b56-be3a-85a346d51344)'
+    Destination: AzureBlob
+    storage: '$(StorageAccount)'
+    ContainerName: '$(StorageContainer)'
+
