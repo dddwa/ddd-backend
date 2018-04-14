@@ -43,7 +43,7 @@ namespace DDD.SessionizeWorker
                 var apiClient = new SessionizeApiClient(httpClient, sessionizeApiKey);
 
                 var repo = new DocumentDbRepository<SessionOrPresenter>(new DocumentClient(new Uri(cosmosEndpoint), cosmosKey), cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
-                await repo.Initialize();
+                await repo.InitializeAsync();
 
                 await SyncService.Sync(apiClient, repo, logger);
             }

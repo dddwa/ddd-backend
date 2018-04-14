@@ -24,7 +24,7 @@ namespace DDD.Functions
             var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
 
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.Initialize();
+            await repo.InitializeAsync();
 
             using (var httpClient = new HttpClient())
             {

@@ -1,4 +1,5 @@
-﻿using DDD.Core.Domain;
+﻿using System;
+using DDD.Core.Domain;
 using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
@@ -35,6 +36,11 @@ namespace DDD.Sessionize
         {
             presenter.Id = Presenter.Id;
             return new SessionOrPresenter(presenter);
+        }
+
+        public Guid GetId()
+        {
+            return Session?.Id ?? Presenter.Id;
         }
     }
 }

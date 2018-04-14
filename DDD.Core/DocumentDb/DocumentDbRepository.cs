@@ -22,7 +22,7 @@ namespace DDD.Core.DocumentDb
             _client = client;
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             await CreateDatabaseIfNotExistsAsync();
             await CreateCollectionIfNotExistsAsync();

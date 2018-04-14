@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RuntimeFrameworkVersion>2.0.5</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
+    <PackageReference Include="newtonsoft.json" Version="9.0.1" />
+    <PackageReference Include="shouldly" Version="3.0.0" />
+    <PackageReference Include="teststack.bddfy" Version="4.3.2" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="microsoft.azure.documentdb.core" Version="1.9.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DDD.Core\DDD.Core.csproj" />
+    <ProjectReference Include="..\DDD.Sessionize\DDD.Sessionize.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="SessionizeSync\ApiMocks.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ApiMocks.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="SessionizeSync\ApiMocks.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ApiMocks.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestHelpers\Shouldly\Shouldly.Core.csproj" />
+  </ItemGroup>
+
+</Project>
