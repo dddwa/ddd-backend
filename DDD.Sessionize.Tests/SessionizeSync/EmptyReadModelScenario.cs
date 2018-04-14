@@ -1,11 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using DDD.Sessionize.Tests.TestHelpers;
 using Shouldly;
-using Shouldly.Core;
 using Xunit.Abstractions;
 
 namespace DDD.Sessionize.Tests.SessionizeSync
@@ -24,13 +24,12 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public async Task WhenPerformingSync()
         {
-            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger);
+            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider);
         }
 
         public async Task ThenTheReadModelIsPopulated()
         {
             _readModel = (await _documentDbRepository.GetAllItemsAsync()).ToArray();
-            _normalisedIdConverter = SessionOrPresenterAssertions.NormaliseIds(_readModel);
             _readModel.ShouldNotBeEmpty();
         }
 
@@ -46,7 +45,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public void AndTheLoggerOutputIsCorrect()
         {
-            Approve(_normalisedIdConverter.Convert(_logger));
+            Approve(_logger.ToString());
         }
 
         public EmptyReadModelScenario(ITestOutputHelper output)
@@ -55,11 +54,11 @@ namespace DDD.Sessionize.Tests.SessionizeSync
             Xunit2BddfyTextReporter.Instance.RegisterOutput(output);
         }
 
+        private readonly StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
         private DocumentDbRepository<SessionOrPresenter> _documentDbRepository;
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;
         private SessionOrPresenter[] _readModel;
-        private IdConverter _normalisedIdConverter;
         private const string TestDatabaseId = "ConferenceTest";
         private const string TestCollectionId = "Sessions";
     }

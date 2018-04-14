@@ -2,23 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using DDD.Core.Domain;
+using DDD.Core.Time;
 using DDD.Sessionize.Sessionize;
 
 namespace DDD.Sessionize.SessionizeAdapter
 {
     public class SessionizeAdapter
     {
-        public Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData)
+        public Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
         {
             var categories = GetCategories(sessionizeData);
             var presenters = GetPresenters(sessionizeData);
             var mobilePhoneQuestion = sessionizeData.Questions.Single(q => q.Question == MobileNumberQuestion);
-            var sessions = GetSessions(sessionizeData, categories, presenters, mobilePhoneQuestion);
+            var sessions = GetSessions(sessionizeData, categories, presenters, mobilePhoneQuestion, dateTimeProvider);
 
             return Tuple.Create(sessions, presenters);
         }
 
-        private static Session[] GetSessions(SessionizeResponse sessionizeData, CategoryItem[] categories, Presenter[] presenters, SessionizeQuestion mobilePhoneQuestion)
+        private static Session[] GetSessions(SessionizeResponse sessionizeData, CategoryItem[] categories, Presenter[] presenters, SessionizeQuestion mobilePhoneQuestion, IDateTimeProvider dateTimeProvider)
         {
             return sessionizeData.Sessions.Select(s => new Session
             {
@@ -26,7 +27,7 @@ namespace DDD.Sessionize.SessionizeAdapter
                 ExternalId = s.Id,
                 Title = s.Title,
                 Abstract = s.Description,
-                CreatedDate = DateTimeOffset.UtcNow,
+                CreatedDate = dateTimeProvider.Now(),
                 Format = s.CategoryItemIds.Where(cId =>
                         categories.Any(c => c.Type == CategoryType.SessionFormat && c.Id == cId))
                     .Select(cId => categories.First(c => c.Id == cId))

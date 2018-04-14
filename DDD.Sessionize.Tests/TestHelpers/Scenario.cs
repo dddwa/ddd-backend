@@ -17,22 +17,19 @@ namespace DDD.Sessionize.Tests.TestHelpers
         {
             textToApprove.ShouldMatchApproved(b => b
                 .WithName(GetType().Name)
-                .InFolder(GetType().Namespace.Replace("DDD.Sessionize.", "").Replace(".", "\\"))
+                .InFolder(GetType().Namespace.Replace("DDD.Sessionize.Tests.", "").Replace(".", "\\"))
                 .WithFileExtension($".{extension}")
                 .WithDescriminator($"_{testMethod}")
-                //.WithScrubber(ReplaceGeneratedIds)
+                .WithScrubber(_guidScrubber.Scrub)
             );
         }
-
-        /*string ReplaceGeneratedIds(string received)
-        {
-            return Regex.Replace(received, "[{(\"]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[\")}]?", g => $"\"{Guid.Empty:D}\"", RegexOptions.IgnoreCase);
-        }*/
 
         [Fact]
         public void Test()
         {
             this.BDDfy(GetType().Name);
         }
+
+        private readonly GuidScrubber _guidScrubber = new GuidScrubber();
     }
 }

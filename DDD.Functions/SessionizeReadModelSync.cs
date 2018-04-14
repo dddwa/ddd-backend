@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
+using DDD.Core.Time;
 using DDD.Functions.Config;
 using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
@@ -30,7 +31,7 @@ namespace DDD.Functions
             {
                 var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
 
-                await SyncService.Sync(apiClient, repo, log);
+                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider());
             }
         }
     }

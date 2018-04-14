@@ -1,0 +1,34 @@
+[
+  {
+    "Id": "00000000-0000-0000-0000-000000000007",
+    "ExternalId": "14093",
+    "Title": "Sophia's Session",
+    "Abstract": "Usually, you would find a session description here. But, this is not a real session submission, so description is missing. Ha!",
+    "PresenterIds": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "Format": "LightningTalk",
+    "Level": null,
+    "Tags": [],
+    "MobilePhoneContact": null
+  },
+  {
+    "Id": "00000000-0000-0000-0000-000000000008",
+    "ExternalId": "38112",
+    "Title": "An Agile Retrospective",
+    "Abstract": "One of the core principles behind Agile software development is being retrospective and fostering a culture of continuous improvement. In this session you will see us do that on a macro scale. As consultants we've seen more than our fair share of Agile done right and Agile done poorly as well as everything in between.\r\n\r\nBack in 2011, Rob made a prediction on his blog that \"within the next 5 years Agile won’t exist anymore because everyone will be doing it; kind of like what happened to Object Orientation\". Now, on first thought, a talk about Agile in 2017 seems a bit outdated. The problem is, to this day a lot of companies/teams still can't get it right and we have famous Agile advocates saying things like \"Agile is dead\". So, while Rob's prediction hasn't completely held true, it's still a good time to reflect on it.\r\n\r\nThis session will cover a bunch of stuff that we notice all the time across multiple companies that doesn't hold true against the values and principles of the Agile manifesto, we'll blow a hole through all of the strawman arguments we hear day in, day out, and we will inject some enthusiasm and experience by describing the techniques we use to stay true to the original values and principles of Agile and helps us consistently deliver great software outcomes.",
+    "PresenterIds": [
+      "00000000-0000-0000-0000-000000000003"
+    ],
+    "CreatedDate": "2010-01-01T08:00:00+08:00",
+    "Format": "FullTalk",
+    "Level": "Intermediate",
+    "Tags": [
+      "Testing",
+      "Design and UX",
+      "Agile"
+    ],
+    "MobilePhoneContact": "0400777763"
+  }
+]

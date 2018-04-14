@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
+using DDD.Core.Time;
 using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
@@ -45,7 +46,7 @@ namespace DDD.SessionizeWorker
                 var repo = new DocumentDbRepository<SessionOrPresenter>(new DocumentClient(new Uri(cosmosEndpoint), cosmosKey), cosmosSettings.DatabaseId, cosmosSettings.CollectionId);
                 await repo.InitializeAsync();
 
-                await SyncService.Sync(apiClient, repo, logger);
+                await SyncService.Sync(apiClient, repo, logger, new DateTimeProvider());
             }
         }
     }

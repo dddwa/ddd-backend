@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Core.Domain;
+using DDD.Core.Time;
 using DDD.Sessionize.Sessionize;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +11,14 @@ namespace DDD.Sessionize.Sync
 {
     public static class SyncService
     {
-        public static async Task Sync(ISessionizeApiClient apiClient, DocumentDbRepository<SessionOrPresenter> repo, ILogger log)
+        public static async Task Sync(ISessionizeApiClient apiClient, DocumentDbRepository<SessionOrPresenter> repo, ILogger log, IDateTimeProvider dateTimeProvider)
         {
             var sessionizeData = await apiClient.GetAllData();
 
             log.LogInformation("Retrieved {sessionCount} sessions, {presenterCount} presenters from Sessionize API {sessionizeApiUrl}", sessionizeData.Sessions.Length, sessionizeData.Speakers.Length, apiClient.GetUrl());
 
             var adapter = new SessionizeAdapter.SessionizeAdapter();
-            var sourceData = adapter.Convert(sessionizeData);
+            var sourceData = adapter.Convert(sessionizeData, dateTimeProvider);
 
             log.LogInformation("Sessionize data successfully adapted to DDD domain model: {sessionCount} sessions and {presenterCount} presenters", sourceData.Item1.Length, sourceData.Item2.Length);
 
