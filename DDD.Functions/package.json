@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "azure-storage": "^2.2.1",
+    "request": "*"
+  }
+}
