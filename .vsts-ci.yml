@@ -9,6 +9,10 @@ variables:
   StorageAccount: 'dddperthdeployments'
   StorageContainer: 'ddd-functions'
 steps:
+- task: Npm@1
+  inputs:
+    workingDir: DDD.Functions
+    verbose: false
 
 - task: DotNetCoreCLI@2
   inputs:
