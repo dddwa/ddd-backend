@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "azure-storage": "^2.2.1",
-    "request": "*"
+    "azure-storage": "^2.8.1",
+    "request": "^2.85.0"
   }
 }
