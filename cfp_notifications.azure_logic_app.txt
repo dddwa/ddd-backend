@@ -1,0 +1,178 @@
+{
+    "$connections": {
+        "value": {
+            "office365": {
+                "connectionId": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/resourceGroups/dddperth-backend/providers/Microsoft.Web/connections/office365",
+                "connectionName": "office365",
+                "id": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/providers/Microsoft.Web/locations/australiaeast/managedApis/office365"
+            },
+            "teams": {
+                "connectionId": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/resourceGroups/dddperth-backend/providers/Microsoft.Web/connections/teams",
+                "connectionName": "teams",
+                "id": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/providers/Microsoft.Web/locations/australiaeast/managedApis/teams"
+            }
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "For_each": {
+                "actions": {
+                    "Compose": {
+                        "inputs": "@items('For_each')?['Name']",
+                        "runAfter": {},
+                        "type": "Compose"
+                    }
+                },
+                "foreach": "@triggerBody()?['Presenters']",
+                "runAfter": {},
+                "type": "Foreach"
+            },
+            "Post_message": {
+                "inputs": {
+                    "body": {
+                        "rootMessage": {
+                            "body": {
+                                "content": "@{join(actionOutputs('Compose'), ', ')} submitted a talk '@{triggerBody()?['Session']['Title']}' as @{triggerBody()?['Session']['Format']} / @{triggerBody()?['Session']['Level']} with tags @{join(triggerBody()?['Session']['Tags'], ', ')}.",
+                                "contentType": 1
+                            }
+                        }
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['teams']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/beta/groups/@{encodeURIComponent('23a18b51-c439-4146-9784-0ac93ba786ff')}/channels/@{encodeURIComponent('2898b410-3d52-44e3-bde4-c2b23f03a227')}/chatThreads"
+                },
+                "runAfter": {
+                    "For_each": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "Send_an_email": {
+                "inputs": {
+                    "body": {
+                        "Body": "There was a failure executing Teams message post for @{triggerBody()?['Session']['Title']}.",
+                        "Subject": "[Azure Logic Apps] CFP Notification Fail",
+                        "To": "robm@dddperth.com"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['office365']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/Mail"
+                },
+                "runAfter": {
+                    "Post_message": [
+                        "Failed",
+                        "TimedOut"
+                    ]
+                },
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "Presenters": {
+                                "items": {
+                                    "properties": {
+                                        "Bio": {
+                                            "type": "string"
+                                        },
+                                        "ExternalId": {
+                                            "type": "string"
+                                        },
+                                        "Id": {
+                                            "type": "string"
+                                        },
+                                        "Name": {
+                                            "type": "string"
+                                        },
+                                        "ProfilePhotoUrl": {
+                                            "type": "string"
+                                        },
+                                        "Tagline": {
+                                            "type": "string"
+                                        },
+                                        "TwitterHandle": {
+                                            "type": "string"
+                                        },
+                                        "WebsiteUrl": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "Id",
+                                        "ExternalId",
+                                        "Name",
+                                        "Tagline",
+                                        "Bio",
+                                        "ProfilePhotoUrl",
+                                        "WebsiteUrl",
+                                        "TwitterHandle"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            "Session": {
+                                "properties": {
+                                    "Abstract": {
+                                        "type": "string"
+                                    },
+                                    "CreatedDate": {
+                                        "type": "string"
+                                    },
+                                    "ExternalId": {
+                                        "type": "string"
+                                    },
+                                    "Format": {
+                                        "type": "number"
+                                    },
+                                    "Id": {
+                                        "type": "string"
+                                    },
+                                    "Level": {},
+                                    "MobilePhoneContact": {},
+                                    "PresenterIds": {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "Tags": {
+                                        "type": "array"
+                                    },
+                                    "Title": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    }
+}
