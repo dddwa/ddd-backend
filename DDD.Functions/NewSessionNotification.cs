@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace DDD.Functions
 {
@@ -48,7 +49,7 @@ namespace DDD.Functions
                     {
                         Session = session,
                         Presenters = presenters.Select(x => x.Presenter).ToArray()
-                    });
+                    }, Formatting.None, new StringEnumConverter());
 
                     // Post the data
                     log.LogInformation("Posting {documentId} to {logicAppUrl}", document.Id, config.LogicAppUrl);

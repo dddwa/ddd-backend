@@ -36,7 +36,7 @@ namespace DDD.Core.Domain
         LightningTalk,
         [Description("45 mins (40 mins talking)")]
         FullTalk,
-        [Description("Workshop")]
-        Workshop
+        [Description("Either (45 mins or 20 mins)")]
+        Either
     }
 }
