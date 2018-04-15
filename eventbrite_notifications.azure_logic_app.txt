@@ -1,0 +1,89 @@
+{
+    "$connections": {
+        "value": {
+            "azurequeues": {
+                "connectionId": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/resourceGroups/dddperth-backend/providers/Microsoft.Web/connections/azurequeues",
+                "connectionName": "azurequeues",
+                "id": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/providers/Microsoft.Web/locations/australiaeast/managedApis/azurequeues"
+            },
+            "teams": {
+                "connectionId": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/resourceGroups/dddperth-backend/providers/Microsoft.Web/connections/teams",
+                "connectionName": "teams",
+                "id": "/subscriptions/dd079971-2023-4b56-be3a-85a346d51344/providers/Microsoft.Web/locations/australiaeast/managedApis/teams"
+            }
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Delete_message": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azurequeues']['connectionId']"
+                        }
+                    },
+                    "method": "delete",
+                    "path": "/@{encodeURIComponent('attendees')}/messages/@{encodeURIComponent(triggerBody()?['MessageId'])}",
+                    "queries": {
+                        "popreceipt": "@triggerBody()?['PopReceipt']"
+                    }
+                },
+                "runAfter": {
+                    "Post_message": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "Post_message": {
+                "inputs": {
+                    "body": {
+                        "rootMessage": {
+                            "body": {
+                                "content": "@{json(trigger().outputs.body.MessageText).name} is attending @{json(trigger().outputs.body.MessageText).event} as @{json(trigger().outputs.body.MessageText).ticketClass} (orderid: @{json(trigger().outputs.body.MessageText).orderId}). @{json(trigger().outputs.body.MessageText).qtySold}/@{json(trigger().outputs.body.MessageText).totalQty} @{json(trigger().outputs.body.MessageText).ticketClass} tickets taken.",
+                                "contentType": 1
+                            }
+                        }
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['teams']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/beta/groups/@{encodeURIComponent('23a18b51-c439-4146-9784-0ac93ba786ff')}/channels/@{encodeURIComponent('2898b410-3d52-44e3-bde4-c2b23f03a227')}/chatThreads"
+                },
+                "runAfter": {},
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "When_there_are_messages_in_a_queue": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azurequeues']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/@{encodeURIComponent('attendees')}/message_trigger"
+                },
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 5
+                },
+                "splitOn": "@triggerBody()?['QueueMessagesList']['QueueMessage']",
+                "type": "ApiConnection"
+            }
+        }
+    }
+}
