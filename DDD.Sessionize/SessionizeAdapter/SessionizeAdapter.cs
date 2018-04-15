@@ -96,12 +96,12 @@ namespace DDD.Sessionize.SessionizeAdapter
         {
             {SessionFormatLightningTalkTitle, SessionFormat.LightningTalk},
             {SessionFormatFullTalkTitle, SessionFormat.FullTalk},
-            {SessionFormatWorkshopTitle, SessionFormat.Workshop},
+            {SessionFormatEitherTitle, SessionFormat.Either},
         };
 
         public const string SessionFormatLightningTalkTitle = "20 mins (15 mins talking)";
         public const string SessionFormatFullTalkTitle = "45 mins (40 mins talking)";
-        public const string SessionFormatWorkshopTitle = "Workshop";
+        public const string SessionFormatEitherTitle = "Either (45 mins or 20 mins)";
         public const string LevelTitle = "Level";
         public const string TagsTitle = "Tags";
 
