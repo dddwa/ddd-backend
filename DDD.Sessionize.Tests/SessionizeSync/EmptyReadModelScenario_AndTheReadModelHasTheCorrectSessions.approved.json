@@ -9,10 +9,10 @@
     ],
     "CreatedDate": "2010-01-01T00:00:00+00:00",
     "ModifiedDate": null,
-    "Format": "LightningTalk",
+    "Format": null,
     "Level": null,
     "Tags": [],
-    "MobilePhoneContact": null
+    "DataFields": {}
   },
   {
     "Id": "00000000-0000-0000-0000-000000000008",
@@ -24,13 +24,15 @@
     ],
     "CreatedDate": "2010-01-01T00:00:00+00:00",
     "ModifiedDate": null,
-    "Format": "FullTalk",
+    "Format": "45 mins (40 mins talking)",
     "Level": "Intermediate",
     "Tags": [
       "Testing",
       "Design and UX",
       "Agile"
     ],
-    "MobilePhoneContact": "0400777763"
+    "DataFields": {
+      "Mobile number": "0400777763"
+    }
   }
 ]

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using DDD.Core.Domain;
 using DDD.Core.Time;
@@ -13,13 +12,12 @@ namespace DDD.Sessionize.SessionizeAdapter
         {
             var categories = GetCategories(sessionizeData);
             var presenters = GetPresenters(sessionizeData, dateTimeProvider);
-            var mobilePhoneQuestion = sessionizeData.Questions.Single(q => q.Question == MobileNumberQuestion);
-            var sessions = GetSessions(sessionizeData, categories, presenters, mobilePhoneQuestion, dateTimeProvider);
+            var sessions = GetSessions(sessionizeData, categories, presenters, dateTimeProvider);
 
             return Tuple.Create(sessions, presenters);
         }
 
-        private static Session[] GetSessions(SessionizeResponse sessionizeData, CategoryItem[] categories, Presenter[] presenters, SessionizeQuestion mobilePhoneQuestion, IDateTimeProvider dateTimeProvider)
+        private static Session[] GetSessions(SessionizeResponse sessionizeData, CategoryItem[] categories, Presenter[] presenters, IDateTimeProvider dateTimeProvider)
         {
             return sessionizeData.Sessions.Select(s => new Session
             {
@@ -31,7 +29,7 @@ namespace DDD.Sessionize.SessionizeAdapter
                 Format = s.CategoryItemIds.Where(cId =>
                         categories.Any(c => c.Type == CategoryType.SessionFormat && c.Id == cId))
                     .Select(cId => categories.First(c => c.Id == cId))
-                    .Select(c => SessionFormatMap[c.Title])
+                    .Select(c => c.Title)
                     .FirstOrDefault(),
                 Level = s.CategoryItemIds
                     .Where(cId => categories.Any(c => c.Type == CategoryType.Level && c.Id == cId))
@@ -44,7 +42,8 @@ namespace DDD.Sessionize.SessionizeAdapter
                     .Select(c => c.Title)
                     .ToArray(),
                 PresenterIds = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).Select(p => p.Id).ToArray(),
-                MobilePhoneContact = s.QuestionAnswers.Where(qa => qa.QuestionId == mobilePhoneQuestion.Id).Select(qa => qa.AnswerValue).FirstOrDefault()
+                DataFields = s.QuestionAnswers.Select(qa => new {q = sessionizeData.Questions.Single(q => q.Id == qa.QuestionId).Question, a = qa.AnswerValue})
+                    .ToDictionary(x => x.q, x => x.a)
             }).ToArray();
         }
 
@@ -91,25 +90,12 @@ namespace DDD.Sessionize.SessionizeAdapter
         }
 
         public const string SessionFormatTitle = "Session format";
-
-        public static readonly Dictionary<string, SessionFormat> SessionFormatMap = new Dictionary<string, SessionFormat>
-        {
-            {SessionFormatLightningTalkTitle, SessionFormat.LightningTalk},
-            {SessionFormatFullTalkTitle, SessionFormat.FullTalk},
-            {SessionFormatEitherTitle, SessionFormat.Either},
-        };
-
-        public const string SessionFormatLightningTalkTitle = "20 mins (15 mins talking)";
-        public const string SessionFormatFullTalkTitle = "45 mins (40 mins talking)";
-        public const string SessionFormatEitherTitle = "Either (45 mins or 20 mins)";
         public const string LevelTitle = "Level";
         public const string TagsTitle = "Tags";
 
         public const string LinkedInType = "LinkedIn";
         public const string TwitterType = "Twitter";
         public const string BlogType = "Blog";
-
-        public const string MobileNumberQuestion = "Mobile number";
 
         class CategoryItem
         {

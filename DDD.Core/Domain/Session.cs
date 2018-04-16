@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
@@ -13,10 +14,10 @@ namespace DDD.Core.Domain
         public Guid[] PresenterIds { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
-        public SessionFormat Format { get; set; }
+        public string Format { get; set; }
         public string Level { get; set; }
         public string[] Tags { get; set; }
-        public string MobilePhoneContact { get; set; }
+        public Dictionary<string, string> DataFields { get; set; }
 
         public bool DataEquals(Session p)
         {
@@ -26,17 +27,7 @@ namespace DDD.Core.Domain
                 && Format == p.Format
                 && Level == p.Level
                 && string.Join("|", Tags.OrderBy(x => x)) == string.Join("|", p.Tags.OrderBy(x => x))
-                && MobilePhoneContact == p.MobilePhoneContact;
+                && DataFields.Count == p.DataFields.Count && !DataFields.Except(p.DataFields).Any();
         }
-    }
-
-    public enum SessionFormat
-    {
-        [Description("20 mins (15 mins talking)")]
-        LightningTalk,
-        [Description("45 mins (40 mins talking)")]
-        FullTalk,
-        [Description("Either (45 mins or 20 mins)")]
-        Either
     }
 }
