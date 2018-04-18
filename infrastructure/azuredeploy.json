@@ -1,0 +1,200 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serverFarmResourceId": {
+            "type": "string"
+        },
+        "functionsAppName": {
+            "type": "string"
+        },
+        "storageName": {
+            "type": "string"
+        },
+        "storageType": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_ZRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Premium_LRS"
+            ]
+        },
+        "newSessionNotificationLogicAppUrl": {
+            "type": "string"
+        },
+        "deploymentZipUrl": {
+            "type": "string"
+        },
+        "sessionizeApiKey": {
+            "type": "string"
+        },
+        "sessionizeReadModelSyncSchedule": {
+            "type": "string"
+        },
+        "eventbriteApiBearerToken": {
+            "type": "string"
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "kind": "GlobalDocumentDB",
+            "name": "[parameters('functionsAppName')]",
+            "apiVersion": "2015-04-08",
+            "location": "Australia East",
+            "tags": {
+                "defaultExperience": "DocumentDB"
+            },
+            "scale": null,
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session",
+                    "maxIntervalInSeconds": 5,
+                    "maxStalenessPrefix": 100
+                },
+                "name": "[parameters('functionsAppName')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Insights/components",
+            "name": "[parameters('functionsAppName')]",
+            "apiVersion": "2014-04-01",
+            "location": "Southeast Asia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites/', parameters('functionsAppName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceId('Microsoft.Web/sites', parameters('functionsAppName')))]": "Resource"
+            },
+            "properties": {
+                "ApplicationId": "[parameters('functionsAppName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageName')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "[parameters('storageType')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('functionsAppName')]",
+            "kind": "functionapp",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[parameters('functionsAppName')]",
+                "serverFarmId": "[parameters('serverFarmResourceId')]"
+            },
+            "tags": {
+                "[concat('hidden-related:', parameters('serverFarmResourceId'))]": "Resource"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "dependsOn": [
+                        "[parameters('functionsAppName')]",
+                        "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
+                    ],
+                    "properties": {
+                        "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
+                        "WEBSITE_NODE_DEFAULT_VERSION": "8.9.4",
+                        "FUNCTIONS_EXTENSION_VERSION": "beta",
+                        "FUNCTION_APP_EDIT_MODE": "readonly",
+                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
+                        "ApplicationInsights:InstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
+                        "AzureWebJobsDashboard":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AzureWebJobsStorage":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AZURE_STORAGE_CONNECTION_STRING":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "queue_STORAGE":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "NewSessionNotificationLogicAppUrl": "[parameters('newSessionNotificationLogicAppUrl')]",
+                        "SessionsDataSourceCosmosDatabaseId": "Conference",
+                        "SessionsDataSourceCosmosCollectionId": "Sessions",
+                        "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
+                        "SessionizeReadModelSyncSchedule": "[parameters('sessionizeReadModelSyncSchedule')]",
+                        "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]"
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "type": "config",
+                    "name": "connectionstrings",
+                    "dependsOn": [
+                        "[parameters('functionsAppName')]",
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]"
+                    ],
+                    "properties": {
+                        "Sessions": {
+                            "value": "[concat('AccountEndpoint=https://', parameters('functionsAppName'), '.documents.azure.com:443/;AccountKey=', listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName')), '2015-04-08').primaryMasterKey)]",
+                            "type": "Custom"
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "web",
+                    "type": "config",
+                    "dependsOn": [
+                        "[parameters('functionsAppName')]"
+                    ],
+                    "properties": {
+                        "phpVersion": "",
+                        "pythonVersion": "",
+                        "nodeVersion": "8.9.4",
+                        "javaVersion": null,
+                        "netFrameworkVersion": "v4.0",
+                        "use32BitWorkerProcess": true,
+                        "webSocketsEnabled": true,
+                        "alwaysOn": true,
+                        "requestTracingEnabled": false,
+                        "httpLoggingEnabled": true,
+                        "logsDirectorySizeLimit": 100,
+                        "detailedErrorLoggingEnabled": false,
+                        "azureApplicationLogsFileSystemEnabled": true
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "logs",
+                    "type": "config",
+                    "dependsOn": [
+                        "[parameters('functionsAppName')]"
+                    ],
+                    "properties": {
+                        "applicationLogs": {
+                            "fileSystem": {
+                                "level": "Information"
+                            }
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "Microsoft.ApplicationInsights.AzureWebSites",
+                    "type": "siteextensions",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
+                        "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'web')]",
+                        "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
+                    ],
+                    "properties": {
+                        "feed_url": "https://www.siteextensions.net/api/v2/"
+                    }
+                }
+            ]
+        }
+    ]
+}

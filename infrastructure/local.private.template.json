@@ -1,0 +1,13 @@
+{
+    "TenantId": "",
+    "SubscriptionId": "",
+    "ConferenceName": "",
+    "Location": "Australia East",
+    "AppEnvironment": "dev",
+    "AppServicePlanResourceGroup": "",
+    "AppServicePlanName": "",
+    "NewSessionNotificationLogicAppUrl": "",
+    "DeploymentZipUrl": "",
+    "SessionizeApiKey": "",
+    "EventbriteApiBearerToken": ""
+}
