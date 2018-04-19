@@ -63,9 +63,7 @@ try {
   try {
     Get-AzureRmResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Web/sites" -ResourceName $Parameters["functionsAppName"] | Out-Null
   } catch {
-    Write-Warning "Detected first run, setting sessionize read model sync to every 10s to ensure metrics get created in app insights"
     $firstRun = $true
-    $Parameters["sessionizeReadModelSyncSchedule"] = "*/10 * * * * *"
   }
 
   Write-Output "Deploying to ARM"
@@ -73,10 +71,9 @@ try {
   Write-Output $result
 
   if ($firstRun) {
-    Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app, waiting 60s and re-running ARM with original sync schedule"
+    Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app"
     Restart-AzureRmWebApp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
-    Start-Sleep -Seconds 60
-    $Parameters["sessionizeReadModelSyncSchedule"] = $SessionizeReadModelSyncSchedule
+    Start-Sleep -Seconds 30
     $result = New-AzureRmResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
     Write-Output $result
   }

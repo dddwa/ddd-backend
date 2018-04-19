@@ -187,42 +187,6 @@
         },
         {
             "type": "microsoft.insights/alertrules",
-            "name": "SessionizeReadModelSync_Failures",
-            "apiVersion": "2014-04-01",
-            "location": "[variables('appInsightsLocation')]",
-            "tags": {
-                "[concat('hidden-link:', resourceId('Microsoft.Insights/components', parameters('functionsAppName')))]": "Resource"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
-                "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'appsettings')]",
-                "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
-            ],
-            "properties": {
-                "name": "SessionizeReadModelSync_Failures",
-                "description": null,
-                "isEnabled": true,
-                "condition": {
-                    "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-                    "dataSource": {
-                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
-                        "resourceUri": "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]",
-                        "metricNamespace": null,
-                        "metricName": "SessionizeReadModelSync Failures"
-                    },
-                    "operator": "GreaterThan",
-                    "threshold": 0,
-                    "windowSize": "PT5M"
-                },
-                "action": {
-                    "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-                    "sendToServiceOwners": true,
-                    "customEmails": []
-                }
-            }
-        },
-        {
-            "type": "microsoft.insights/alertrules",
             "name": "Request_Failures",
             "apiVersion": "2014-04-01",
             "location": "[variables('appInsightsLocation')]",
