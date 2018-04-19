@@ -38,6 +38,7 @@
         }
     },
     "variables": {
+        "appInsightsLocation": "East US"
     },
     "resources": [
         {
@@ -65,7 +66,7 @@
             "type": "Microsoft.Insights/components",
             "name": "[parameters('functionsAppName')]",
             "apiVersion": "2014-04-01",
-            "location": "Southeast Asia",
+            "location": "[variables('appInsightsLocation')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites/', parameters('functionsAppName'))]"
             ],
@@ -106,6 +107,7 @@
                     "type": "config",
                     "dependsOn": [
                         "[parameters('functionsAppName')]",
+                        "connectionStrings",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
                     ],
@@ -195,6 +197,41 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "SessionizeReadModelSync_Failures",
+            "type": "Microsoft.Insights/AlertRules",
+            "apiVersion": "2014-04-01",
+            "location": "[variables('appInsightsLocation')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
+                "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'web')]",
+                "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
+            ],
+            "properties": {
+                "name": "SessionizeReadModelSync_Failures",
+                "description": null,
+                "isEnabled": true,
+                "condition": {
+                    "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+                    "operator": "GreaterThan",
+                    "threshold": 1,
+                    "windowSize": "PT5M",
+                    "dataSource": {
+                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+                        "metricNamespace": null,
+                        "metricName": "SessionizeReadModelSync Failures",
+                        "resourceUri": "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
+                    }
+                },
+                "actions": [
+                    {
+                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+                        "sendToServiceOwners": true,
+                        "customEmails": []
+                    }
+                ]
+            }
         }
     ]
 }

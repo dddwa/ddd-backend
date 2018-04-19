@@ -9,7 +9,7 @@ if (-not (Test-Path $privateParamsFile)) {
 
 $fields = ConvertFrom-Json ([System.IO.File]::ReadAllText($privateParamsFile))
 $fieldsAsHashTable = @{}
-$fields.psobject.properties | ForEach-Object { $fieldsAsHashTable[$_.Name] = $_.Value }
+$fields.PSObject.Properties | ForEach-Object { $fieldsAsHashTable[$_.Name] = $_.Value }
 
 $profile = Select-AzureRmProfile -Path "$PSScriptRoot\profile.json" -ErrorAction SilentlyContinue
 if (-not $profile.Context) {
