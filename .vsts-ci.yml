@@ -46,3 +46,8 @@ steps:
     storage: '$(StorageAccount)'
     ContainerName: '$(StorageContainer)'
 
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: infrastructure
+    ArtifactName: infrastructure
+    publishLocation: Container
