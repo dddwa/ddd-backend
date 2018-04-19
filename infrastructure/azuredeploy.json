@@ -21,20 +21,20 @@
                 "Premium_LRS"
             ]
         },
-        "newSessionNotificationLogicAppUrl": {
-            "type": "string"
-        },
-        "deploymentZipUrl": {
-            "type": "string"
-        },
-        "sessionizeApiKey": {
-            "type": "string"
-        },
         "sessionizeReadModelSyncSchedule": {
             "type": "string"
         },
+        "newSessionNotificationLogicAppUrl": {
+            "type": "securestring"
+        },
+        "deploymentZipUrl": {
+            "type": "securestring"
+        },
+        "sessionizeApiKey": {
+            "type": "securestring"
+        },
         "eventbriteApiBearerToken": {
-            "type": "string"
+            "type": "securestring"
         }
     },
     "variables": {
@@ -46,7 +46,7 @@
             "kind": "GlobalDocumentDB",
             "name": "[parameters('functionsAppName')]",
             "apiVersion": "2015-04-08",
-            "location": "Australia East",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "defaultExperience": "DocumentDB"
             },
@@ -182,30 +182,20 @@
                             }
                         }
                     }
-                },
-                {
-                    "apiVersion": "2015-08-01",
-                    "name": "Microsoft.ApplicationInsights.AzureWebSites",
-                    "type": "siteextensions",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
-                        "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'web')]",
-                        "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
-                    ],
-                    "properties": {
-                        "feed_url": "https://www.siteextensions.net/api/v2/"
-                    }
                 }
             ]
         },
         {
+            "type": "microsoft.insights/alertrules",
             "name": "SessionizeReadModelSync_Failures",
-            "type": "Microsoft.Insights/AlertRules",
             "apiVersion": "2014-04-01",
             "location": "[variables('appInsightsLocation')]",
+            "tags": {
+                "[concat('hidden-link:', resourceId('Microsoft.Insights/components', parameters('functionsAppName')))]": "Resource"
+            },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
-                "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'web')]",
+                "[resourceId('Microsoft.Web/Sites/config', parameters('functionsAppName'), 'appsettings')]",
                 "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
             ],
             "properties": {
@@ -214,23 +204,56 @@
                 "isEnabled": true,
                 "condition": {
                     "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
-                    "operator": "GreaterThan",
-                    "threshold": 1,
-                    "windowSize": "PT5M",
                     "dataSource": {
                         "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+                        "resourceUri": "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]",
                         "metricNamespace": null,
-                        "metricName": "SessionizeReadModelSync Failures",
-                        "resourceUri": "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
-                    }
+                        "metricName": "SessionizeReadModelSync Failures"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
                 },
-                "actions": [
-                    {
-                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
-                        "sendToServiceOwners": true,
-                        "customEmails": []
-                    }
-                ]
+                "action": {
+                    "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": []
+                }
+            }
+        },
+        {
+            "type": "microsoft.insights/alertrules",
+            "name": "Request_Failures",
+            "apiVersion": "2014-04-01",
+            "location": "[variables('appInsightsLocation')]",
+            "tags": {
+                "[concat('hidden-link:', resourceId('Microsoft.Insights/components', parameters('functionsAppName')))]": "Resource"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/Sites', parameters('functionsAppName'))]",
+                "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]"
+            ],
+            "properties": {
+                "name": "Request_Failures",
+                "description": null,
+                "isEnabled": true,
+                "condition": {
+                    "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+                        "resourceUri": "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]",
+                        "metricNamespace": null,
+                        "metricName": "requestFailed.count"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": []
+                }
             }
         }
     ]

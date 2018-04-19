@@ -32,10 +32,10 @@ function Get-Parameters() {
     "functionsAppName"                  = "$ConferenceName-functions-$AppEnvironment".ToLower();
     "storageName"                       = "$($ConferenceName)functions$AppEnvironment".ToLower();
     "storageType"                       = "Standard_LRS";
+    "sessionizeReadModelSyncSchedule"   = $SessionizeReadModelSyncSchedule;
     "newSessionNotificationLogicAppUrl" = $NewSessionNotificationLogicAppUrl;
     "deploymentZipUrl"                  = $DeploymentZipUrl;
     "sessionizeApiKey"                  = $SessionizeApiKey;
-    "sessionizeReadModelSyncSchedule"   = $SessionizeReadModelSyncSchedule;
     "eventbriteApiBearerToken"          = $EventbriteApiBearerToken;
   }
 }
@@ -57,10 +57,30 @@ try {
   Write-Output "Ensuring resource group $ResourceGroupName exists"
   New-AzureRmResourceGroup -Location $Location -Name $ResourceGroupName -Force | Out-Null
 
-  Write-Output "Deploying to ARM"
+  Write-Output "Checking if it's the first run"
   $Parameters = Get-Parameters
+  $firstRun = $false
+  try {
+    Get-AzureRmResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Web/sites" -ResourceName $Parameters["functionsAppName"] | Out-Null
+  } catch {
+    Write-Warning "Detected first run, setting sessionize read model sync to every 10s to ensure metrics get created in app insights"
+    $firstRun = $true
+    $Parameters["sessionizeReadModelSyncSchedule"] = "*/10 * * * * *"
+  }
+
+  Write-Output "Deploying to ARM"
   $result = New-AzureRmResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
   Write-Output $result
+
+  if ($firstRun) {
+    Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app, waiting 60s and re-running ARM with original sync schedule"
+    Restart-AzureRmWebApp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
+    Start-Sleep -Seconds 60
+    $Parameters["sessionizeReadModelSyncSchedule"] = $SessionizeReadModelSyncSchedule
+    $result = New-AzureRmResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
+    Write-Output $result
+  }
+
   if ((-not $result) -or ($result.ProvisioningState -ne "Succeeded")) {
     throw "Deployment failed"
   }
