@@ -43,6 +43,11 @@ namespace DDD.Sessionize.SessionizeAdapter
                     .ToArray(),
                 PresenterIds = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).Select(p => p.Id).ToArray(),
                 DataFields = s.QuestionAnswers.Select(qa => new {q = sessionizeData.Questions.Single(q => q.Id == qa.QuestionId).Question, a = qa.AnswerValue})
+                    .Concat(s.CategoryItemIds
+                        .Where(cId => categories.Any(c => c.Type == CategoryType.Other && c.Id == cId))
+                        .Select(cId => categories.First(c => c.Id == cId))
+                        .Select(c => new {q = c.TypeText, a = c.Title})
+                    )
                     .ToDictionary(x => x.q, x => x.a)
             }).ToArray();
         }
@@ -75,18 +80,16 @@ namespace DDD.Sessionize.SessionizeAdapter
                         ? CategoryType.Level
                         : c.Title == TagsTitle
                             ? CategoryType.Tags
-                            : default(CategoryType?);
-
-                if (!category.HasValue)
-                    return null;
+                            : CategoryType.Other;
 
                 return c.Items.Select(i => new CategoryItem
                 {
                     Id = i.Id,
                     Title = i.Name,
-                    Type = category.Value
+                    Type = category,
+                    TypeText = c.Title
                 });
-            }).Where(x => x != null).ToArray();
+            }).ToArray();
         }
 
         public const string SessionFormatTitle = "Session format";
@@ -100,6 +103,7 @@ namespace DDD.Sessionize.SessionizeAdapter
         class CategoryItem
         {
             public CategoryType Type { get; set; }
+            public string TypeText { get; set; }
             public int Id { get; set; }
             public string Title { get; set; }
         }
@@ -108,7 +112,8 @@ namespace DDD.Sessionize.SessionizeAdapter
         {
             SessionFormat,
             Tags,
-            Level
+            Level,
+            Other
         }
     }
 }
