@@ -35,6 +35,19 @@
         },
         "eventbriteApiBearerToken": {
             "type": "securestring"
+        },
+        "submissionsAvailableFrom": {
+            "type": "string"
+        },
+        "submissionsAvailableTo": {
+            "type": "string"
+        },
+        "anonymousSessions": {
+            "type": "string",
+            "allowedValues": [
+                "true",
+                "false"
+            ]
         }
     },
     "variables": {
@@ -127,7 +140,10 @@
                         "SessionsDataSourceCosmosCollectionId": "Sessions",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
                         "SessionizeReadModelSyncSchedule": "[parameters('sessionizeReadModelSyncSchedule')]",
-                        "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]"
+                        "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]",
+                        "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
+                        "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
+                        "AnonymousSessions": "[parameters('anonymousSessions')]"
                     }
                 },
                 {
