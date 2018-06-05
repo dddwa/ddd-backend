@@ -22,6 +22,9 @@ Param (
   [string] [Parameter(Mandatory = $true)] $DeploymentZipUrl,
   [string] [Parameter(Mandatory = $true)] $SessionizeApiKey,
   [string] [Parameter(Mandatory = $true)] $EventbriteApiBearerToken,
+  [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableFrom,
+  [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableTo,
+  [string] [Parameter(Mandatory = $true)] $AnonymousSessions,
   [string] $SessionizeReadModelSyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
@@ -37,6 +40,9 @@ function Get-Parameters() {
     "deploymentZipUrl"                  = $DeploymentZipUrl;
     "sessionizeApiKey"                  = $SessionizeApiKey;
     "eventbriteApiBearerToken"          = $EventbriteApiBearerToken;
+    "submissionsAvailableFrom"          = $SubmissionsAvailableFrom;
+    "submissionsAvailableTo"            = $SubmissionsAvailableTo;
+    "anonymousSessions"                 = $AnonymousSessions;
   }
 }
 
