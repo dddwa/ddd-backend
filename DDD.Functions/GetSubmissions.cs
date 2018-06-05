@@ -9,6 +9,9 @@ using DDD.Sessionize;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Net;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace DDD.Functions
 {
@@ -62,7 +65,10 @@ namespace DDD.Functions
                 .OrderBy(x => Random.Next())
                 .ToArray();
 
-            return new OkObjectResult(submissions);
+            var settings = new JsonSerializerSettings();
+            settings.ContractResolver = new DefaultContractResolver();
+
+            return new JsonResult(submissions, settings);
         }
 
         public class Submission

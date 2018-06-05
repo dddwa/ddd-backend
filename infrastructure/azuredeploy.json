@@ -181,7 +181,12 @@
                         "httpLoggingEnabled": true,
                         "logsDirectorySizeLimit": 100,
                         "detailedErrorLoggingEnabled": false,
-                        "azureApplicationLogsFileSystemEnabled": true
+                        "azureApplicationLogsFileSystemEnabled": true,
+                        "cors": {
+                            "allowedOrigins": [
+                                "*"
+                            ]
+                        }
                     }
                 },
                 {
