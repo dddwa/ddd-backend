@@ -42,12 +42,30 @@
         "submissionsAvailableTo": {
             "type": "string"
         },
-        "anonymousSessions": {
+        "anonymousSubmissions": {
             "type": "string",
             "allowedValues": [
                 "true",
                 "false"
             ]
+        },
+        "conferenceInstance": {
+            "type": "string"
+        },
+        "votingTable": {
+            "type": "string"
+        },
+        "votingAvailableFrom": {
+            "type": "string"
+        },
+        "votingAvailableTo": {
+            "type": "string"
+        },
+        "minVotes": {
+            "type": "string"
+        },
+        "maxVotes": {
+            "type": "string"
         }
     },
     "variables": {
@@ -143,7 +161,13 @@
                         "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]",
                         "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
                         "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
-                        "AnonymousSessions": "[parameters('anonymousSessions')]"
+                        "AnonymousSubmissions": "[parameters('anonymousSubmissions')]",
+                        "ConferenceInstance": "[parameters('conferenceInstance')]",
+                        "VotingTable": "[parameters('votingTable')]",
+                        "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
+                        "VotingAvailableTo": "[parameters('votingAvailableTo')]",
+                        "MinVotes": "[parameters('minVotes')]",
+                        "MaxVotes": "[parameters('maxVotes')]"
                     }
                 },
                 {
@@ -157,6 +181,10 @@
                     "properties": {
                         "Sessions": {
                             "value": "[concat('AccountEndpoint=https://', parameters('functionsAppName'), '.documents.azure.com:443/;AccountKey=', listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName')), '2015-04-08').primaryMasterKey)]",
+                            "type": "Custom"
+                        },
+                        "Votes": {
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                             "type": "Custom"
                         }
                     }
