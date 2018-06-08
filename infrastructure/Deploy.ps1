@@ -24,7 +24,13 @@ Param (
   [string] [Parameter(Mandatory = $true)] $EventbriteApiBearerToken,
   [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableTo,
-  [string] [Parameter(Mandatory = $true)] $AnonymousSessions,
+  [string] [Parameter(Mandatory = $true)] $AnonymousSubmissions,
+  [string] [Parameter(Mandatory = $true)] $ConferenceInstance,
+  [string] [Parameter(Mandatory = $true)] $VotingTable,
+  [string] [Parameter(Mandatory = $true)] $VotingAvailableFrom,
+  [string] [Parameter(Mandatory = $true)] $VotingAvailableTo,
+  [string] [Parameter(Mandatory = $true)] $MinVotes,
+  [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] $SessionizeReadModelSyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
@@ -42,7 +48,13 @@ function Get-Parameters() {
     "eventbriteApiBearerToken"          = $EventbriteApiBearerToken;
     "submissionsAvailableFrom"          = $SubmissionsAvailableFrom;
     "submissionsAvailableTo"            = $SubmissionsAvailableTo;
-    "anonymousSessions"                 = $AnonymousSessions;
+    "anonymousSubmissions"              = $AnonymousSubmissions;
+    "conferenceInstance"                = $ConferenceInstance;
+    "votingTable"                       = $VotingTable;
+    "votingAvailableFrom"               = $VotingAvailableFrom;
+    "votingAvailableTo"                 = $VotingAvailableTo;
+    "minVotes"                          = $MinVotes;
+    "maxVotes"                          = $MaxVotes;
   }
 }
 

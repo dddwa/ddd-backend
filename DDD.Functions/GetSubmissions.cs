@@ -24,8 +24,8 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
-            [BindGetSubmissionsConfig]
-            GetSubmissionsConfig config)
+            [BindSubmissionsAndVotingConfig]
+            SubmissionsAndVotingConfig config)
         {
             if (config.Now < config.SubmissionsAvailableFromDate || config.Now > config.SubmissionsAvailableToDate)
             {
@@ -33,7 +33,7 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
+            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
             await repo.InitializeAsync();
             var all = await repo.GetAllItemsAsync();
@@ -49,7 +49,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = config.AnonymousSessions
+                    Presenters = config.AnonymousSubmissions
                         ? new Submitter[0]
                         : s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Submitter
                         {
