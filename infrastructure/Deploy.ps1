@@ -41,6 +41,8 @@ function Get-Parameters() {
     "functionsAppName"                  = "$ConferenceName-functions-$AppEnvironment".ToLower();
     "storageName"                       = "$($ConferenceName)functions$AppEnvironment".ToLower();
     "storageType"                       = "Standard_LRS";
+    "dataStorageName"                   = "$($ConferenceName)data$AppEnvironment".ToLower();
+    "dataStorageType"                   = "Standard_GRS";
     "sessionizeReadModelSyncSchedule"   = $SessionizeReadModelSyncSchedule;
     "newSessionNotificationLogicAppUrl" = $NewSessionNotificationLogicAppUrl;
     "deploymentZipUrl"                  = $DeploymentZipUrl;

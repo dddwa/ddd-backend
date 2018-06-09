@@ -8,6 +8,19 @@
         "functionsAppName": {
             "type": "string"
         },
+        "dataStorageName": {
+            "type": "string"
+        },
+        "dataStorageType": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_ZRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Premium_LRS"
+            ]
+        },
         "storageName": {
             "type": "string"
         },
@@ -119,6 +132,15 @@
             }
         },
         {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('dataStorageName')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "[parameters('dataStorageType')]"
+            }
+        },
+        {
             "type": "Microsoft.Web/sites",
             "name": "[parameters('functionsAppName')]",
             "kind": "functionapp",
@@ -176,7 +198,8 @@
                     "name": "connectionstrings",
                     "dependsOn": [
                         "[parameters('functionsAppName')]",
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]"
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
                     ],
                     "properties": {
                         "Sessions": {
@@ -184,7 +207,7 @@
                             "type": "Custom"
                         },
                         "Votes": {
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                             "type": "Custom"
                         }
                     }
