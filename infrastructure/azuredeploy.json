@@ -160,7 +160,6 @@
                     "type": "config",
                     "dependsOn": [
                         "[parameters('functionsAppName')]",
-                        "connectionStrings",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
