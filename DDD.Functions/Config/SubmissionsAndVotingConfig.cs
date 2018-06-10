@@ -13,7 +13,7 @@ namespace DDD.Functions.Config
         public string ConferenceInstance { get; set; }
 
         // Sessions store
-        [AppSetting(Default = "ConnectionStrings:Sessions")]
+        [AppSetting(Default = "SessionsConnectionString")]
         public string SessionsConnectionString { get; set; }
         [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
         public string CosmosDatabaseId { get; set; }
@@ -34,7 +34,7 @@ namespace DDD.Functions.Config
         public DateTimeOffset SubmissionsAvailableToDate => SubmissionsAvailableTo != null ? DateTimeOffset.Parse(SubmissionsAvailableTo) : DateTimeOffset.MinValue;
 
         // Voting store
-        [AppSetting(Default = "ConnectionStrings:Votes")]
+        [AppSetting(Default = "VotesConnectionString")]
         public string VotingConnectionString { get; set; }
         [AppSetting(Default = "VotingTable")]
         public string VotingTable { get; set; }

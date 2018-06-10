@@ -21,7 +21,7 @@ namespace DDD.Functions
         public static async Task Run([CosmosDBTrigger(
             "%SessionsDataSourceCosmosDatabaseId%",
             "%SessionsDataSourceCosmosCollectionId%",
-            ConnectionStringSetting = "ConnectionStrings:Sessions",
+            ConnectionStringSetting = "SessionsConnectionString",
             CreateLeaseCollectionIfNotExists = true)]
             IReadOnlyList<Document> input,
             ILogger log,

@@ -6,7 +6,7 @@ namespace DDD.Functions.Config
 {
     public class NewSessionNotificationConfig : Attribute
     {
-        [AppSetting(Default = "ConnectionStrings:Sessions")]
+        [AppSetting(Default = "SessionsConnectionString")]
         public string ConnectionString { get; set; }
         [AppSetting(Default = "NewSessionNotificationLogicAppUrl")]
         public string LogicAppUrl { get; set; }
