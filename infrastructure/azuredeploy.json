@@ -162,7 +162,9 @@
                         "[parameters('functionsAppName')]",
                         "connectionStrings",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]"
                     ],
                     "properties": {
                         "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
@@ -176,6 +178,7 @@
                         "AZURE_STORAGE_CONNECTION_STRING":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "queue_STORAGE":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "NewSessionNotificationLogicAppUrl": "[parameters('newSessionNotificationLogicAppUrl')]",
+                        "SessionsConnectionString": "[concat('AccountEndpoint=https://', parameters('functionsAppName'), '.documents.azure.com:443/;AccountKey=', listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName')), '2015-04-08').primaryMasterKey)]",
                         "SessionsDataSourceCosmosDatabaseId": "Conference",
                         "SessionsDataSourceCosmosCollectionId": "Sessions",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
@@ -185,31 +188,12 @@
                         "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
                         "AnonymousSubmissions": "[parameters('anonymousSubmissions')]",
                         "ConferenceInstance": "[parameters('conferenceInstance')]",
+                        "VotesConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "VotingTable": "[parameters('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
                         "MinVotes": "[parameters('minVotes')]",
                         "MaxVotes": "[parameters('maxVotes')]"
-                    }
-                },
-                {
-                    "apiVersion": "2015-08-01",
-                    "type": "config",
-                    "name": "connectionstrings",
-                    "dependsOn": [
-                        "[parameters('functionsAppName')]",
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
-                    ],
-                    "properties": {
-                        "Sessions": {
-                            "value": "[concat('AccountEndpoint=https://', parameters('functionsAppName'), '.documents.azure.com:443/;AccountKey=', listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName')), '2015-04-08').primaryMasterKey)]",
-                            "type": "Custom"
-                        },
-                        "Votes": {
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
-                            "type": "Custom"
-                        }
                     }
                 },
                 {

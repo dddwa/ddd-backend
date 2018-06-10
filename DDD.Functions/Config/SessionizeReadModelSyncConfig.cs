@@ -6,7 +6,7 @@ namespace DDD.Functions.Config
 {
     public class SessionizeReadModelSyncConfig : Attribute
     {
-        [AppSetting(Default = "ConnectionStrings:Sessions")]
+        [AppSetting(Default = "SessionsConnectionString")]
         public string ConnectionString { get; set; }
         [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
         public string CosmosDatabaseId { get; set; }
