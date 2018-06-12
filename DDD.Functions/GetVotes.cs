@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
+using System.Net.Http;
 
 namespace DDD.Functions
 {
@@ -27,6 +28,15 @@ namespace DDD.Functions
             [BindGetVotesConfig]
             GetVotesConfig config)
         {
+            var http = new HttpClient();
+            var eventId = "44602457150";
+            var bearer = "WKNWNIK3D4RPIBUQUUP3";
+            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearer);
+            var r = await http.GetAsync($"https://www.eventbriteapi.com/v3/events/{eventId}/orders");
+            //var content = await r.Content.ReadAsAsync<>();
+
+
+
             // Get sessions
             var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
@@ -42,7 +52,7 @@ namespace DDD.Functions
             var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
             var sessions = all.Where(x => x.Session != null)
                 .Select(x => x.Session)
-                .Select(s => new FullSession
+                .Select(s => new SessionWithVotes
                 {
                     Id = s.Id.ToString(),
                     Title = s.Title,
@@ -72,19 +82,19 @@ namespace DDD.Functions
                 .OrderBy(s => s.Title)
                 .ToArray();
 
-            var voteSummary = votes.SelectMany(v => JsonConvert.DeserializeObject<string[]>(v.SessionIds).ToArray())
+            votes.SelectMany(v => JsonConvert.DeserializeObject<string[]>(v.SessionIds).ToArray())
                 .GroupBy(x => x)
-                .Select(group => new VoteSummary
+                .Select(group => new
                 {
                     SessionId = group.Key,
                     VoteCount = group.Count()
                 })
-                .ToArray();
+                .ToList()
+                .ForEach(v => sessions.Single(s => s.Id == v.SessionId).TotalVotes = v.VoteCount);
 
             var response = new GetVotesResponse
             {
-                Sessions = sessions,
-                VoteSummary = voteSummary
+                Sessions = sessions.OrderByDescending(s => s.TotalVotes).ToArray()
             };
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new DefaultContractResolver();
@@ -108,7 +118,7 @@ namespace DDD.Functions
         }
     }
 
-    public class FullSession
+    public class SessionWithVotes
     {
         public string Id { get; set; }
         public string Title { get; set; }
@@ -123,6 +133,8 @@ namespace DDD.Functions
         public string Pronoun { get; set; }
         public string JobRole { get; set; }
         public string SpeakingExperience { get; set; }
+
+        public int TotalVotes { get; set; }
     }
 
     public class Presenter
@@ -138,13 +150,6 @@ namespace DDD.Functions
 
     public class GetVotesResponse
     {
-        public FullSession[] Sessions { get; set; }
-        public VoteSummary[] VoteSummary { get; set; }
-    }
-
-    public class VoteSummary
-    {
-        public string SessionId { get; set; }
-        public int VoteCount { get; set; }
+        public SessionWithVotes[] Sessions { get; set; }
     }
 }
