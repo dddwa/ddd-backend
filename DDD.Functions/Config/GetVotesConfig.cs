@@ -23,6 +23,10 @@ namespace DDD.Functions.Config
         public string VotingConnectionString { get; set; }
         [AppSetting(Default = "VotingTable")]
         public string VotingTable { get; set; }
+
+        // Eventbrite ids
+        [AppSetting(Default = "EventbriteTable")]
+        public string EventbriteTable { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

@@ -20,6 +20,11 @@
     "queue_STORAGE": "UseDevelopmentStorage=true",
     "EventbriteApiBearerToken": "{token}",
     "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
+    // EventbriteSync
+    "EventbriteSyncSchedule": "* * * * *",
+    "EventbriteTable": "Eventbrite",
+    "EventbriteEventId": "44602457150",
+    "StopSyncingEventbriteFrom": "2018-06-14T23:59:59+08:00",
     // GetSubmissions
     "SubmissionsAvailableFrom": "2018-06-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2018-06-14T23:59:59+08:00",

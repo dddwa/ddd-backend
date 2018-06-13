@@ -3,18 +3,18 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure.Storage;
 using DDD.Core.DocumentDb;
 using DDD.Sessionize;
 using DDD.Functions.Config;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using DDD.Core.AzureStorage;
 
 namespace DDD.Functions
 {
@@ -28,27 +28,27 @@ namespace DDD.Functions
             [BindGetVotesConfig]
             GetVotesConfig config)
         {
-            var http = new HttpClient();
-            var eventId = "44602457150";
-            var bearer = "WKNWNIK3D4RPIBUQUUP3";
-            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearer);
-            var r = await http.GetAsync($"https://www.eventbriteapi.com/v3/events/{eventId}/orders");
-            //var content = await r.Content.ReadAsAsync<>();
-
-
-
             // Get sessions
             var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
             await repo.InitializeAsync();
-            var all = await repo.GetAllItemsAsync();
+            var all = (await repo.GetAllItemsAsync()).ToArray();
 
             // Get votes
             var account = CloudStorageAccount.Parse(config.VotingConnectionString);
             var table = account.CreateCloudTableClient().GetTableReference(config.VotingTable);
             await table.CreateIfNotExistsAsync();
-            var votes = await GetByPartitionKey(table, config.ConferenceInstance);
+            var votes = await table.GetAllByPartitionKeyAsync<Vote>(config.ConferenceInstance);
 
+            // Get Eventbrite ids
+            var ebTable = account.CreateCloudTableClient().GetTableReference(config.EventbriteTable);
+            var eventbriteOrders = await ebTable.GetAllByPartitionKeyAsync<EventbriteOrder>(config.ConferenceInstance);
+            var eventbriteIds = eventbriteOrders.Select(o => o.OrderId).ToArray();
+
+            // Analyse votes
+            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds)).ToArray();
+
+            // Get summary
             var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
             var sessions = all.Where(x => x.Session != null)
                 .Select(x => x.Session)
@@ -72,49 +72,117 @@ namespace DDD.Functions
                         }).Single()).ToArray(),
                     CreatedDate = s.CreatedDate,
                     ModifiedDate = s.ModifiedDate,
-                    IsUnderrepresented = s.DataFields.ContainsKey("Are you a member of any underrepresented groups?")
-                        ? !string.IsNullOrEmpty(s.DataFields["Are you a member of any underrepresented groups?"])
-                        : false,
+                    IsUnderrepresented = s.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(s.DataFields["Are you a member of any underrepresented groups?"]),
                     Pronoun = s.DataFields["Your preferred pronoun"],
                     JobRole = s.DataFields["How would you identify your job role?"],
                     SpeakingExperience = s.DataFields["How much speaking experience do you have?"],
+                    VoteSummary = new VoteSummary(analysedVotes.Where(v => v.Vote.GetSessionIds().Contains(s.Id.ToString())).ToArray())
                 })
                 .OrderBy(s => s.Title)
                 .ToArray();
 
-            votes.SelectMany(v => JsonConvert.DeserializeObject<string[]>(v.SessionIds).ToArray())
-                .GroupBy(x => x)
-                .Select(group => new
+            var tagSummaries = sessions.SelectMany(s => s.Tags).Distinct().OrderBy(t => t)
+                .Select(tag => new TagSummary
                 {
-                    SessionId = group.Key,
-                    VoteCount = group.Count()
-                })
-                .ToList()
-                .ForEach(v => sessions.Single(s => s.Id == v.SessionId).TotalVotes = v.VoteCount);
+                    Tag = tag,
+                    VoteSummary = new VoteSummary(sessions.Where(s => s.Tags.Contains(tag)).SelectMany(s => analysedVotes.Where(v => v.Vote.SessionIds.Contains(s.Id))).ToArray())
+                }).ToArray();
 
             var response = new GetVotesResponse
             {
-                Sessions = sessions.OrderByDescending(s => s.TotalVotes).ToArray()
+                VoteSummary = new VoteSummary(analysedVotes),
+                Sessions = sessions.OrderByDescending(s => s.VoteSummary.Total).ToArray(),
+                TagSummaries = tagSummaries,
+                Votes = analysedVotes
             };
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new DefaultContractResolver();
 
             return new JsonResult(response, settings);
         }
+    }
 
-        public static async Task<List<Vote>> GetByPartitionKey(CloudTable table, string conferenceInstance)
+    public class VoteSummary
+    {
+        public VoteSummary(AnalysedVote[] votes)
         {
-            var query = new TableQuery<Vote>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, conferenceInstance));
-            TableQuerySegment<Vote> querySegment = null;
-            var returnList = new List<Vote>();
+            RawTotal = votes.Length;
+            TotalWithValidTicketNumber = votes.Count(v => v.HasValidTicketNumber);
+            TotalWithInvalidTicketNumber = votes.Count(v => v.HasTicketNumber && !v.HasValidTicketNumber);
+            TotalWithDuplicateTicketNumber = votes.Count(v => v.HasDuplicateTicketNumber);
+            TotalWithAppInsightsId = votes.Count(v => v.HasAppInsightsId);
+            TotalWithDuplicateAppInsightsId = votes.Count(v => v.HasDuplicateAppInsightsId);
+            TotalSuspiciousVotes = votes.Count(v => v.LooksSuspicious);
+            TotalUniqueIpAddresses = votes.Select(v => v.Vote.IpAddress).Distinct().Count();
+            TotalSessionsVoted = votes.Sum(v => v.Vote.GetSessionIds().Length);
 
-            while (querySegment == null || querySegment.ContinuationToken != null)
-            {
-                querySegment = await table.ExecuteQuerySegmentedAsync(query, querySegment != null ? querySegment.ContinuationToken : null);
-                returnList.AddRange(querySegment);
-            }
+            Total = Convert.ToInt32(Math.Round(TotalWithValidTicketNumber * 2 + RawTotal - TotalWithValidTicketNumber - TotalSuspiciousVotes * 0.5 - TotalWithDuplicateTicketNumber * 0.5 - TotalWithDuplicateAppInsightsId * 0.5));
+        }
 
-            return returnList;
+        public int RawTotal { get; set; }
+        public int Total { get; set; }
+        public int TotalWithValidTicketNumber { get; set; }
+        public int TotalWithInvalidTicketNumber { get; set; }
+        public int TotalWithDuplicateTicketNumber { get; set; }
+        public int TotalWithAppInsightsId { get; set; }
+        public int TotalWithDuplicateAppInsightsId { get; set; }
+        public int TotalSuspiciousVotes { get; set; }
+        public int TotalUniqueIpAddresses { get; set; }
+        public int TotalSessionsVoted { get; set; }
+    }
+
+    public class TagSummary
+    {
+        public string Tag { get; set; }
+        public VoteSummary VoteSummary { get; set; }
+    }
+
+    public class AnalysedVote : IEquatable<AnalysedVote>
+    {
+        public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers)
+        {
+            var orderedIndices = vote.GetIndices().Select(int.Parse).OrderBy(x => x).ToArray();
+            var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1);
+
+            Vote = vote;
+            HasTicketNumber = !string.IsNullOrEmpty(vote.TicketNumber);
+            HasValidTicketNumber = HasTicketNumber && validTicketNumbers.Contains(vote.TicketNumber);
+            HasDuplicateTicketNumber = HasValidTicketNumber && allVotes.Any(v => v.VoteId != vote.VoteId && v.TicketNumber == vote.TicketNumber);
+
+            HasAppInsightsId = !string.IsNullOrEmpty(vote.VoterSessionId);
+            //HasValidAppInsightsId
+            HasDuplicateAppInsightsId = HasAppInsightsId && allVotes.Any(v => v.VoteId != vote.VoteId && v.VoterSessionId == vote.VoterSessionId);
+            LooksSuspicious = (vote.VotingSubmittedTime - vote.VotingStartTime) < TimeSpan.FromMinutes(2)
+                || indexGaps.Count(gap => gap == 1) >= 4;
+        }
+
+        public Vote Vote { get; set; }
+        public bool HasTicketNumber { get; set; }
+        public bool HasValidTicketNumber { get; set; }
+        public bool HasDuplicateTicketNumber { get; set; }
+        public bool HasAppInsightsId { get; set; }
+        public bool HasValidAppInsightsId { get; set; }
+        public bool HasDuplicateAppInsightsId { get; set; }
+        public bool LooksSuspicious { get; set; }
+
+        public bool Equals(AnalysedVote other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(Vote.VoteId, other.Vote.VoteId);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Vote.VoteId.Equals(((AnalysedVote) obj).Vote.VoteId);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Vote != null ? Vote.GetHashCode() : 0);
         }
     }
 
@@ -134,7 +202,7 @@ namespace DDD.Functions
         public string JobRole { get; set; }
         public string SpeakingExperience { get; set; }
 
-        public int TotalVotes { get; set; }
+        public VoteSummary VoteSummary { get; set; }
     }
 
     public class Presenter
@@ -150,6 +218,9 @@ namespace DDD.Functions
 
     public class GetVotesResponse
     {
+        public VoteSummary VoteSummary { get; set; }
+        public TagSummary[] TagSummaries { get; set; }
         public SessionWithVotes[] Sessions { get; set; }
+        public AnalysedVote[] Votes { get; set; }
     }
 }
