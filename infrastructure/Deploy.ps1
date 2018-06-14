@@ -31,7 +31,11 @@ Param (
   [string] [Parameter(Mandatory = $true)] $VotingAvailableTo,
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
-  [string] $SessionizeReadModelSyncSchedule = "0 */5 * * * *",
+  [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,
+  [string] [Parameter(Mandatory = $true)] $EventbriteTable,
+  [string] [Parameter(Mandatory = $true)] $EventbriteEventId,
+  [string] [Parameter(Mandatory = $true)] $StopSyncingEventbriteFrom,
+  [string] $SyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
 
@@ -43,7 +47,8 @@ function Get-Parameters() {
     "storageType"                       = "Standard_LRS";
     "dataStorageName"                   = "$($ConferenceName)data$AppEnvironment".ToLower();
     "dataStorageType"                   = "Standard_GRS";
-    "sessionizeReadModelSyncSchedule"   = $SessionizeReadModelSyncSchedule;
+    "sessionizeReadModelSyncSchedule"   = $SyncSchedule;
+    "stopSyncingSessionsFrom"           = $StopSyncingSessionsFrom;
     "newSessionNotificationLogicAppUrl" = $NewSessionNotificationLogicAppUrl;
     "deploymentZipUrl"                  = $DeploymentZipUrl;
     "sessionizeApiKey"                  = $SessionizeApiKey;
@@ -57,6 +62,10 @@ function Get-Parameters() {
     "votingAvailableTo"                 = $VotingAvailableTo;
     "minVotes"                          = $MinVotes;
     "maxVotes"                          = $MaxVotes;
+    "eventbriteSyncSchedule"            = $SyncSchedule;
+    "eventbriteTable"                   = $EventbriteTable;
+    "eventbriteEventId"                 = $EventbriteEventId;
+    "stopSyncingEventbriteFrom"         = $StopSyncingEventbriteFrom;
   }
 }
 

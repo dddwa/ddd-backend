@@ -37,6 +37,9 @@
         "sessionizeReadModelSyncSchedule": {
             "type": "string"
         },
+        "stopSyncingSessionsFrom": {
+            "type": "string"
+        },
         "newSessionNotificationLogicAppUrl": {
             "type": "securestring"
         },
@@ -78,6 +81,18 @@
             "type": "string"
         },
         "maxVotes": {
+            "type": "string"
+        },
+        "eventbriteSyncSchedule": {
+            "type": "string"
+        },
+        "eventbriteTable": {
+            "type": "string"
+        },
+        "eventbriteEventId": {
+            "type": "string"
+        },
+        "stopSyncingEventbriteFrom": {
             "type": "string"
         }
     },
@@ -182,6 +197,7 @@
                         "SessionsDataSourceCosmosCollectionId": "Sessions",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
                         "SessionizeReadModelSyncSchedule": "[parameters('sessionizeReadModelSyncSchedule')]",
+                        "StopSyncingSessionsFrom": "[parameters('stopSyncingSessionsFrom')]",
                         "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]",
                         "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
                         "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
@@ -191,6 +207,10 @@
                         "VotingTable": "[parameters('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
+                        "EventbriteSyncSchedule": "[parameters('eventbriteSyncSchedule')]",
+                        "EventbriteTable": "[parameters('eventbriteTable')]",
+                        "EventbriteEventId": "[parameters('eventbriteEventId')]",
+                        "StopSyncingEventbriteFrom": "[parameters('stopSyncingEventbriteFrom')]",
                         "MinVotes": "[parameters('minVotes')]",
                         "MaxVotes": "[parameters('maxVotes')]"
                     }

@@ -18,5 +18,9 @@
     "VotingAvailableFrom": "2018-06-05T08:00:00+08:00",
     "VotingAvailableTo": "2018-06-14T23:59:59+08:00",
     "MinVotes": "8",
-    "MaxVotes": "12"
+    "MaxVotes": "12",
+    "StopSyncingSessionsFrom": "2018-06-14T23:59:59+08:00",
+    "EventbriteTable": "Eventbrite",
+    "EventbriteEventId": "44602457150",
+    "StopSyncingEventbriteFrom": "2018-06-14T23:59:59+08:00"
 }
