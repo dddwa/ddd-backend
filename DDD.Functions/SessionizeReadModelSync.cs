@@ -22,6 +22,12 @@ namespace DDD.Functions
             SessionizeReadModelSyncConfig config
         )
         {
+            if (config.Now > config.StopSyncingSessionsFromDate)
+            {
+                log.LogInformation("SessionizeReadModelSync sync date passed");
+                return;
+            }
+
             var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
             await repo.InitializeAsync();

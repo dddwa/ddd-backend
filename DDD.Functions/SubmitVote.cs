@@ -129,12 +129,25 @@ namespace DDD.Functions
         }
 
         public string SessionIds { get; set; }
+
+        public string[] GetSessionIds()
+        {
+            return JsonConvert.DeserializeObject<string[]>(SessionIds);
+        }
+
         public string Indices { get; set; }
+
+        public string[] GetIndices()
+        {
+            return JsonConvert.DeserializeObject<string[]>(Indices);
+        }
+
         public string TicketNumber { get; set; }
         public string IpAddress { get; set; }
         public string VoterSessionId { get; set; }
         public DateTimeOffset VotingStartTime { get; set; }
         public DateTimeOffset VotingSubmittedTime { get; set; }
+        public string VoteId => RowKey;
     }
 
     public static class RequestExtensions

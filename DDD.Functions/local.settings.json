@@ -8,10 +8,11 @@
     "ConferenceInstance": "2018",
     // SessionizeReadModelSync
     "SessionizeReadModelSyncSchedule": "* * * * *",
-    "Sessions": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+    "SessionsConnectionString": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
     "SessionsDataSourceType": "Cosmos",
     "SessionsDataSourceCosmosDatabaseId": "Conference",
     "SessionsDataSourceCosmosCollectionId": "Sessions",
+    "StopSyncingSessionsFrom": "2018-06-10T00:00:00+08:00",
     "SessionizeApiKey": "mdhxdmti",
     // NewSessionNotification
     "NewSessionNotificationLogicAppUrl": "http://localhost",
@@ -19,12 +20,17 @@
     "queue_STORAGE": "UseDevelopmentStorage=true",
     "EventbriteApiBearerToken": "{token}",
     "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
+    // EventbriteSync
+    "EventbriteSyncSchedule": "* * * * *",
+    "EventbriteTable": "Eventbrite",
+    "EventbriteEventId": "44602457150",
+    "StopSyncingEventbriteFrom": "2018-06-14T23:59:59+08:00",
     // GetSubmissions
     "SubmissionsAvailableFrom": "2018-06-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2018-06-14T23:59:59+08:00",
     "AnonymousSubmissions": "true",
     // SubmitVote
-    "Votes": "UseDevelopmentStorage=true",
+    "VotesConnectionString": "UseDevelopmentStorage=true",
     "VotingTable": "Votes",
     "VotingAvailableFrom": "2018-06-05T08:00:00+08:00",
     "VotingAvailableTo": "2018-06-14T23:59:59+08:00",
