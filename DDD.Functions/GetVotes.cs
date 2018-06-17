@@ -13,7 +13,6 @@ using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using DDD.Core.AzureStorage;
 
 namespace DDD.Functions
@@ -91,12 +90,11 @@ namespace DDD.Functions
             var response = new GetVotesResponse
             {
                 VoteSummary = new VoteSummary(analysedVotes),
-                Sessions = sessions.OrderByDescending(s => s.VoteSummary.Total).ToArray(),
+                Sessions = sessions.OrderByDescending(s => s.VoteSummary.RawTotal).ToArray(),
                 TagSummaries = tagSummaries,
                 Votes = analysedVotes
             };
-            var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver();
+            var settings = new JsonSerializerSettings {ContractResolver = new DefaultContractResolver()};
 
             return new JsonResult(response, settings);
         }
@@ -112,23 +110,18 @@ namespace DDD.Functions
             TotalWithDuplicateTicketNumber = votes.Count(v => v.HasDuplicateTicketNumber);
             TotalWithAppInsightsId = votes.Count(v => v.HasAppInsightsId);
             TotalWithDuplicateAppInsightsId = votes.Count(v => v.HasDuplicateAppInsightsId);
-            TotalSuspiciousVotes = votes.Count(v => v.LooksSuspicious);
             TotalUniqueIpAddresses = votes.Select(v => v.Vote.IpAddress).Distinct().Count();
             TotalSessionsVoted = votes.Sum(v => v.Vote.GetSessionIds().Length);
-
-            Total = Convert.ToInt32(Math.Round(TotalWithValidTicketNumber * 2 + RawTotal - TotalWithValidTicketNumber - TotalSuspiciousVotes * 0.5 - TotalWithDuplicateTicketNumber * 0.5 - TotalWithDuplicateAppInsightsId * 0.5));
         }
 
-        public int RawTotal { get; set; }
-        public int Total { get; set; }
-        public int TotalWithValidTicketNumber { get; set; }
-        public int TotalWithInvalidTicketNumber { get; set; }
-        public int TotalWithDuplicateTicketNumber { get; set; }
-        public int TotalWithAppInsightsId { get; set; }
-        public int TotalWithDuplicateAppInsightsId { get; set; }
-        public int TotalSuspiciousVotes { get; set; }
-        public int TotalUniqueIpAddresses { get; set; }
-        public int TotalSessionsVoted { get; set; }
+        public int RawTotal { get; }
+        public int TotalWithValidTicketNumber { get; }
+        public int TotalWithInvalidTicketNumber { get; }
+        public int TotalWithDuplicateTicketNumber { get; }
+        public int TotalWithAppInsightsId { get; }
+        public int TotalWithDuplicateAppInsightsId { get; }
+        public int TotalUniqueIpAddresses { get; }
+        public int TotalSessionsVoted { get; }
     }
 
     public class TagSummary
@@ -152,18 +145,17 @@ namespace DDD.Functions
             HasAppInsightsId = !string.IsNullOrEmpty(vote.VoterSessionId);
             //HasValidAppInsightsId
             HasDuplicateAppInsightsId = HasAppInsightsId && allVotes.Any(v => v.VoteId != vote.VoteId && v.VoterSessionId == vote.VoterSessionId);
-            LooksSuspicious = (vote.VotingSubmittedTime - vote.VotingStartTime) < TimeSpan.FromMinutes(2)
-                || indexGaps.Count(gap => gap == 1) >= 4;
+            IndexGaps = indexGaps.ToArray();
         }
 
-        public Vote Vote { get; set; }
-        public bool HasTicketNumber { get; set; }
-        public bool HasValidTicketNumber { get; set; }
-        public bool HasDuplicateTicketNumber { get; set; }
-        public bool HasAppInsightsId { get; set; }
-        public bool HasValidAppInsightsId { get; set; }
-        public bool HasDuplicateAppInsightsId { get; set; }
-        public bool LooksSuspicious { get; set; }
+        public Vote Vote { get; }
+        public bool HasTicketNumber { get; }
+        public bool HasValidTicketNumber { get; }
+        public bool HasDuplicateTicketNumber { get; }
+        public bool HasAppInsightsId { get; }
+        public bool HasValidAppInsightsId { get; }
+        public bool HasDuplicateAppInsightsId { get; }
+        public int[] IndexGaps { get; }
 
         public bool Equals(AnalysedVote other)
         {
