@@ -143,7 +143,7 @@ namespace DDD.Functions
             List<AppInsightsVotingUser> userSessions)
         {
             var orderedIndices = vote.GetIndices().Select(int.Parse).OrderBy(x => x).ToArray();
-            var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1);
+            var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1).OrderBy(x => x).ToArray();
 
             Vote = vote;
             HasTicketNumber = !string.IsNullOrEmpty(vote.TicketNumber);
@@ -153,7 +153,7 @@ namespace DDD.Functions
             HasAppInsightsId = !string.IsNullOrEmpty(vote.VoterSessionId);
             HasValidAppInsightsId = HasAppInsightsId && userSessions.Any(x => x.UserId == vote.VoterSessionId && x.VoteId == vote.VoteId);
             HasDuplicateAppInsightsId = HasAppInsightsId && allVotes.Any(v => v.VoteId != vote.VoteId && v.VoterSessionId == vote.VoterSessionId);
-            IndexGaps = indexGaps.ToArray();
+            IndexGaps = JsonConvert.SerializeObject(indexGaps.ToArray());
         }
 
         public Vote Vote { get; }
@@ -163,7 +163,7 @@ namespace DDD.Functions
         public bool HasAppInsightsId { get; }
         public bool HasValidAppInsightsId { get; }
         public bool HasDuplicateAppInsightsId { get; }
-        public int[] IndexGaps { get; }
+        public string IndexGaps { get; }
 
         public bool Equals(AnalysedVote other)
         {
