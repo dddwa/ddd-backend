@@ -5,7 +5,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using DDD.Core.AzureStorage;
 using DDD.Functions.Config;
-using Flurl.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
@@ -31,14 +30,15 @@ namespace DDD.Functions
                 return;
             }
 
-            var client = new FlurlClient($"https://www.eventbriteapi.com/v3/events/{config.EventId}/orders").WithOAuthBearerToken(config.EventbriteApiKey);
-
             var ids = new List<string>();
-            var (orders, hasMoreItems, continuation) = await GetOrdersAsync(client);
+            var http = new HttpClient();
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.EventbriteApiKey);
+
+            var (orders, hasMoreItems, continuation) = await GetOrdersAsync(http, $"https://www.eventbriteapi.com/v3/events/{config.EventId}/orders");
             ids.AddRange(orders.Select(o => o.Id));
             while (hasMoreItems)
             {
-                (orders, hasMoreItems, continuation) = await GetOrdersAsync(client, continuation);
+                (orders, hasMoreItems, continuation) = await GetOrdersAsync(http, $"https://www.eventbriteapi.com/v3/events/{config.EventId}/orders?continuation={continuation}");
                 ids.AddRange(orders.Select(o => o.Id));
             }
 
@@ -59,11 +59,12 @@ namespace DDD.Functions
             }
         }
 
-        private static async Task<(Order[], bool, string)> GetOrdersAsync(IFlurlClient client, string continuation = null)
+        private static async Task<(Order[], bool, string)> GetOrdersAsync(HttpClient http, string eventbriteUrl)
         {
-            var urlSegments = continuation != null ? new object[]{"?continuation=" + continuation} : new object[]{};
-            var response = await client.Request(urlSegments).GetJsonAsync<PaginatedEventbriteOrderResponse>();
-            return (response.Orders, response.Pagination.HasMoreItems, response.Pagination.Continuation);
+            var response = await http.GetAsync(eventbriteUrl);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsAsync<PaginatedEventbriteOrderResponse>();
+            return (content.Orders, content.Pagination.HasMoreItems, content.Pagination.Continuation);
         }
     }
 
