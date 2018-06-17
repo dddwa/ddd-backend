@@ -32,7 +32,7 @@ namespace DDD.Functions
             }
 
             var http = new FlurlClient($"https://api.applicationinsights.io/v1/apps/{config.AppInsightsApplicationId}/query?timespan={WebUtility.UrlEncode(config.StartSyncingAppInsightsFrom)}%2F{WebUtility.UrlEncode(config.StopSyncingAppInsightsFrom)}&query={WebUtility.UrlEncode(VotingUserQuery.Query)}");
-            var response = await http.Request().WithHeader("x-api-key", config.AppInsightsKey).GetAsync();
+            var response = await http.Request().WithHeader("x-api-key", config.AppInsightsApplicationKey).GetAsync();
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsAsync<AppInsightsQueryResponse<VotingUserQuery>>();
             var currentRecords = content.Data.Select(x => new AppInsightsVotingUser(config.ConferenceInstance, x.UserId, x.VoteId, x.StartTime)).ToArray();

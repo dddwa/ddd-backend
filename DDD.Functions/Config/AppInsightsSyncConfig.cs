@@ -17,8 +17,8 @@ namespace DDD.Functions.Config
         public string AppInsightsTable { get; set; }
         [AppSetting(Default = "AppInsightsApplicationId")]
         public string AppInsightsApplicationId { get; set; }
-        [AppSetting(Default = "AppInsightsKey")]
-        public string AppInsightsKey { get; set; }
+        [AppSetting(Default = "AppInsightsApplicationKey")]
+        public string AppInsightsApplicationKey { get; set; }
         [AppSetting(Default = "StartSyncingAppInsightsFrom")]
         public string StartSyncingAppInsightsFrom { get; set; }
         public DateTimeOffset StartSyncingAppInsightsFromDate => StartSyncingAppInsightsFrom != null ? DateTimeOffset.Parse(StartSyncingAppInsightsFrom) : DateTimeOffset.MinValue;
