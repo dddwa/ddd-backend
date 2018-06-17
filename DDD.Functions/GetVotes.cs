@@ -13,7 +13,6 @@ using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using DDD.Core.AzureStorage;
 
 namespace DDD.Functions
@@ -45,8 +44,12 @@ namespace DDD.Functions
             var eventbriteOrders = await ebTable.GetAllByPartitionKeyAsync<EventbriteOrder>(config.ConferenceInstance);
             var eventbriteIds = eventbriteOrders.Select(o => o.OrderId).ToArray();
 
+            // Get AppInsights sessions
+            var aiTable = account.CreateCloudTableClient().GetTableReference(config.AppInsightsTable);
+            var userSessions = await aiTable.GetAllByPartitionKeyAsync<AppInsightsVotingUser>(config.ConferenceInstance);
+
             // Analyse votes
-            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds)).ToArray();
+            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds, userSessions)).ToArray();
 
             // Get summary
             var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
@@ -91,12 +94,12 @@ namespace DDD.Functions
             var response = new GetVotesResponse
             {
                 VoteSummary = new VoteSummary(analysedVotes),
-                Sessions = sessions.OrderByDescending(s => s.VoteSummary.Total).ToArray(),
+                Sessions = sessions.OrderByDescending(s => s.VoteSummary.RawTotal).ToArray(),
                 TagSummaries = tagSummaries,
-                Votes = analysedVotes
+                Votes = analysedVotes,
+                UserSessions = userSessions.Select(x => new UserSession{UserId = x.UserId, VoteId = x.VoteId, StartTime = x.StartTime}).ToArray()
             };
-            var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver();
+            var settings = new JsonSerializerSettings {ContractResolver = new DefaultContractResolver()};
 
             return new JsonResult(response, settings);
         }
@@ -110,25 +113,22 @@ namespace DDD.Functions
             TotalWithValidTicketNumber = votes.Count(v => v.HasValidTicketNumber);
             TotalWithInvalidTicketNumber = votes.Count(v => v.HasTicketNumber && !v.HasValidTicketNumber);
             TotalWithDuplicateTicketNumber = votes.Count(v => v.HasDuplicateTicketNumber);
-            TotalWithAppInsightsId = votes.Count(v => v.HasAppInsightsId);
+            TotalWithValidAppInsightsId = votes.Count(v => v.HasValidAppInsightsId);
+            TotalWithInvalidAppInsightsId = votes.Count(v => v.HasAppInsightsId && !v.HasValidAppInsightsId);
             TotalWithDuplicateAppInsightsId = votes.Count(v => v.HasDuplicateAppInsightsId);
-            TotalSuspiciousVotes = votes.Count(v => v.LooksSuspicious);
             TotalUniqueIpAddresses = votes.Select(v => v.Vote.IpAddress).Distinct().Count();
             TotalSessionsVoted = votes.Sum(v => v.Vote.GetSessionIds().Length);
-
-            Total = Convert.ToInt32(Math.Round(TotalWithValidTicketNumber * 2 + RawTotal - TotalWithValidTicketNumber - TotalSuspiciousVotes * 0.5 - TotalWithDuplicateTicketNumber * 0.5 - TotalWithDuplicateAppInsightsId * 0.5));
         }
 
-        public int RawTotal { get; set; }
-        public int Total { get; set; }
-        public int TotalWithValidTicketNumber { get; set; }
-        public int TotalWithInvalidTicketNumber { get; set; }
-        public int TotalWithDuplicateTicketNumber { get; set; }
-        public int TotalWithAppInsightsId { get; set; }
-        public int TotalWithDuplicateAppInsightsId { get; set; }
-        public int TotalSuspiciousVotes { get; set; }
-        public int TotalUniqueIpAddresses { get; set; }
-        public int TotalSessionsVoted { get; set; }
+        public int RawTotal { get; }
+        public int TotalWithValidTicketNumber { get; }
+        public int TotalWithInvalidTicketNumber { get; }
+        public int TotalWithDuplicateTicketNumber { get; }
+        public int TotalWithValidAppInsightsId { get; }
+        public int TotalWithInvalidAppInsightsId { get; }
+        public int TotalWithDuplicateAppInsightsId { get; }
+        public int TotalUniqueIpAddresses { get; }
+        public int TotalSessionsVoted { get; }
     }
 
     public class TagSummary
@@ -139,10 +139,11 @@ namespace DDD.Functions
 
     public class AnalysedVote : IEquatable<AnalysedVote>
     {
-        public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers)
+        public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers,
+            List<AppInsightsVotingUser> userSessions)
         {
             var orderedIndices = vote.GetIndices().Select(int.Parse).OrderBy(x => x).ToArray();
-            var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1);
+            var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1).OrderBy(x => x).ToArray();
 
             Vote = vote;
             HasTicketNumber = !string.IsNullOrEmpty(vote.TicketNumber);
@@ -150,20 +151,19 @@ namespace DDD.Functions
             HasDuplicateTicketNumber = HasValidTicketNumber && allVotes.Any(v => v.VoteId != vote.VoteId && v.TicketNumber == vote.TicketNumber);
 
             HasAppInsightsId = !string.IsNullOrEmpty(vote.VoterSessionId);
-            //HasValidAppInsightsId
+            HasValidAppInsightsId = HasAppInsightsId && userSessions.Any(x => x.UserId == vote.VoterSessionId && x.VoteId == vote.VoteId);
             HasDuplicateAppInsightsId = HasAppInsightsId && allVotes.Any(v => v.VoteId != vote.VoteId && v.VoterSessionId == vote.VoterSessionId);
-            LooksSuspicious = (vote.VotingSubmittedTime - vote.VotingStartTime) < TimeSpan.FromMinutes(2)
-                || indexGaps.Count(gap => gap == 1) >= 4;
+            IndexGaps = JsonConvert.SerializeObject(indexGaps.ToArray());
         }
 
-        public Vote Vote { get; set; }
-        public bool HasTicketNumber { get; set; }
-        public bool HasValidTicketNumber { get; set; }
-        public bool HasDuplicateTicketNumber { get; set; }
-        public bool HasAppInsightsId { get; set; }
-        public bool HasValidAppInsightsId { get; set; }
-        public bool HasDuplicateAppInsightsId { get; set; }
-        public bool LooksSuspicious { get; set; }
+        public Vote Vote { get; }
+        public bool HasTicketNumber { get; }
+        public bool HasValidTicketNumber { get; }
+        public bool HasDuplicateTicketNumber { get; }
+        public bool HasAppInsightsId { get; }
+        public bool HasValidAppInsightsId { get; }
+        public bool HasDuplicateAppInsightsId { get; }
+        public string IndexGaps { get; }
 
         public bool Equals(AnalysedVote other)
         {
@@ -216,11 +216,19 @@ namespace DDD.Functions
         public string WebsiteUrl { get; set; }
     }
 
+    public class UserSession
+    {
+        public string UserId { get; set; }
+        public string VoteId { get; set; }
+        public string StartTime { get; set; }
+    }
+
     public class GetVotesResponse
     {
         public VoteSummary VoteSummary { get; set; }
         public TagSummary[] TagSummaries { get; set; }
         public SessionWithVotes[] Sessions { get; set; }
         public AnalysedVote[] Votes { get; set; }
+        public UserSession[] UserSessions { get; set; }
     }
 }

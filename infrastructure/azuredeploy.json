@@ -94,6 +94,24 @@
         },
         "stopSyncingEventbriteFrom": {
             "type": "string"
+        },
+        "appInsightsSyncSchedule": {
+            "type": "string"
+        },
+        "appInsightsTable": {
+            "type": "string"
+        },
+        "appInsightsApplicationId": {
+            "type": "string"
+        },
+        "appInsightsApplicationKey": {
+            "type": "string"
+        },
+        "startSyncingAppInsightsFrom": {
+            "type": "string"
+        },
+        "stopSyncingAppInsightsFrom": {
+            "type": "string"
         }
     },
     "variables": {
@@ -212,7 +230,13 @@
                         "EventbriteEventId": "[parameters('eventbriteEventId')]",
                         "StopSyncingEventbriteFrom": "[parameters('stopSyncingEventbriteFrom')]",
                         "MinVotes": "[parameters('minVotes')]",
-                        "MaxVotes": "[parameters('maxVotes')]"
+                        "MaxVotes": "[parameters('maxVotes')]",
+                        "AppInsightsSyncSchedule": "[parameters('appInsightsSyncSchedule')]",
+                        "AppInsightsTable": "[parameters('appInsightsTable')]",
+                        "AppInsightsApplicationId": "[parameters('appInsightsApplicationId')]",
+                        "AppInsightsApplicationKey": "[parameters('appInsightsApplicationKey')]",
+                        "StartSyncingAppInsightsFrom": "[parameters('startSyncingAppInsightsFrom')]",
+                        "StopSyncingAppInsightsFrom": "[parameters('stopSyncingAppInsightsFrom')]"
                     }
                 },
                 {

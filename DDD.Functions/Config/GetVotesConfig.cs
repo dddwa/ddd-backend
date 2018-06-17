@@ -27,6 +27,11 @@ namespace DDD.Functions.Config
         // Eventbrite ids
         [AppSetting(Default = "EventbriteTable")]
         public string EventbriteTable { get; set; }
+
+        // App Insights sessions
+
+        [AppSetting(Default = "AppInsightsTable")]
+        public string AppInsightsTable { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
