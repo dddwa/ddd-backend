@@ -35,6 +35,11 @@ Param (
   [string] [Parameter(Mandatory = $true)] $EventbriteTable,
   [string] [Parameter(Mandatory = $true)] $EventbriteEventId,
   [string] [Parameter(Mandatory = $true)] $StopSyncingEventbriteFrom,
+  [string] [Parameter(Mandatory = $true)] $AppInsightsTable,
+  [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationId,
+  [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationKey,
+  [string] [Parameter(Mandatory = $true)] $StartSyncingAppInsightsFrom,
+  [string] [Parameter(Mandatory = $true)] $StopSyncingAppInsightsFrom,
   [string] $SyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
@@ -66,6 +71,12 @@ function Get-Parameters() {
     "eventbriteTable"                   = $EventbriteTable;
     "eventbriteEventId"                 = $EventbriteEventId;
     "stopSyncingEventbriteFrom"         = $StopSyncingEventbriteFrom;
+    "appInsightsSyncSchedule"           = $SyncSchedule;
+    "appInsightsTable"                  = $AppInsightsTable;
+    "appInsightsApplicationId"          = $AppInsightsApplicationId;
+    "appInsightsApplicationKey"         = $AppInsightsApplicationKey;
+    "startSyncingAppInsightsFrom"       = $StartSyncingAppInsightsFrom;
+    "stopSyncingAppInsightsFrom"        = $StopSyncingAppInsightsFrom;
   }
 }
 
