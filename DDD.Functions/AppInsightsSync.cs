@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using DDD.Core.AzureStorage;
 using DDD.Functions.Config;
+using Flurl.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
@@ -30,10 +31,8 @@ namespace DDD.Functions
                 return;
             }
 
-            var http = new HttpClient();
-            http.DefaultRequestHeaders.Add("x-api-key", config.AppInsightsKey);
-
-            var response = await http.GetAsync($"https://api.applicationinsights.io/v1/apps/{config.AppInsightsApplicationId}/query?timespan={WebUtility.UrlEncode(config.StartSyncingAppInsightsFrom)}%2F{WebUtility.UrlEncode(config.StopSyncingAppInsightsFrom)}&query={WebUtility.UrlEncode(VotingUserQuery.Query)}");
+            var http = new FlurlClient($"https://api.applicationinsights.io/v1/apps/{config.AppInsightsApplicationId}/query?timespan={WebUtility.UrlEncode(config.StartSyncingAppInsightsFrom)}%2F{WebUtility.UrlEncode(config.StopSyncingAppInsightsFrom)}&query={WebUtility.UrlEncode(VotingUserQuery.Query)}");
+            var response = await http.Request().WithHeader("x-api-key", config.AppInsightsKey).GetAsync();
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsAsync<AppInsightsQueryResponse<VotingUserQuery>>();
             var currentRecords = content.Data.Select(x => new AppInsightsVotingUser(config.ConferenceInstance, x.UserId, x.VoteId, x.StartTime)).ToArray();
@@ -45,7 +44,7 @@ namespace DDD.Functions
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
             var newRecords = currentRecords.Except(existingRecords, new AppInsightsVotingUserComparer()).Take(100).ToArray();
-            log.LogInformation("Found {existingCount} existing app insights voting users and {currentCount} current aapp insights voting users. Inserting {newCount} new orders.", existingRecords.Count(), currentRecords.Count(), newRecords.Count());
+            log.LogInformation("Found {existingCount} existing app insights voting users and {currentCount} current app insights voting users. Inserting {newCount} new voting users.", existingRecords.Count(), currentRecords.Count(), newRecords.Count());
 
             if (newRecords.Length > 0)
             {

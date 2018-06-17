@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DDD.Core.DocumentDb;
 using DDD.Functions.Config;
 using DDD.Sessionize;
+using Flurl.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,7 @@ namespace DDD.Functions
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
             await repo.InitializeAsync();
 
-            using (var client = new HttpClient())
+            using (var client = new FlurlClient(config.LogicAppUrl))
             {
                 foreach (var document in input)
                 {
@@ -53,7 +54,7 @@ namespace DDD.Functions
 
                     // Post the data
                     log.LogInformation("Posting {documentId} to {logicAppUrl}", document.Id, config.LogicAppUrl);
-                    var response = await client.PostAsync(config.LogicAppUrl, new StringContent(postContent, Encoding.UTF8, "application/json"));
+                    var response = await client.Request().PostAsync(new StringContent(postContent, Encoding.UTF8, "application/json"));
                     if (!response.IsSuccessStatusCode)
                     {
                         log.LogError("Unsuccessful request to post {documentId}; received {statusCode} and {responseBody}", document.Id, response.StatusCode, await response.Content.ReadAsStringAsync());

@@ -6,6 +6,7 @@ using DDD.Functions.Config;
 using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
+using Flurl.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
@@ -32,9 +33,9 @@ namespace DDD.Functions
             var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
             await repo.InitializeAsync();
 
-            using (var httpClient = new HttpClient())
+            using (var httpClient = new FlurlClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
+                var apiClient = new SessionizeApiClient(httpClient.HttpClient, config.SessionizeApiKey);
 
                 await SyncService.Sync(apiClient, repo, log, new DateTimeProvider());
             }
