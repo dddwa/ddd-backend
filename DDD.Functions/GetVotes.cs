@@ -44,8 +44,12 @@ namespace DDD.Functions
             var eventbriteOrders = await ebTable.GetAllByPartitionKeyAsync<EventbriteOrder>(config.ConferenceInstance);
             var eventbriteIds = eventbriteOrders.Select(o => o.OrderId).ToArray();
 
+            // Get AppInsights sessions
+            var aiTable = account.CreateCloudTableClient().GetTableReference(config.AppInsightsTable);
+            var userSessions = await aiTable.GetAllByPartitionKeyAsync<AppInsightsVotingUser>(config.ConferenceInstance);
+
             // Analyse votes
-            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds)).ToArray();
+            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds, userSessions)).ToArray();
 
             // Get summary
             var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
@@ -92,7 +96,8 @@ namespace DDD.Functions
                 VoteSummary = new VoteSummary(analysedVotes),
                 Sessions = sessions.OrderByDescending(s => s.VoteSummary.RawTotal).ToArray(),
                 TagSummaries = tagSummaries,
-                Votes = analysedVotes
+                Votes = analysedVotes,
+                UserSessions = userSessions.Select(x => new UserSession{UserId = x.UserId, VoteId = x.VoteId, StartTime = x.StartTime}).ToArray()
             };
             var settings = new JsonSerializerSettings {ContractResolver = new DefaultContractResolver()};
 
@@ -108,7 +113,8 @@ namespace DDD.Functions
             TotalWithValidTicketNumber = votes.Count(v => v.HasValidTicketNumber);
             TotalWithInvalidTicketNumber = votes.Count(v => v.HasTicketNumber && !v.HasValidTicketNumber);
             TotalWithDuplicateTicketNumber = votes.Count(v => v.HasDuplicateTicketNumber);
-            TotalWithAppInsightsId = votes.Count(v => v.HasAppInsightsId);
+            TotalWithValidAppInsightsId = votes.Count(v => v.HasValidAppInsightsId);
+            TotalWithInvalidAppInsightsId = votes.Count(v => v.HasAppInsightsId && !v.HasValidAppInsightsId);
             TotalWithDuplicateAppInsightsId = votes.Count(v => v.HasDuplicateAppInsightsId);
             TotalUniqueIpAddresses = votes.Select(v => v.Vote.IpAddress).Distinct().Count();
             TotalSessionsVoted = votes.Sum(v => v.Vote.GetSessionIds().Length);
@@ -118,7 +124,8 @@ namespace DDD.Functions
         public int TotalWithValidTicketNumber { get; }
         public int TotalWithInvalidTicketNumber { get; }
         public int TotalWithDuplicateTicketNumber { get; }
-        public int TotalWithAppInsightsId { get; }
+        public int TotalWithValidAppInsightsId { get; }
+        public int TotalWithInvalidAppInsightsId { get; }
         public int TotalWithDuplicateAppInsightsId { get; }
         public int TotalUniqueIpAddresses { get; }
         public int TotalSessionsVoted { get; }
@@ -132,7 +139,8 @@ namespace DDD.Functions
 
     public class AnalysedVote : IEquatable<AnalysedVote>
     {
-        public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers)
+        public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers,
+            List<AppInsightsVotingUser> userSessions)
         {
             var orderedIndices = vote.GetIndices().Select(int.Parse).OrderBy(x => x).ToArray();
             var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1);
@@ -143,7 +151,7 @@ namespace DDD.Functions
             HasDuplicateTicketNumber = HasValidTicketNumber && allVotes.Any(v => v.VoteId != vote.VoteId && v.TicketNumber == vote.TicketNumber);
 
             HasAppInsightsId = !string.IsNullOrEmpty(vote.VoterSessionId);
-            //HasValidAppInsightsId
+            HasValidAppInsightsId = HasAppInsightsId && userSessions.Any(x => x.UserId == vote.VoterSessionId && x.VoteId == vote.VoteId);
             HasDuplicateAppInsightsId = HasAppInsightsId && allVotes.Any(v => v.VoteId != vote.VoteId && v.VoterSessionId == vote.VoterSessionId);
             IndexGaps = indexGaps.ToArray();
         }
@@ -208,11 +216,19 @@ namespace DDD.Functions
         public string WebsiteUrl { get; set; }
     }
 
+    public class UserSession
+    {
+        public string UserId { get; set; }
+        public string VoteId { get; set; }
+        public string StartTime { get; set; }
+    }
+
     public class GetVotesResponse
     {
         public VoteSummary VoteSummary { get; set; }
         public TagSummary[] TagSummaries { get; set; }
         public SessionWithVotes[] Sessions { get; set; }
         public AnalysedVote[] Votes { get; set; }
+        public UserSession[] UserSessions { get; set; }
     }
 }

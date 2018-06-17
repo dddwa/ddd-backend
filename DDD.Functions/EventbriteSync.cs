@@ -24,7 +24,7 @@ namespace DDD.Functions
             EventbriteSyncConfig config
         )
         {
-            if (config.Now > config.StopSyncingEventbriteFromDate)
+            if (config.Now > config.StopSyncingEventbriteFromDate.AddMinutes(10))
             {
                 log.LogInformation("EventbriteSync sync date passed");
                 return;
