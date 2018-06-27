@@ -11,14 +11,13 @@ namespace DDD.Sessionize.Sync
 {
     public static class SyncService
     {
-        public static async Task Sync(ISessionizeApiClient apiClient, IDocumentDbRepository<SessionOrPresenter> repo, ILogger log, IDateTimeProvider dateTimeProvider)
+        public static async Task Sync(ISessionizeApiClient apiClient, IDocumentDbRepository<SessionOrPresenter> repo, ILogger log, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData, bool inAgenda = false)
         {
             var sessionizeData = await apiClient.GetAllData();
 
             log.LogInformation("Retrieved {sessionCount} sessions, {presenterCount} presenters from Sessionize API {sessionizeApiUrl}", sessionizeData.Sessions.Length, sessionizeData.Speakers.Length, apiClient.GetUrl());
 
-            var adapter = new SessionizeAdapter.SessionizeAdapter();
-            var sourceData = adapter.Convert(sessionizeData, dateTimeProvider);
+            var sourceData = SessionizeAdapter.SessionizeAdapter.Convert(sessionizeData, inAgenda, dateTimeProvider);
 
             log.LogInformation("Sessionize data successfully adapted to DDD domain model: {sessionCount} sessions and {presenterCount} presenters", sourceData.Item1.Length, sourceData.Item2.Length);
 
@@ -26,10 +25,12 @@ namespace DDD.Sessionize.Sync
 
             log.LogInformation("Existing read model retrieved: {sessionCount} sessions and {presenterCount} presenters", destinationData.Count(x => x.Session != null), destinationData.Count(x => x.Presenter != null));
 
-            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log, dateTimeProvider);
+            await PerformSync(repo, sourceData.Item1, sourceData.Item2, destinationData, log, dateTimeProvider, deleteNonExistantData);
         }
 
-        private static async Task PerformSync(IDocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions, Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log, IDateTimeProvider dateTimeProvider)
+        private static async Task PerformSync(IDocumentDbRepository<SessionOrPresenter> repo, Session[] sourceSessions,
+            Presenter[] sourcePresenters, SessionOrPresenter[] destinationData, ILogger log,
+            IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
         {
             var destinationPresenters = destinationData.Where(x => x.Presenter != null).ToArray();
             var destinationSessions = destinationData.Where(x => x.Session != null).ToArray();
@@ -47,12 +48,14 @@ namespace DDD.Sessionize.Sync
             if (newPresenters.Any())
                 log.LogInformation("Adding new presenters to read model: {newPresenterIds}", (object) newPresenters.Select(x => x.Id).ToArray());
             await Task.WhenAll(newPresenters.Select(p => repo.CreateItemAsync(new SessionOrPresenter(p))));
-            if (deletedPresenters.Any())
-                log.LogInformation("Deleting presenters from read model: {deletedPresenterIds}", (object) deletedPresenters.Select(x => x.Id).ToArray());
-            await Task.WhenAll(deletedPresenters.Select(p => repo.DeleteItemAsync(p.Id.ToString())));
+            if (deletedPresenters.Any() && deleteNonExistantData)
+            {
+                log.LogInformation("Deleting presenters from read model: {deletedPresenterIds}", (object)deletedPresenters.Select(x => x.Id).ToArray());
+                await Task.WhenAll(deletedPresenters.Select(p => repo.DeleteItemAsync(p.Id.ToString())));
+            }
             if (editedPresenters.Any())
                 log.LogInformation("Updating presenters in read model: {editedPresenterIds}", (object) editedPresenters.Select(x => x.dest.Id).ToArray());
-            await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider))));
+            await Task.WhenAll(editedPresenters.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider, deleteNonExistantData: deleteNonExistantData))));
             if (!newPresenters.Any() && !deletedPresenters.Any() && !editedPresenters.Any())
                 log.LogInformation("Presenters up to date in read model");
 
@@ -78,12 +81,14 @@ namespace DDD.Sessionize.Sync
             if (newSessions.Any())
                 log.LogInformation("Adding new sessions to read model: {newSessionIds}", (object)newSessions.Select(x => x.Id).ToArray());
             await Task.WhenAll(newSessions.Select(s => repo.CreateItemAsync(new SessionOrPresenter(s))));
-            if (deletedSessions.Any())
+            if (deletedSessions.Any() && deleteNonExistantData)
+            {
                 log.LogInformation("Deleting sessions from read model: {deletedSessionIds}", (object)deletedSessions.Select(x => x.Id).ToArray());
-            await Task.WhenAll(deletedSessions.Select(s => repo.DeleteItemAsync(s.Id.ToString())));
+                await Task.WhenAll(deletedSessions.Select(s => repo.DeleteItemAsync(s.Id.ToString())));
+            }
             if (editedSessions.Any())
                 log.LogInformation("Editing sessions in read model: {editedSessionIds}", (object)editedSessions.Select(x => x.dest.Id).ToArray());
-            await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider))));
+            await Task.WhenAll(editedSessions.Select(x => repo.UpdateItemAsync(x.dest.Id, x.dest.Update(x.src, dateTimeProvider, deleteNonExistantData: deleteNonExistantData))));
             if (!newSessions.Any() && !deletedSessions.Any() && !editedSessions.Any())
                 log.LogInformation("Sessions up to date in read model");
         }

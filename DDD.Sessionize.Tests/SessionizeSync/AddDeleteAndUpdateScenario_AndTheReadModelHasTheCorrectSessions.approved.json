@@ -12,7 +12,8 @@
     "Format": null,
     "Level": "Intermediate",
     "Tags": [],
-    "DataFields": {}
+    "DataFields": {},
+    "InAgenda": false
   },
   {
     "Id": "00000000-0000-0000-0000-000000000008",
@@ -33,6 +34,7 @@
     ],
     "DataFields": {
       "Mobile number": "0400777763"
-    }
+    },
+    "InAgenda": false
   }
 ]

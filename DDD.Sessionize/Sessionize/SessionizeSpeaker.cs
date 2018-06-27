@@ -4,6 +4,11 @@ namespace DDD.Sessionize.Sessionize
 {
     public class SessionizeSpeaker
     {
+        public SessionizeSpeaker()
+        {
+            Links = new SessionizeSpeakerLink[0];
+        }
+
         public string Id { get; set; }
         public string FullName { get; set; }
         public string Bio { get; set; }

@@ -27,19 +27,15 @@ namespace DDD.Sessionize
             Id = presenter.Id.ToString();
         }
 
-        public SessionOrPresenter Update(Session session, IDateTimeProvider dateTimeProvider)
+        public SessionOrPresenter Update(Session session, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
         {
-            session.Id = Session.Id;
-            session.CreatedDate = Session.CreatedDate;
-            session.ModifiedDate = dateTimeProvider.Now();
+            session.UpdateFromExisting(Session, dateTimeProvider, deleteNonExistantData);
             return new SessionOrPresenter(session);
         }
 
-        public SessionOrPresenter Update(Presenter presenter, IDateTimeProvider dateTimeProvider)
+        public SessionOrPresenter Update(Presenter presenter, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
         {
-            presenter.Id = Presenter.Id;
-            presenter.CreatedDate = Presenter.CreatedDate;
-            presenter.ModifiedDate = dateTimeProvider.Now();
+            presenter.UpdateFromExisting(Presenter, dateTimeProvider, deleteNonExistantData);
             return new SessionOrPresenter(presenter);
         }
 

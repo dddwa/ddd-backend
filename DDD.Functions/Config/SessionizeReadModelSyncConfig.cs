@@ -19,6 +19,13 @@ namespace DDD.Functions.Config
         [AppSetting(Default = "StopSyncingSessionsFrom")]
         public string StopSyncingSessionsFrom { get; set; }
         public DateTimeOffset StopSyncingSessionsFromDate => StopSyncingSessionsFrom != null ? DateTimeOffset.Parse(StopSyncingSessionsFrom) : DateTimeOffset.MinValue;
+
+        // Agenda
+        [AppSetting(Default = "SessionizeAgendaApiKey")]
+        public string SessionizeAgendaApiKey { get; set; }
+        [AppSetting(Default = "StopSyncingAgendaFrom")]
+        public string StopSyncingAgendaFrom { get; set; }
+        public DateTimeOffset StopSyncingAgendaFromDate => StopSyncingAgendaFrom != null ? DateTimeOffset.Parse(StopSyncingAgendaFrom) : DateTimeOffset.MinValue;
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

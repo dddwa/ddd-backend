@@ -25,7 +25,7 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public async Task WhenPerformingSync()
         {
-            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider);
+            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider, deleteNonExistantData: true);
         }
 
         public async Task ThenTheReadModelIsPopulated()
