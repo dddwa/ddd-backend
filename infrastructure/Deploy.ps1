@@ -40,6 +40,8 @@ Param (
   [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationKey,
   [string] [Parameter(Mandatory = $true)] $StartSyncingAppInsightsFrom,
   [string] [Parameter(Mandatory = $true)] $StopSyncingAppInsightsFrom,
+  [string] [Parameter(Mandatory = $true)] $StopSyncingAgendaFrom,
+  [string] [Parameter(Mandatory = $true)] $SessionizeAgendaApiKey,
   [string] $SyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
@@ -77,6 +79,8 @@ function Get-Parameters() {
     "appInsightsApplicationKey"         = $AppInsightsApplicationKey;
     "startSyncingAppInsightsFrom"       = $StartSyncingAppInsightsFrom;
     "stopSyncingAppInsightsFrom"        = $StopSyncingAppInsightsFrom;
+    "stopSyncingAgendaFrom"             = $StopSyncingAgendaFrom;
+    "sessionizeAgendaApiKey"            = $SessionizeAgendaApiKey;
   }
 }
 
