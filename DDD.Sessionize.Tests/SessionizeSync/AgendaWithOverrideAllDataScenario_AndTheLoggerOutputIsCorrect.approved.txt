@@ -1,0 +1,5 @@
+Retrieved 1 sessions, 1 presenters from Sessionize API https://sessionize.com/api/v2/{APIID}/view/all
+Sessionize data successfully adapted to DDD domain model: 1 sessions and 1 presenters
+Existing read model retrieved: 1 sessions and 0 presenters
+Adding new presenters to read model: 00000000-0000-0000-0000-000000000000
+Editing sessions in read model: 00000000-0000-0000-0000-000000000004

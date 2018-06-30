@@ -112,6 +112,12 @@
         },
         "stopSyncingAppInsightsFrom": {
             "type": "string"
+        },
+        "stopSyncingAgendaFrom": {
+            "type": "string"
+        },
+        "sessionizeAgendaApiKey": {
+            "type": "string"
         }
     },
     "variables": {
@@ -236,7 +242,9 @@
                         "AppInsightsApplicationId": "[parameters('appInsightsApplicationId')]",
                         "AppInsightsApplicationKey": "[parameters('appInsightsApplicationKey')]",
                         "StartSyncingAppInsightsFrom": "[parameters('startSyncingAppInsightsFrom')]",
-                        "StopSyncingAppInsightsFrom": "[parameters('stopSyncingAppInsightsFrom')]"
+                        "StopSyncingAppInsightsFrom": "[parameters('stopSyncingAppInsightsFrom')]",
+                        "StopSyncingAgendaFrom": "[parameters('stopSyncingAgendaFrom')]",
+                        "SessionizeAgendaApiKey": "[parameters('sessionizeAgendaApiKey')]"
                     }
                 },
                 {

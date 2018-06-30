@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
+using DDD.Core.Time;
 
 namespace DDD.Core.Domain
 {
@@ -18,6 +18,7 @@ namespace DDD.Core.Domain
         public string Level { get; set; }
         public string[] Tags { get; set; }
         public Dictionary<string, string> DataFields { get; set; }
+        public bool InAgenda { get; set; }
 
         public bool DataEquals(Session p)
         {
@@ -27,7 +28,28 @@ namespace DDD.Core.Domain
                 && Format == p.Format
                 && Level == p.Level
                 && string.Join("|", Tags.OrderBy(x => x)) == string.Join("|", p.Tags.OrderBy(x => x))
-                && DataFields.Count == p.DataFields.Count && !DataFields.Except(p.DataFields).Any();
+                && DataFields.Count == p.DataFields.Count && !DataFields.Except(p.DataFields).Any()
+                && InAgenda == p.InAgenda;
+        }
+
+        public void UpdateFromExisting(Session existingSession, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
+        {
+
+            Id = existingSession.Id;
+            CreatedDate = existingSession.CreatedDate;
+            ModifiedDate = dateTimeProvider.Now();
+
+            if (!deleteNonExistantData)
+            {
+                Title = Title ?? existingSession.Title;
+                Abstract = Abstract ?? existingSession.Abstract;
+                Format = Format ?? existingSession.Format;
+                Level = Level ?? existingSession.Level;
+                Tags = Tags != null && Tags.Length > 0 ? Tags : existingSession.Tags;
+                PresenterIds = PresenterIds != null && PresenterIds.Length > 0 ? PresenterIds : existingSession.PresenterIds;
+                existingSession.DataFields.Keys.Except(DataFields.Keys).ToList().ForEach(key =>
+                    DataFields[key] = existingSession.DataFields[key]);
+            }
         }
     }
 }

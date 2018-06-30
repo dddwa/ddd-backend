@@ -1,4 +1,5 @@
 ﻿using System;
+using DDD.Core.Time;
 
 namespace DDD.Core.Domain
 {
@@ -23,6 +24,24 @@ namespace DDD.Core.Domain
                 && ProfilePhotoUrl == p.ProfilePhotoUrl
                 && WebsiteUrl == p.WebsiteUrl
                 && TwitterHandle == p.TwitterHandle;
+        }
+
+        public void UpdateFromExisting(Presenter existingPresenter, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
+        {
+
+            Id = existingPresenter.Id;
+            CreatedDate = existingPresenter.CreatedDate;
+            ModifiedDate = dateTimeProvider.Now();
+
+            if (!deleteNonExistantData)
+            {
+                Name = Name ?? existingPresenter.Name;
+                Tagline = Tagline ?? existingPresenter.Tagline;
+                Bio = Bio ?? existingPresenter.Bio;
+                ProfilePhotoUrl = ProfilePhotoUrl ?? existingPresenter.ProfilePhotoUrl;
+                WebsiteUrl = WebsiteUrl ?? existingPresenter.WebsiteUrl;
+                TwitterHandle = TwitterHandle ?? existingPresenter.TwitterHandle;
+            }
         }
     }
 }

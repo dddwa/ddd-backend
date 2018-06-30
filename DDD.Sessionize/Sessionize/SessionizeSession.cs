@@ -4,6 +4,13 @@ namespace DDD.Sessionize.Sessionize
 {
     public class SessionizeSession
     {
+        public SessionizeSession()
+        {
+            SpeakerIds = new string[0];
+            CategoryItemIds = new int[0];
+            QuestionAnswers = new SessionizeQuestionAnswer[0];
+        }
+
         public string Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

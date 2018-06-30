@@ -17,29 +17,25 @@ namespace DDD.Sessionize
 
         public SessionOrPresenter(Session session)
         {
-            Session = session;
+            Session = session ?? throw new ArgumentNullException(nameof(session));
             Id = session.Id.ToString();
         }
 
         public SessionOrPresenter(Presenter presenter)
         {
-            Presenter = presenter;
+            Presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             Id = presenter.Id.ToString();
         }
 
-        public SessionOrPresenter Update(Session session, IDateTimeProvider dateTimeProvider)
+        public SessionOrPresenter Update(Session session, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
         {
-            session.Id = Session.Id;
-            session.CreatedDate = Session.CreatedDate;
-            session.ModifiedDate = dateTimeProvider.Now();
+            session.UpdateFromExisting(Session, dateTimeProvider, deleteNonExistantData);
             return new SessionOrPresenter(session);
         }
 
-        public SessionOrPresenter Update(Presenter presenter, IDateTimeProvider dateTimeProvider)
+        public SessionOrPresenter Update(Presenter presenter, IDateTimeProvider dateTimeProvider, bool deleteNonExistantData)
         {
-            presenter.Id = Presenter.Id;
-            presenter.CreatedDate = Presenter.CreatedDate;
-            presenter.ModifiedDate = dateTimeProvider.Now();
+            presenter.UpdateFromExisting(Presenter, dateTimeProvider, deleteNonExistantData);
             return new SessionOrPresenter(presenter);
         }
 

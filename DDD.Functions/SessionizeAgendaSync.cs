@@ -11,9 +11,9 @@ using Microsoft.Extensions.Logging;
 
 namespace DDD.Functions
 {
-    public static class SessionizeReadModelSync
+    public static class SessionizeAgendaSync
     {
-        [FunctionName("SessionizeReadModelSync")]
+        [FunctionName("SessionizeAgendaSync")]
         public static async Task Run(
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
@@ -22,9 +22,9 @@ namespace DDD.Functions
             SessionizeReadModelSyncConfig config
         )
         {
-            if (config.Now > config.StopSyncingSessionsFromDate)
+            if (config.Now < config.StopSyncingSessionsFromDate || config.Now > config.StopSyncingAgendaFromDate)
             {
-                log.LogInformation("SessionizeReadModelSync sync date passed");
+                log.LogInformation("SessionizeAgendaSync sync not active");
                 return;
             }
 
@@ -34,9 +34,9 @@ namespace DDD.Functions
 
             using (var httpClient = new HttpClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
+                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeAgendaApiKey);
 
-                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider(), deleteNonExistantData: true);
+                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider(), deleteNonExistantData: false, inAgenda: true);
             }
         }
     }

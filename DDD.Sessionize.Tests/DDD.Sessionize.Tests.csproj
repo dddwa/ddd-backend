@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <None Remove="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
+    <None Remove="SessionizeSync\AgendaWithLeaveAllDataScenarioMock.json" />
+    <None Remove="SessionizeSync\AgendaWithOverrideAllDataScenarioMock.json" />
     <None Remove="SessionizeSync\EmptyReadModelScenarioMock.json" />
   </ItemGroup>
 
@@ -24,6 +26,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
+    <EmbeddedResource Include="SessionizeSync\AgendaWithLeaveAllDataScenarioMock.json" />
+    <EmbeddedResource Include="SessionizeSync\AgendaWithOverrideAllDataScenarioMock.json" />
     <EmbeddedResource Include="SessionizeSync\EmptyReadModelScenarioMock.json" />
   </ItemGroup>
 

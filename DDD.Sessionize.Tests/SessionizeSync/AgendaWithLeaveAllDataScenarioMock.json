@@ -1,0 +1,136 @@
+﻿{
+  "sessions": [
+    {
+      "id": "1",
+      "questionAnswers": [
+        {
+          "questionId": 159,
+          "answerValue": "0400777763"
+        }
+      ]
+    }
+  ],
+  "speakers": [
+    {
+      "id": "86ab1cc5-ddd4-4ed4-b919-dd0eb429bfa9"
+    }
+  ],
+  "questions": [
+    {
+      "id": 159,
+      "question": "Mobile number",
+      "questionType": "Short_Text",
+      "sort": 5
+    }
+  ],
+  "categories": [
+    {
+      "id": 630,
+      "title": "Session format",
+      "items": [
+        {
+          "id": 7450,
+          "name": "45 mins (40 mins talking)",
+          "sort": 1
+        },
+        {
+          "id": 7451,
+          "name": "20 mins (15 mins talking)",
+          "sort": 2
+        },
+        {
+          "id": 8814,
+          "name": "Either (45 mins or 20 mins)",
+          "sort": 3
+        }
+      ],
+      "sort": 0
+    },
+    {
+      "id": 632,
+      "title": "Level",
+      "items": [
+        {
+          "id": 8815,
+          "name": "Introductory",
+          "sort": 1
+        },
+        {
+          "id": 2665,
+          "name": "Intermediate",
+          "sort": 2
+        },
+        {
+          "id": 2666,
+          "name": "Advanced",
+          "sort": 3
+        },
+        {
+          "id": 8816,
+          "name": "Non-technical",
+          "sort": 4
+        }
+      ],
+      "sort": 1
+    },
+    {
+      "id": 999,
+      "title": "Other",
+      "items": [
+        {
+          "id": 9999,
+          "name": "Item 1",
+          "sort": 1
+        }
+      ]
+    },
+    {
+      "id": 1636,
+      "title": "Tags",
+      "items": [
+        {
+          "id": 7456,
+          "name": "Soft skills",
+          "sort": 1
+        },
+        {
+          "id": 7457,
+          "name": "Backend dev",
+          "sort": 2
+        },
+        {
+          "id": 7458,
+          "name": "Frontend dev",
+          "sort": 3
+        },
+        {
+          "id": 7459,
+          "name": "Design and UX",
+          "sort": 4
+        },
+        {
+          "id": 7460,
+          "name": "Testing",
+          "sort": 5
+        },
+        {
+          "id": 7461,
+          "name": "Security",
+          "sort": 6
+        },
+        {
+          "id": 7462,
+          "name": "Agile",
+          "sort": 7
+        },
+        {
+          "id": 7463,
+          "name": "Data and analytics",
+          "sort": 8
+        }
+      ],
+      "sort": 4
+    }
+  ],
+  "rooms": []
+}
