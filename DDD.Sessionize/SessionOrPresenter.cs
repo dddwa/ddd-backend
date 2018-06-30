@@ -17,13 +17,13 @@ namespace DDD.Sessionize
 
         public SessionOrPresenter(Session session)
         {
-            Session = session;
+            Session = session ?? throw new ArgumentNullException(nameof(session));
             Id = session.Id.ToString();
         }
 
         public SessionOrPresenter(Presenter presenter)
         {
-            Presenter = presenter;
+            Presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             Id = presenter.Id.ToString();
         }
 

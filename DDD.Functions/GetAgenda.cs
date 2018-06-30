@@ -1,24 +1,20 @@
+using DDD.Core.DocumentDb;
+using DDD.Functions.Config;
+using DDD.Sessionize;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using DDD.Functions.Config;
-using DDD.Core.DocumentDb;
-using DDD.Sessionize;
-using System.Threading.Tasks;
-using System.Linq;
-using System;
-using System.Net;
-using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DDD.Functions
 {
     public static class GetAgenda
     {
-        private static readonly Random Random = new Random();
-
         [FunctionName("GetAgenda")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
@@ -60,7 +56,7 @@ namespace DDD.Functions
                         WebsiteUrl = p.WebsiteUrl
                     }).Single()).ToArray()
                 })
-                .OrderBy(x => Random.Next())
+                .OrderBy(x => x.Title)
                 .ToArray();
 
             var settings = new JsonSerializerSettings();
