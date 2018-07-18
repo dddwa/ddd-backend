@@ -1,9 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Core.DocumentDb;
 using DDD.Core.Time;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using Microsoft.Azure.WebJobs;
@@ -18,6 +16,8 @@ namespace DDD.Functions
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindSessionsConfig]
+            SessionsConfig sessionsConfig,
             [BindSessionizeReadModelSyncConfig]
             SessionizeReadModelSyncConfig config
         )
@@ -28,15 +28,12 @@ namespace DDD.Functions
                 return;
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-
             using (var httpClient = new HttpClient())
             {
                 var apiClient = new SessionizeApiClient(httpClient, config.SessionizeAgendaApiKey);
+                var (sessionsRepo, presentersRepo) = await sessionsConfig.GetSessionRepositoryAsync();
 
-                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider(), deleteNonExistantData: false, inAgenda: true);
+                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), sessionsConfig.ConferenceInstance);
             }
         }
     }

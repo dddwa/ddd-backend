@@ -8,18 +8,16 @@ namespace DDD.Sessionize.SessionizeAdapter
 {
     public static class SessionizeAdapter
     {
-        public static Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData, bool inAgenda,
-            IDateTimeProvider dateTimeProvider)
+        public static Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
         {
             var categories = GetCategories(sessionizeData);
             var presenters = GetPresenters(sessionizeData, dateTimeProvider);
-            var sessions = GetSessions(sessionizeData, inAgenda, categories, presenters, dateTimeProvider);
+            var sessions = GetSessions(sessionizeData, categories, presenters, dateTimeProvider);
 
             return Tuple.Create(sessions, presenters);
         }
 
-        private static Session[] GetSessions(SessionizeResponse sessionizeData, bool inAgenda,
-            CategoryItem[] categories, Presenter[] presenters, IDateTimeProvider dateTimeProvider)
+        private static Session[] GetSessions(SessionizeResponse sessionizeData, CategoryItem[] categories, Presenter[] presenters, IDateTimeProvider dateTimeProvider)
         {
             return sessionizeData.Sessions.Select(s => new Session
             {
@@ -51,7 +49,6 @@ namespace DDD.Sessionize.SessionizeAdapter
                         .Select(c => new {q = c.TypeText, a = c.Title})
                     )
                     .ToDictionary(x => x.q, x => x.a),
-                InAgenda = inAgenda
             }).ToArray();
         }
 

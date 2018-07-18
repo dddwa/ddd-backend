@@ -10,14 +10,6 @@ namespace DDD.Functions.Config
         [AppSetting(Default = "ConferenceInstance")]
         public string ConferenceInstance { get; set; }
 
-        // Sessions store
-        [AppSetting(Default = "SessionsConnectionString")]
-        public string SessionsConnectionString { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
-        public string CosmosDatabaseId { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosCollectionId")]
-        public string CosmosCollectionId { get; set; }
-
         // Voting store
         [AppSetting(Default = "VotesConnectionString")]
         public string VotingConnectionString { get; set; }

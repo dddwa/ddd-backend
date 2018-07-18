@@ -18,6 +18,8 @@ namespace DDD.Functions
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissionsConfig,
             [BindSessionizeReadModelSyncConfig]
             SessionizeReadModelSyncConfig config
         )
@@ -28,15 +30,12 @@ namespace DDD.Functions
                 return;
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-
             using (var httpClient = new HttpClient())
             {
                 var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
+                var (sessionsRepo, presentersRepo) = await submissionsConfig.GetSubmissionRepositoryAsync();
 
-                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider(), deleteNonExistantData: true);
+                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), submissionsConfig.ConferenceInstance);
             }
         }
     }

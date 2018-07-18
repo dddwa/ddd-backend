@@ -8,12 +8,10 @@ namespace DDD.Functions.Config
     {
         [AppSetting(Default = "SessionsConnectionString")]
         public string ConnectionString { get; set; }
+        [AppSetting(Default = "NotifiedSessionsTable")]
+        public string NotifiedSessionsTable { get; set; }
         [AppSetting(Default = "NewSessionNotificationLogicAppUrl")]
         public string LogicAppUrl { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
-        public string CosmosDatabaseId { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosCollectionId")]
-        public string CosmosCollectionId { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

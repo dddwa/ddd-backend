@@ -7,13 +7,6 @@ namespace DDD.Functions.Config
     public class SessionizeReadModelSyncConfig : Attribute
     {
         public DateTimeOffset Now => DateTimeOffset.UtcNow;
-
-        [AppSetting(Default = "SessionsConnectionString")]
-        public string ConnectionString { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
-        public string CosmosDatabaseId { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosCollectionId")]
-        public string CosmosCollectionId { get; set; }
         [AppSetting(Default = "SessionizeApiKey")]
         public string SessionizeApiKey { get; set; }
         [AppSetting(Default = "StopSyncingSessionsFrom")]

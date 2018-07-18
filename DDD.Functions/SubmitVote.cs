@@ -10,7 +10,6 @@ using System;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.AspNetCore.Http;
 using DDD.Core.DocumentDb;
-using DDD.Sessionize;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
@@ -24,6 +23,8 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
             HttpRequestMessage req,
             ILogger log,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissionsConfig,
             [BindSubmissionsAndVotingConfig]
             SubmissionsAndVotingConfig config
             )
@@ -61,11 +62,10 @@ namespace DDD.Functions
             }
 
             // Get submitted sessions
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var allSubmissions = await repo.GetAllItemsAsync();
-            var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id).ToArray();
+            var (sessionsRepo, _) = await submissionsConfig.GetSubmissionRepositoryAsync();
+            await sessionsRepo.InitializeAsync();
+            var allSubmissions = await sessionsRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
+            var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
 
             // Valid session ids
             if (vote.SessionIds.Any(id => !allSubmissionIds.Contains(id)) || vote.SessionIds.Distinct().Count() != vote.SessionIds.Count())
@@ -85,7 +85,7 @@ namespace DDD.Functions
             var account = CloudStorageAccount.Parse(config.VotingConnectionString);
             var table = account.CreateCloudTableClient().GetTableReference(config.VotingTable);
             await table.CreateIfNotExistsAsync();
-            var existing = await table.ExecuteAsync(TableOperation.Retrieve<Vote>(config.ConferenceInstance, vote.Id.ToString()));
+            var existing = await table.ExecuteAsync(TableOperation.Retrieve<Vote>(submissionsConfig.ConferenceInstance, vote.Id.ToString()));
             if (existing.HttpStatusCode != (int) HttpStatusCode.NotFound)
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with a duplicate vote (got {voteId}).", vote.Id);
@@ -94,7 +94,7 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received vote with Id {voteId}; persisting...", vote.Id);
-            var voteToPersist = new Vote(config.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber, ip, vote.VoterSessionId, vote.VotingStartTime, config.Now);
+            var voteToPersist = new Vote(submissionsConfig.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber, ip, vote.VoterSessionId, vote.VotingStartTime, config.Now);
             await table.ExecuteAsync(TableOperation.Insert(voteToPersist));
 
             return new StatusCodeResult((int) HttpStatusCode.NoContent);

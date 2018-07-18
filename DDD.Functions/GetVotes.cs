@@ -24,14 +24,15 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
             HttpRequest req,
             TraceWriter log,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissionsConfig,
             [BindGetVotesConfig]
             GetVotesConfig config)
         {
             // Get sessions
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var all = (await repo.GetAllItemsAsync()).ToArray();
+            var (sessionsRepo, presentersRepo) = await submissionsConfig.GetSubmissionRepositoryAsync();
+            var submissions = await sessionsRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
+            var presenters = await presentersRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
 
             // Get votes
             var account = CloudStorageAccount.Parse(config.VotingConnectionString);
@@ -52,9 +53,7 @@ namespace DDD.Functions
             var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds, userSessions)).ToArray();
 
             // Get summary
-            var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
-            var sessions = all.Where(x => x.Session != null)
-                .Select(x => x.Session)
+            var sessions = submissions.Select(x => x.GetSession())
                 .Select(s => new SessionWithVotes
                 {
                     Id = s.Id.ToString(),
@@ -63,7 +62,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Presenter
+                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
                         {
                             Id = p.Id.ToString(),
                             Name = p.Name,

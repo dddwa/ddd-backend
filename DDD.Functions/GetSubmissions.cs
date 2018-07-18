@@ -4,12 +4,9 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using DDD.Functions.Config;
-using DDD.Core.DocumentDb;
-using DDD.Sessionize;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
-using System.Net;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 
@@ -24,6 +21,8 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissionsConfig,
             [BindSubmissionsAndVotingConfig]
             SubmissionsAndVotingConfig config)
         {
@@ -33,14 +32,12 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var all = await repo.GetAllItemsAsync();
+            var (sessionsRepo, presentersRepo) = await submissionsConfig.GetSubmissionRepositoryAsync();
+            var sessions = await sessionsRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
+            var presenters = await presentersRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
 
-            var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
-            var submissions = all.Where(x => x.Session != null)
-                .Select(x => x.Session)
+            var submissions = sessions.Where(x => x.Session != null)
+                .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
@@ -51,7 +48,7 @@ namespace DDD.Functions
                     Tags = s.Tags,
                     Presenters = config.AnonymousSubmissions
                         ? new Submitter[0]
-                        : s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Submitter
+                        : s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Submitter
                         {
                             Id = p.Id.ToString(),
                             Name = p.Name,

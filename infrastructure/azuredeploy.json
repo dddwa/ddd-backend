@@ -34,9 +34,6 @@
                 "Premium_LRS"
             ]
         },
-        "sessionizeReadModelSyncSchedule": {
-            "type": "string"
-        },
         "stopSyncingSessionsFrom": {
             "type": "string"
         },
@@ -68,9 +65,6 @@
         "conferenceInstance": {
             "type": "string"
         },
-        "votingTable": {
-            "type": "string"
-        },
         "votingAvailableFrom": {
             "type": "string"
         },
@@ -83,22 +77,10 @@
         "maxVotes": {
             "type": "string"
         },
-        "eventbriteSyncSchedule": {
-            "type": "string"
-        },
-        "eventbriteTable": {
-            "type": "string"
-        },
         "eventbriteEventId": {
             "type": "string"
         },
         "stopSyncingEventbriteFrom": {
-            "type": "string"
-        },
-        "appInsightsSyncSchedule": {
-            "type": "string"
-        },
-        "appInsightsTable": {
             "type": "string"
         },
         "appInsightsApplicationId": {
@@ -121,30 +103,21 @@
         }
     },
     "variables": {
-        "appInsightsLocation": "East US"
+        "appInsightsLocation": "East US",
+        "sessionizeReadModelSyncSchedule": "0 */5 * * * *",
+        "votingTable": "Votes",
+        "eventbriteSyncSchedule": "0 */5 * * * *",
+        "eventbriteTable": "Eventbrite",
+        "appInsightsSyncSchedule": "0 */5 * * * *",
+        "appInsightsTable": "AppInsights",
+        "submissionsTable": "Submissions",
+        "submittersTable": "Submitters",
+        "sessionsTable": "Sessions",
+        "presentersTable": "Presenters",
+        "newSessionNotificationSchedule": "0 */5 * * * *",
+        "notifiedSessionsTable": "NotifiedSessions"
     },
     "resources": [
-        {
-            "type": "Microsoft.DocumentDB/databaseAccounts",
-            "kind": "GlobalDocumentDB",
-            "name": "[parameters('functionsAppName')]",
-            "apiVersion": "2015-04-08",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "defaultExperience": "DocumentDB"
-            },
-            "scale": null,
-            "properties": {
-                "databaseAccountOfferType": "Standard",
-                "consistencyPolicy": {
-                    "defaultConsistencyLevel": "Session",
-                    "maxIntervalInSeconds": 5,
-                    "maxStalenessPrefix": 100
-                },
-                "name": "[parameters('functionsAppName')]"
-            },
-            "dependsOn": []
-        },
         {
             "type": "Microsoft.Insights/components",
             "name": "[parameters('functionsAppName')]",
@@ -201,8 +174,7 @@
                         "[parameters('functionsAppName')]",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName'))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
                     ],
                     "properties": {
                         "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
@@ -216,11 +188,9 @@
                         "AZURE_STORAGE_CONNECTION_STRING":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "queue_STORAGE":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "NewSessionNotificationLogicAppUrl": "[parameters('newSessionNotificationLogicAppUrl')]",
-                        "SessionsConnectionString": "[concat('AccountEndpoint=https://', parameters('functionsAppName'), '.documents.azure.com:443/;AccountKey=', listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('functionsAppName')), '2015-04-08').primaryMasterKey)]",
-                        "SessionsDataSourceCosmosDatabaseId": "Conference",
-                        "SessionsDataSourceCosmosCollectionId": "Sessions",
+                        "SessionsConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
-                        "SessionizeReadModelSyncSchedule": "[parameters('sessionizeReadModelSyncSchedule')]",
+                        "SessionizeReadModelSyncSchedule": "[variables('sessionizeReadModelSyncSchedule')]",
                         "StopSyncingSessionsFrom": "[parameters('stopSyncingSessionsFrom')]",
                         "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]",
                         "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
@@ -228,23 +198,29 @@
                         "AnonymousSubmissions": "[parameters('anonymousSubmissions')]",
                         "ConferenceInstance": "[parameters('conferenceInstance')]",
                         "VotesConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
-                        "VotingTable": "[parameters('votingTable')]",
+                        "VotingTable": "[variables('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
-                        "EventbriteSyncSchedule": "[parameters('eventbriteSyncSchedule')]",
-                        "EventbriteTable": "[parameters('eventbriteTable')]",
+                        "EventbriteSyncSchedule": "[variables('eventbriteSyncSchedule')]",
+                        "EventbriteTable": "[variables('eventbriteTable')]",
                         "EventbriteEventId": "[parameters('eventbriteEventId')]",
                         "StopSyncingEventbriteFrom": "[parameters('stopSyncingEventbriteFrom')]",
                         "MinVotes": "[parameters('minVotes')]",
                         "MaxVotes": "[parameters('maxVotes')]",
-                        "AppInsightsSyncSchedule": "[parameters('appInsightsSyncSchedule')]",
-                        "AppInsightsTable": "[parameters('appInsightsTable')]",
+                        "AppInsightsSyncSchedule": "[variables('appInsightsSyncSchedule')]",
+                        "AppInsightsTable": "[variables('appInsightsTable')]",
                         "AppInsightsApplicationId": "[parameters('appInsightsApplicationId')]",
                         "AppInsightsApplicationKey": "[parameters('appInsightsApplicationKey')]",
                         "StartSyncingAppInsightsFrom": "[parameters('startSyncingAppInsightsFrom')]",
                         "StopSyncingAppInsightsFrom": "[parameters('stopSyncingAppInsightsFrom')]",
                         "StopSyncingAgendaFrom": "[parameters('stopSyncingAgendaFrom')]",
-                        "SessionizeAgendaApiKey": "[parameters('sessionizeAgendaApiKey')]"
+                        "SessionizeAgendaApiKey": "[parameters('sessionizeAgendaApiKey')]",
+                        "SubmissionsTable": "[variables('submissionsTable')]",
+                        "SubmittersTable": "[variables('submittersTable')]",
+                        "SessionsTable": "[variables('sessionsTable')]",
+                        "PresentersTable": "[variables('presentersTable')]",
+                        "NewSessionNotificationSchedule": "[variables('newSessionNotificationSchedule')]",
+                        "NotifiedSessionsTable": "[variables('notifiedSessionsTable')]"
                     }
                 },
                 {

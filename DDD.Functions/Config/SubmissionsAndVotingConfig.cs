@@ -7,19 +7,7 @@ namespace DDD.Functions.Config
     public class SubmissionsAndVotingConfig : Attribute
     {
         public DateTimeOffset Now => DateTimeOffset.UtcNow;
-
-        // Conference details
-        [AppSetting(Default = "ConferenceInstance")]
-        public string ConferenceInstance { get; set; }
-
-        // Sessions store
-        [AppSetting(Default = "SessionsConnectionString")]
-        public string SessionsConnectionString { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosDatabaseId")]
-        public string CosmosDatabaseId { get; set; }
-        [AppSetting(Default = "SessionsDataSourceCosmosCollectionId")]
-        public string CosmosCollectionId { get; set; }
-
+        
         // Anonymous submissions
         [AppSetting(Default = "AnonymousSubmissions")]
         public string AnonymousSubmissionsAppSetting { get; set; }

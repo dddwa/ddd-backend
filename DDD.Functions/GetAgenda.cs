@@ -1,15 +1,13 @@
-using DDD.Core.DocumentDb;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Linq;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace DDD.Functions
 {
@@ -20,6 +18,8 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
+            [BindSessionsConfig]
+            SessionsConfig sessionsConfig,
             [BindSubmissionsAndVotingConfig]
             SubmissionsAndVotingConfig config)
         {
@@ -29,14 +29,11 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var all = await repo.GetAllItemsAsync();
+            var (sessionsRepo, presentersRepo) = await sessionsConfig.GetSessionRepositoryAsync();
+            var sessions = await sessionsRepo.GetAllAsync(sessionsConfig.ConferenceInstance);
+            var presenters = await presentersRepo.GetAllAsync(sessionsConfig.ConferenceInstance);
 
-            var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
-            var agenda = all.Where(x => x.Session != null && x.Session.InAgenda)
-                .Select(x => x.Session)
+            var agenda = sessions.Select(x => x.GetSession())
                 .Select(s => new Session
                 {
                     Id = s.Id.ToString(),
@@ -45,7 +42,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Presenter
+                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
                     {
                         Id = p.Id.ToString(),
                         Name = p.Name,
