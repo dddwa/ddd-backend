@@ -1,9 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Core.DocumentDb;
 using DDD.Core.Time;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using Microsoft.Azure.WebJobs;
@@ -18,13 +16,17 @@ namespace DDD.Functions
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
             [BindSubmissionsConfig]
-            SubmissionsConfig submissionsConfig,
-            [BindSessionizeReadModelSyncConfig]
-            SessionizeReadModelSyncConfig config
+            SubmissionsConfig submissions,
+            [BindSessionizeSyncConfig]
+            SessionizeSyncConfig sessionize
         )
         {
-            if (config.Now > config.StopSyncingSessionsFromDate)
+            if (keyDates.After(x => x.StopSyncingSessionsFromDate))
             {
                 log.LogInformation("SessionizeReadModelSync sync date passed");
                 return;
@@ -32,10 +34,10 @@ namespace DDD.Functions
 
             using (var httpClient = new HttpClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
-                var (sessionsRepo, presentersRepo) = await submissionsConfig.GetSubmissionRepositoryAsync();
+                var apiClient = new SessionizeApiClient(httpClient, sessionize.SubmissionsApiKey);
+                var (sessionsRepo, presentersRepo) = await submissions.GetRepositoryAsync();
 
-                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), submissionsConfig.ConferenceInstance);
+                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), conference.ConferenceInstance);
             }
         }
     }

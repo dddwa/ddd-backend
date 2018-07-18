@@ -21,9 +21,9 @@ namespace DDD.Sessionize.Tests.TestHelpers
             return Task.FromResult(_storage.SingleOrDefault(x => x.PartitionKey == partitionKey && x.RowKey == rowKey));
         }
 
-        public Task<IEnumerable<T>> GetAllAsync(string partitionKey = null, string rowKey = null)
+        public Task<IList<T>> GetAllAsync(string partitionKey = null, string rowKey = null)
         {
-            return Task.FromResult(_storage.Where(x => (x.PartitionKey == partitionKey || partitionKey == null) && x.RowKey == rowKey || rowKey == null));
+            return Task.FromResult((IList<T>) _storage.Where(x => (x.PartitionKey == partitionKey || partitionKey == null) && x.RowKey == rowKey || rowKey == null).ToArray());
         }
 
         public Task CreateAsync(T item)
@@ -43,6 +43,11 @@ namespace DDD.Sessionize.Tests.TestHelpers
         {
             var existing = await GetAsync(partitionKey, rowKey);
             _storage.Remove(existing);
+        }
+
+        public Task CreateBatchAsync(IList<T> batch)
+        {
+            return Task.WhenAll(batch.Select(CreateAsync));
         }
     }
 }

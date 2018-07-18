@@ -21,22 +21,25 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
             [BindSubmissionsConfig]
-            SubmissionsConfig submissionsConfig,
-            [BindSubmissionsAndVotingConfig]
-            SubmissionsAndVotingConfig config)
+            SubmissionsConfig submissions
+        )
         {
-            if (config.Now < config.SubmissionsAvailableFromDate || config.Now > config.SubmissionsAvailableToDate)
+            if (keyDates.Before(x => x.SubmissionsAvailableFromDate) || keyDates.After(x => x.SubmissionsAvailableToDate))
             {
-                log.LogWarning("Attempt to access GetSubmissions endpoint outside of allowed window of {start} -> {end}.", config.SubmissionsAvailableFromDate, config.SubmissionsAvailableToDate);
+                log.LogWarning("Attempt to access GetSubmissions endpoint outside of allowed window of {start} -> {end}.", keyDates.SubmissionsAvailableFromDate, keyDates.SubmissionsAvailableToDate);
                 return new StatusCodeResult(404);
             }
 
-            var (sessionsRepo, presentersRepo) = await submissionsConfig.GetSubmissionRepositoryAsync();
-            var sessions = await sessionsRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
-            var presenters = await presentersRepo.GetAllAsync(submissionsConfig.ConferenceInstance);
+            var (submissionsRepo, submittersRepo) = await submissions.GetRepositoryAsync();
+            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var submitters = await submittersRepo.GetAllAsync(conference.ConferenceInstance);
 
-            var submissions = sessions.Where(x => x.Session != null)
+            var submissionData = receivedSubmissions.Where(x => x.Session != null)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
@@ -46,9 +49,9 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = config.AnonymousSubmissions
+                    Presenters = conference.AnonymousSubmissions
                         ? new Submitter[0]
-                        : s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Submitter
+                        : s.PresenterIds.Select(pId => submitters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Submitter
                         {
                             Id = p.Id.ToString(),
                             Name = p.Name,
@@ -65,7 +68,7 @@ namespace DDD.Functions
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new DefaultContractResolver();
 
-            return new JsonResult(submissions, settings);
+            return new JsonResult(submissionData, settings);
         }
 
         public class Submission

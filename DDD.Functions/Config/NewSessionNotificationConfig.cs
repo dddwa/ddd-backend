@@ -9,7 +9,7 @@ namespace DDD.Functions.Config
         [AppSetting(Default = "SessionsConnectionString")]
         public string ConnectionString { get; set; }
         [AppSetting(Default = "NotifiedSessionsTable")]
-        public string NotifiedSessionsTable { get; set; }
+        public string Table { get; set; }
         [AppSetting(Default = "NewSessionNotificationLogicAppUrl")]
         public string LogicAppUrl { get; set; }
     }

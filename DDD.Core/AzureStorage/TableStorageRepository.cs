@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -9,10 +11,11 @@ namespace DDD.Core.AzureStorage
     {
         Task InitializeAsync();
         Task<T> GetAsync(string partitionKey, string rowKey);
-        Task<IEnumerable<T>> GetAllAsync(string partitionKey = null, string rowKey = null);
+        Task<IList<T>> GetAllAsync(string partitionKey = null, string rowKey = null);
         Task CreateAsync(T item);
         Task UpdateAsync(T item);
         Task DeleteAsync(string partitionKey, string rowKey);
+        Task CreateBatchAsync(IList<T> batch);
     }
 
     public class TableStorageRepository<T> : ITableStorageRepository<T> where T : class, ITableEntity, new()
@@ -37,7 +40,7 @@ namespace DDD.Core.AzureStorage
             // todo: return null if 404
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(string partitionKey = null, string rowKey = null)
+        public async Task<IList<T>> GetAllAsync(string partitionKey = null, string rowKey = null)
         {
             var query = new TableQuery<T>();
             TableQuerySegment<T> querySegment = null;
@@ -61,6 +64,18 @@ namespace DDD.Core.AzureStorage
         public async Task CreateAsync(T item)
         {
             await _table.ExecuteAsync(TableOperation.Insert(item));
+        }
+
+        public async Task CreateBatchAsync(IList<T> batch)
+        {
+            if (batch.Count > 100)
+                throw new InvalidOperationException($"Attempt to insert batch operation with too many records ({batch.Count}), max of 100.");
+            if (batch.Any(x => x.PartitionKey != batch[0].PartitionKey))
+                throw new InvalidOperationException("Attempt to insert batch operation with records that have a mix of partition keys.");
+
+            var batchOperation = new TableBatchOperation();
+            batch.ToList().ForEach(x => batchOperation.Add(TableOperation.Insert(x)));
+            await _table.ExecuteBatchAsync(batchOperation);
         }
 
         public async Task UpdateAsync(T item)

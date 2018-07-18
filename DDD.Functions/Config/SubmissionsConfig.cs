@@ -6,8 +6,6 @@ namespace DDD.Functions.Config
 {
     public class SubmissionsConfig : Attribute
     {
-        [AppSetting(Default = "ConferenceInstance")]
-        public string ConferenceInstance { get; set; }
         [AppSetting(Default = "SessionsConnectionString")]
         public string ConnectionString { get; set; }
         [AppSetting(Default = "SubmissionsTable")]

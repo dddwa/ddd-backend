@@ -18,16 +18,18 @@ namespace DDD.Functions
             [TimerTrigger("%NewSessionNotificationSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
             [BindNewSessionNotificationConfig]
-            NewSessionNotificationConfig config,
+            NewSessionNotificationConfig newSessionNotification,
             [BindSubmissionsConfig]
             SubmissionsConfig submissions)
         {
-            var (submissionsRepo, submittersRepo) = await submissions.GetSubmissionRepositoryAsync();
-            var notifiedSessionsRepo = await config.GetNotifiedSessionRepositoryAsync();
+            var (submissionsRepo, submittersRepo) = await submissions.GetRepositoryAsync();
+            var notifiedSessionsRepo = await newSessionNotification.GetRepositoryAsync();
 
-            var allSubmissions = await submissionsRepo.GetAllAsync(submissions.ConferenceInstance);
-            var allSubmitters = await submittersRepo.GetAllAsync(submissions.ConferenceInstance);
+            var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var allSubmitters = await submittersRepo.GetAllAsync(conference.ConferenceInstance);
             var notifiedSessions = await notifiedSessionsRepo.GetAllAsync();
 
             using (var client = new HttpClient())
@@ -43,8 +45,8 @@ namespace DDD.Functions
                     }, Formatting.None, new StringEnumConverter());
 
                     // Post the data
-                    log.LogInformation("Posting {submissionId} to {logicAppUrl}", submission.Id, config.LogicAppUrl);
-                    var response = await client.PostAsync(config.LogicAppUrl, new StringContent(postContent, Encoding.UTF8, "application/json"));
+                    log.LogInformation("Posting {submissionId} to {logicAppUrl}", submission.Id, newSessionNotification.LogicAppUrl);
+                    var response = await client.PostAsync(newSessionNotification.LogicAppUrl, new StringContent(postContent, Encoding.UTF8, "application/json"));
                     if (!response.IsSuccessStatusCode)
                     {
                         log.LogError("Unsuccessful request to post {documentId}; received {statusCode} and {responseBody}", submission.Id, response.StatusCode, await response.Content.ReadAsStringAsync());

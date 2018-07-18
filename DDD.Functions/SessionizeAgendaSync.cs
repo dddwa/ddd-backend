@@ -16,13 +16,17 @@ namespace DDD.Functions
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
             [BindSessionsConfig]
-            SessionsConfig sessionsConfig,
-            [BindSessionizeReadModelSyncConfig]
-            SessionizeReadModelSyncConfig config
+            SessionsConfig sessions,
+            [BindSessionizeSyncConfig]
+            SessionizeSyncConfig sessionize
         )
         {
-            if (config.Now < config.StopSyncingSessionsFromDate || config.Now > config.StopSyncingAgendaFromDate)
+            if (keyDates.Before(x => x.StopSyncingSessionsFromDate) || keyDates.After(x => x.StopSyncingAgendaFromDate))
             {
                 log.LogInformation("SessionizeAgendaSync sync not active");
                 return;
@@ -30,10 +34,10 @@ namespace DDD.Functions
 
             using (var httpClient = new HttpClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeAgendaApiKey);
-                var (sessionsRepo, presentersRepo) = await sessionsConfig.GetSessionRepositoryAsync();
+                var apiClient = new SessionizeApiClient(httpClient, sessionize.AgendaApiKey);
+                var (sessionsRepo, presentersRepo) = await sessions.GetRepositoryAsync();
 
-                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), sessionsConfig.ConferenceInstance);
+                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), conference.ConferenceInstance);
             }
         }
     }

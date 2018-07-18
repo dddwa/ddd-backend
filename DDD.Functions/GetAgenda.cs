@@ -18,20 +18,22 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
             [BindSessionsConfig]
-            SessionsConfig sessionsConfig,
-            [BindSubmissionsAndVotingConfig]
-            SubmissionsAndVotingConfig config)
+            SessionsConfig sessionsConfig)
         {
-            if (config.Now < config.SubmissionsAvailableToDate)
+            if (keyDates.Before(x => x.SubmissionsAvailableToDate))
             {
-                log.LogWarning("Attempt to access GetAgenda endpoint before they are available at {availableDate}.", config.SubmissionsAvailableToDate);
+                log.LogWarning("Attempt to access GetAgenda endpoint before they are available at {availableDate}.", keyDates.SubmissionsAvailableToDate);
                 return new StatusCodeResult(404);
             }
 
-            var (sessionsRepo, presentersRepo) = await sessionsConfig.GetSessionRepositoryAsync();
-            var sessions = await sessionsRepo.GetAllAsync(sessionsConfig.ConferenceInstance);
-            var presenters = await presentersRepo.GetAllAsync(sessionsConfig.ConferenceInstance);
+            var (sessionsRepo, presentersRepo) = await sessionsConfig.GetRepositoryAsync();
+            var sessions = await sessionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var presenters = await presentersRepo.GetAllAsync(conference.ConferenceInstance);
 
             var agenda = sessions.Select(x => x.GetSession())
                 .Select(s => new Session
