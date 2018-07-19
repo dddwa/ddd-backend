@@ -35,12 +35,12 @@ namespace DDD.Functions
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", eventbrite.ApiKey);
 
             var (orders, hasMoreItems, continuation) = await GetOrdersAsync(http,
-                $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders");
+                $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders/");
             ids.AddRange(orders.Select(o => o.Id));
             while (hasMoreItems)
             {
                 (orders, hasMoreItems, continuation) = await GetOrdersAsync(http,
-                    $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders?continuation={continuation}");
+                    $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders/?continuation={continuation}");
                 ids.AddRange(orders.Select(o => o.Id));
             }
 
