@@ -31,10 +31,13 @@ namespace DDD.Functions
             var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             var allSubmitters = await submittersRepo.GetAllAsync(conference.ConferenceInstance);
             var notifiedSessions = await notifiedSessionsRepo.GetAllAsync();
+            var sessionsToNotify = allSubmissions.Where(s => notifiedSessions.All(n => n.Id != s.Id)).ToArray();
+
+            log.LogInformation("Found {numberOfSessions} sessions, {numberOfSessionsAlreadyNotified} already notified and notifying another {numberOfSessionsBeingNotified}", allSubmissions.Count, notifiedSessions.Count, sessionsToNotify.Length);
 
             using (var client = new HttpClient())
             {
-                foreach (var submission in allSubmissions.Where(s => notifiedSessions.All(n => n.Id != s.Id)))
+                foreach (var submission in sessionsToNotify)
                 {
                     var presenterIds = submission.GetSession().PresenterIds.Select(x => x.ToString()).ToArray();
                     var presenters = allSubmitters.Where(submitter => presenterIds.Contains(submitter.Id.ToString()));

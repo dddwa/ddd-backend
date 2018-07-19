@@ -37,7 +37,6 @@ namespace DDD.Core.AzureStorage
         {
             var record = await _table.ExecuteAsync(TableOperation.Retrieve<T>(partitionKey, rowKey));
             return record.Result as T;
-            // todo: return null if 404
         }
 
         public async Task<IList<T>> GetAllAsync(string partitionKey = null, string rowKey = null)
@@ -68,6 +67,9 @@ namespace DDD.Core.AzureStorage
 
         public async Task CreateBatchAsync(IList<T> batch)
         {
+            if (batch.Count == 0)
+                return;
+
             if (batch.Count > 100)
                 throw new InvalidOperationException($"Attempt to insert batch operation with too many records ({batch.Count}), max of 100.");
             if (batch.Any(x => x.PartitionKey != batch[0].PartitionKey))
