@@ -64,6 +64,9 @@ namespace DDD.Sessionize.Sync
             if (!newPresenters.Any() && !deletedPresenters.Any() && !editedPresenters.Any())
                 log.LogInformation("Presenters up to date in read model");
 
+            // Exclude cancelled sessions
+            sourceSessions = sourceSessions.Where(s => !s.Title.Contains("[Cancelled]")).ToArray();
+
             // Update presenter ids on sessions
             sourceSessions.ToList().ForEach(s => s.PresenterIds = s.PresenterIds.Select(pId =>
                 existingPresenters
