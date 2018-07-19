@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using DDD.Core.AzureStorage;
-using DDD.Core.DocumentDb;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using DDD.Sessionize.Tests.TestHelpers;
