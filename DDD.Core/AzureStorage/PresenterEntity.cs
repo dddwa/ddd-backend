@@ -32,6 +32,9 @@ namespace DDD.Core.AzureStorage
 
         public PresenterEntity Update(Presenter newData, IDateTimeProvider dateTimeProvider)
         {
+            if (newData.Id != Id)
+                throw new ArgumentException($"Attempt to a presenter with a different one {Id} vs {newData.Id}.");
+
             var existing = GetPresenter();
             newData.UpdateFromExisting(existing, dateTimeProvider);
 
