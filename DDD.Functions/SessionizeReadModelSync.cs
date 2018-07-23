@@ -1,9 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Core.DocumentDb;
 using DDD.Core.Time;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using Microsoft.Azure.WebJobs;
@@ -18,25 +16,28 @@ namespace DDD.Functions
             [TimerTrigger("%SessionizeReadModelSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
-            [BindSessionizeReadModelSyncConfig]
-            SessionizeReadModelSyncConfig config
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissions,
+            [BindSessionizeSyncConfig]
+            SessionizeSyncConfig sessionize
         )
         {
-            if (config.Now > config.StopSyncingSessionsFromDate)
+            if (keyDates.After(x => x.StopSyncingSessionsFromDate))
             {
                 log.LogInformation("SessionizeReadModelSync sync date passed");
                 return;
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-
             using (var httpClient = new HttpClient())
             {
-                var apiClient = new SessionizeApiClient(httpClient, config.SessionizeApiKey);
+                var apiClient = new SessionizeApiClient(httpClient, sessionize.SubmissionsApiKey);
+                var (sessionsRepo, presentersRepo) = await submissions.GetRepositoryAsync();
 
-                await SyncService.Sync(apiClient, repo, log, new DateTimeProvider(), deleteNonExistantData: true);
+                await SyncService.Sync(apiClient, sessionsRepo, presentersRepo, log, new DateTimeProvider(), conference.ConferenceInstance);
             }
         }
     }

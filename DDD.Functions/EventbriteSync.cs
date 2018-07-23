@@ -1,13 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using DDD.Core.AzureStorage;
 using DDD.Functions.Config;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
@@ -20,11 +19,12 @@ namespace DDD.Functions
             [TimerTrigger("%EventbriteSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
-            [BindEventbriteSyncConfig]
-            EventbriteSyncConfig config
+            [BindConferenceConfig] ConferenceConfig conference,
+            [BindKeyDatesConfig] KeyDatesConfig keyDates,
+            [BindEventbriteSyncConfig] EventbriteSyncConfig eventbrite
         )
         {
-            if (config.Now > config.StopSyncingEventbriteFromDate.AddMinutes(10))
+            if (keyDates.After(x => x.StopSyncingEventbriteFromDate, TimeSpan.FromMinutes(10)))
             {
                 log.LogInformation("EventbriteSync sync date passed");
                 return;
@@ -32,31 +32,28 @@ namespace DDD.Functions
 
             var ids = new List<string>();
             var http = new HttpClient();
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.EventbriteApiKey);
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", eventbrite.ApiKey);
 
-            var (orders, hasMoreItems, continuation) = await GetOrdersAsync(http, $"https://www.eventbriteapi.com/v3/events/{config.EventId}/orders");
+            var (orders, hasMoreItems, continuation) = await GetOrdersAsync(http,
+                $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders/");
             ids.AddRange(orders.Select(o => o.Id));
             while (hasMoreItems)
             {
-                (orders, hasMoreItems, continuation) = await GetOrdersAsync(http, $"https://www.eventbriteapi.com/v3/events/{config.EventId}/orders?continuation={continuation}");
+                (orders, hasMoreItems, continuation) = await GetOrdersAsync(http,
+                    $"https://www.eventbriteapi.com/v3/events/{eventbrite.EventId}/orders/?continuation={continuation}");
                 ids.AddRange(orders.Select(o => o.Id));
             }
 
-            var account = CloudStorageAccount.Parse(config.ConnectionString);
-            var table = account.CreateCloudTableClient().GetTableReference(config.EventbriteTable);
-            await table.CreateIfNotExistsAsync();
-            var existingOrders = await table.GetAllByPartitionKeyAsync<EventbriteOrder>(config.ConferenceInstance);
+            var repo = await eventbrite.GetRepositoryAsync();
+            var existingOrders = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
             var newOrders = ids.Except(existingOrders.Select(x => x.OrderId).ToArray()).Distinct().Take(100).ToArray();
-            log.LogInformation("Found {existingCount} existing orders and {currentCount} current orders. Inserting {newCount} new orders.", existingOrders.Count, ids.Count, newOrders.Count());
-
-            if (newOrders.Length > 0)
-            {
-                var batch = new TableBatchOperation();
-                newOrders.ToList().ForEach(o => batch.Add(TableOperation.Insert(new EventbriteOrder(config.ConferenceInstance, o))));
-                await table.ExecuteBatchAsync(batch);
-            }
+            log.LogInformation(
+                "Found {existingCount} existing orders and {currentCount} current orders. Inserting {newCount} new orders.",
+                existingOrders.Count, ids.Count, newOrders.Count());
+            await repo.CreateBatchAsync(newOrders.Select(o => new EventbriteOrder(conference.ConferenceInstance, o))
+                .ToArray());
         }
 
         private static async Task<(Order[], bool, string)> GetOrdersAsync(HttpClient http, string eventbriteUrl)
@@ -82,13 +79,14 @@ namespace DDD.Functions
     public class Pagination
     {
         public string Continuation { get; set; }
-        [JsonProperty("has_more_items")]
-        public bool HasMoreItems { get; set; }
+        [JsonProperty("has_more_items")] public bool HasMoreItems { get; set; }
     }
 
     public class EventbriteOrder : TableEntity
     {
-        public EventbriteOrder() {}
+        public EventbriteOrder()
+        {
+        }
 
         public EventbriteOrder(string conferenceInstance, string orderNumber)
         {

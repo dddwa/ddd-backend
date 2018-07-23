@@ -2,20 +2,29 @@
 
 This project contains backend functionality to run the DDD conferences, including:
 
-* Syncing data from [Sessionize](https://sessionize.com/) to Azure Cosmos DB
-* [Todo] APIs to facilitate anonymous voting by the community (pulling sessions from Cosmos DB and storing votes to Azure Table Storage)
+* Syncing data from [Sessionize](https://sessionize.com/) to Azure Table Storage (tenanted by conference year) for submitted sessions (and submitters) and separate to that, selected sessions (and presenters)
+* APIs that return submission and session (agenda) information during allowed times
+* APIs to facilitate voting by the community against (optionally anonymous) submitted sessions (notes stored to Azure Table Storage tenanted by conference year) including various mechanisms to detect fraud
+* Syncing Eventbrite order IDs and Azure App Insights voting user IDs to assist with voting fraud detection and validation
+* API to return analysed voting information
 * Ability to trigger an Azure Logic App when a new session is detected from Sessionize (which can then be used to create Microsoft Teams / Slack notifications for visibility to the organising committee and/or to trigger moderation actions)
 * Eventbrite webhook to take order notifications, de-duplicate them and place them in queue storage so they can be picked up by a Logic App (or similar) to do things like create Microsoft Teams / Slack notifications for visibility to the organising committee
 
 # Structure
 
-* `DDD.API`: Not currently used, likely to be used to create voting APIs if functions isn't suitable - TBD!
 * `DDD.Core`: Cross-cutting logic and core domain model
 * `DDD.Functions`: Azure Functions project that contains:
-    * `SessionizeReadModelSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Cosmos DB
-    * `NewSessionNotification`: C# Azure Function that responds to changed in Cosmos DB changes (more specifically looking for new sessions being added from Sessionize) and then calls a Logic App Web Hook URL (from config) with the session and presenter information
+    * `AppInsightsSync`: C# Azure Function that syncs app insights user IDs to Azure Table Storage for users that submitted a vote
     * `EventbriteNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Eventbrite (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
-* `DDD.Sessionize`: Syncing logic to sync data from sessionize to Document DB
+	* `EventbriteSync`: C# Azure Function that syncs Eventbrite order IDs to Azure Table Storage for a configured event
+	* `GetAgenda`: C# Azure Function that returns sessions and presenters that have been approved for agenda
+	* `GetSubmissions`: C# Azure Function that returns submissions and submitters for use with either voting or showing submitted sessions
+	* `GetVotes`: C# Azure Function that returns analysed vote information; can be piped into Microsoft Power BI or similar for further processing and visualisation
+    * `NewSessionNotification`: C# Azure Function that responds to new submissions in Azure Table Storage and then calls a Logic App Web Hook URL (from config) with the session and presenter information (marking that session as notified to avoid duplicate notifications)
+	* `SessionizeReadModelSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for submissions
+	* `SessionizeAgendaSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for approved sessions
+	* `SubmitVote`: : C# Azure Function that allows a vote for submissions to be submitted, where it is validated and persisted to Azure Table Storage
+* `DDD.Sessionize`: Syncing logic to sync data from sessionize to Azure Table Storage
 * `DDD.Sessionize.Tests`: Unit tests for the Sessionize Syncing code
 * `infrastructure`: Azure ARM deployment scripts to provision the backend environment
     * `Deploy-Local.ps1`: Run locally to debug or develop the scripts using your user context in Azure
@@ -33,7 +42,7 @@ VSTS doesn't yet support .yml files for Continuous Delivery (Release) so the ste
 * Add a task for the SAS token generation for the storage account you persisted deployments to set the output variables to `DeploymentZipUri` and `DeploymentZipToken` respectively, recommend setting the timeout to a big number so it's always available (e.g. `1000000`), permission should just be `r`
 * Add an Azure PowerShell task against your subscription and:
     * `$(System.DefaultWorkingDirectory)/{CI build name}/infrastructure/Deploy.ps1` as the script file path
-    * `-AlreadyLoggedIn -TenantId $(TenantId) -SubscriptionId $(SubscriptionId) -ConferenceName $(ConferenceName) -Location "$(Location)" -AppEnvironment $(AppEnvironment) -AppServicePlanResourceGroup $(AppServicePlanResourceGroup) -AppServicePlanName $(AppServicePlanName) -NewSessionNotificationLogicAppUrl "$(NewSessionNotificationLogicAppUrl)" -DeploymentZipUrl "$(DeploymentZipUri)$(DeploymentZipBlobPath)$(DeploymentZipToken)" -SessionizeApiKey $(SessionizeApiKey) -EventbriteApiBearerToken $(EventbriteApiBearerToken)` as the script arguments
+    * `` as the script arguments
 * Add variables, e.g.:
     ![Variables](vsts-cd-variables.png)
 * Profit!

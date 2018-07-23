@@ -9,10 +9,7 @@ using DDD.Functions.Config;
 using System;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.AspNetCore.Http;
-using DDD.Core.DocumentDb;
-using DDD.Sessionize;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 
 namespace DDD.Functions
@@ -24,25 +21,31 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
             HttpRequestMessage req,
             ILogger log,
-            [BindSubmissionsAndVotingConfig]
-            SubmissionsAndVotingConfig config
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissions,
+            [BindVotingConfig]
+            VotingConfig voting
             )
         {
             var vote = await req.Content.ReadAsAsync<VoteRequest>();
             var ip = req.GetIpAddress();
 
             // Within voting window, allowing for 5 minutes of clock drift
-            if (config.Now < config.VotingAvailableFromDate || config.Now > config.VotingAvailableToDate.AddMinutes(5))
+            if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate, TimeSpan.FromMinutes(5)))
             {
-                log.LogWarning("Attempt to access SubmitVote endpoint outside of allowed window of {start} -> {end}.", config.VotingAvailableFromDate, config.VotingAvailableToDate);
+                log.LogWarning("Attempt to access SubmitVote endpoint outside of allowed window of {start} -> {end}.", keyDates.VotingAvailableFromDate, keyDates.VotingAvailableToDate);
                 return new StatusCodeResult((int) HttpStatusCode.NotFound);
             }
 
             // Correct number of votes
             var numVotesSubmitted = vote.SessionIds?.Length ?? 0;
-            if (numVotesSubmitted < config.MinVotes || numVotesSubmitted > config.MaxVotes)
+            if (numVotesSubmitted < conference.MinVotes || numVotesSubmitted > conference.MaxVotes)
             {
-                log.LogWarning("Attempt to submit to SubmitVotes endpoint with incorrect number of votes ({numVotes} rather than {minVotes} - {maxVotes}).", numVotesSubmitted, config.MinVotes, config.MaxVotes);
+                log.LogWarning("Attempt to submit to SubmitVotes endpoint with incorrect number of votes ({numVotes} rather than {minVotes} - {maxVotes}).", numVotesSubmitted, conference.MinVotes, conference.MaxVotes);
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
@@ -54,18 +57,16 @@ namespace DDD.Functions
             }
 
             // Valid voting start time, allowing for 5 minutes of clock drift
-            if (vote.VotingStartTime > config.Now.AddMinutes(5) || vote.VotingStartTime < config.VotingAvailableFromDate.AddMinutes(-5))
+            if (vote.VotingStartTime > keyDates.Now.AddMinutes(5) || vote.VotingStartTime < keyDates.VotingAvailableFromDate.AddMinutes(-5))
             {
-                log.LogWarning("Attempt to submit to SubmitVotes endpoint with invalid start time (got {submittedStartTime} instead of {votingStartTime} - {now}).", vote.VotingStartTime, config.VotingAvailableFromDate, config.Now);
+                log.LogWarning("Attempt to submit to SubmitVotes endpoint with invalid start time (got {submittedStartTime} instead of {votingStartTime} - {now}).", vote.VotingStartTime, keyDates.VotingAvailableFromDate, keyDates.Now);
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
             // Get submitted sessions
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var allSubmissions = await repo.GetAllItemsAsync();
-            var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id).ToArray();
+            var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
+            var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
 
             // Valid session ids
             if (vote.SessionIds.Any(id => !allSubmissionIds.Contains(id)) || vote.SessionIds.Distinct().Count() != vote.SessionIds.Count())
@@ -82,11 +83,9 @@ namespace DDD.Functions
             }
 
             // No existing vote
-            var account = CloudStorageAccount.Parse(config.VotingConnectionString);
-            var table = account.CreateCloudTableClient().GetTableReference(config.VotingTable);
-            await table.CreateIfNotExistsAsync();
-            var existing = await table.ExecuteAsync(TableOperation.Retrieve<Vote>(config.ConferenceInstance, vote.Id.ToString()));
-            if (existing.HttpStatusCode != (int) HttpStatusCode.NotFound)
+            var repo = await voting.GetRepositoryAsync();
+            var existing = await repo.GetAsync(conference.ConferenceInstance, vote.Id.ToString());
+            if (existing != null)
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with a duplicate vote (got {voteId}).", vote.Id);
                 return new StatusCodeResult((int) HttpStatusCode.Conflict);
@@ -94,8 +93,8 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received vote with Id {voteId}; persisting...", vote.Id);
-            var voteToPersist = new Vote(config.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber, ip, vote.VoterSessionId, vote.VotingStartTime, config.Now);
-            await table.ExecuteAsync(TableOperation.Insert(voteToPersist));
+            var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber, ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
+            await repo.CreateAsync(voteToPersist);
 
             return new StatusCodeResult((int) HttpStatusCode.NoContent);
         }

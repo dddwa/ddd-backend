@@ -7,8 +7,6 @@
 
   <ItemGroup>
     <None Remove="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
-    <None Remove="SessionizeSync\AgendaWithLeaveAllDataScenarioMock.json" />
-    <None Remove="SessionizeSync\AgendaWithOverrideAllDataScenarioMock.json" />
     <None Remove="SessionizeSync\EmptyReadModelScenarioMock.json" />
   </ItemGroup>
 
@@ -20,14 +18,11 @@
     <PackageReference Include="teststack.bddfy" Version="4.3.2" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <PackageReference Include="microsoft.azure.documentdb.core" Version="1.9.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="SessionizeSync\AddDeleteAndUpdateScenarioMock.json" />
-    <EmbeddedResource Include="SessionizeSync\AgendaWithLeaveAllDataScenarioMock.json" />
-    <EmbeddedResource Include="SessionizeSync\AgendaWithOverrideAllDataScenarioMock.json" />
     <EmbeddedResource Include="SessionizeSync\EmptyReadModelScenarioMock.json" />
   </ItemGroup>
 

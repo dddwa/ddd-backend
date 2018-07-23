@@ -1,15 +1,13 @@
-using DDD.Core.DocumentDb;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Linq;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace DDD.Functions
 {
@@ -20,23 +18,24 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
             HttpRequest req,
             ILogger log,
-            [BindSubmissionsAndVotingConfig]
-            SubmissionsAndVotingConfig config)
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates,
+            [BindSessionsConfig]
+            SessionsConfig sessionsConfig)
         {
-            if (config.Now < config.SubmissionsAvailableToDate)
+            if (keyDates.Before(x => x.SubmissionsAvailableToDate))
             {
-                log.LogWarning("Attempt to access GetAgenda endpoint before they are available at {availableDate}.", config.SubmissionsAvailableToDate);
+                log.LogWarning("Attempt to access GetAgenda endpoint before they are available at {availableDate}.", keyDates.SubmissionsAvailableToDate);
                 return new StatusCodeResult(404);
             }
 
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var all = await repo.GetAllItemsAsync();
+            var (sessionsRepo, presentersRepo) = await sessionsConfig.GetRepositoryAsync();
+            var sessions = await sessionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var presenters = await presentersRepo.GetAllAsync(conference.ConferenceInstance);
 
-            var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
-            var agenda = all.Where(x => x.Session != null && x.Session.InAgenda)
-                .Select(x => x.Session)
+            var agenda = sessions.Select(x => x.GetSession())
                 .Select(s => new Session
                 {
                     Id = s.Id.ToString(),
@@ -45,7 +44,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Presenter
+                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
                     {
                         Id = p.Id.ToString(),
                         Name = p.Name,

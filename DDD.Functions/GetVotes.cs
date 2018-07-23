@@ -3,9 +3,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.WindowsAzure.Storage;
-using DDD.Core.DocumentDb;
-using DDD.Sessionize;
 using DDD.Functions.Config;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -13,7 +10,6 @@ using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using DDD.Core.AzureStorage;
 
 namespace DDD.Functions
 {
@@ -24,37 +20,40 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
             HttpRequest req,
             TraceWriter log,
-            [BindGetVotesConfig]
-            GetVotesConfig config)
+            [BindConferenceConfig]
+            ConferenceConfig conference,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissions,
+            [BindVotingConfig]
+            VotingConfig voting,
+            [BindEventbriteSyncConfig]
+            EventbriteSyncConfig eventbrite,
+            [BindAppInsightsSyncConfig]
+            AppInsightsSyncConfig appInsights)
         {
-            // Get sessions
-            var documentDbClient = DocumentDbAccount.Parse(config.SessionsConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
-            var all = (await repo.GetAllItemsAsync()).ToArray();
+            // Get submissions
+            var (submissionsRepo, submittersRepo) = await submissions.GetRepositoryAsync();
+            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var presenters = await submittersRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Get votes
-            var account = CloudStorageAccount.Parse(config.VotingConnectionString);
-            var table = account.CreateCloudTableClient().GetTableReference(config.VotingTable);
-            await table.CreateIfNotExistsAsync();
-            var votes = await table.GetAllByPartitionKeyAsync<Vote>(config.ConferenceInstance);
+            var votingRepo = await voting.GetRepositoryAsync();
+            var votes = await votingRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Get Eventbrite ids
-            var ebTable = account.CreateCloudTableClient().GetTableReference(config.EventbriteTable);
-            var eventbriteOrders = await ebTable.GetAllByPartitionKeyAsync<EventbriteOrder>(config.ConferenceInstance);
+            var ebRepo = await eventbrite.GetRepositoryAsync();
+            var eventbriteOrders = await ebRepo.GetAllAsync(conference.ConferenceInstance);
             var eventbriteIds = eventbriteOrders.Select(o => o.OrderId).ToArray();
 
             // Get AppInsights sessions
-            var aiTable = account.CreateCloudTableClient().GetTableReference(config.AppInsightsTable);
-            var userSessions = await aiTable.GetAllByPartitionKeyAsync<AppInsightsVotingUser>(config.ConferenceInstance);
+            var aiRepo = await appInsights.GetRepositoryAsync();
+            var userSessions = await aiRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Analyse votes
             var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds, userSessions)).ToArray();
 
             // Get summary
-            var presenters = all.Where(x => x.Presenter != null).Select(x => x.Presenter).ToArray();
-            var sessions = all.Where(x => x.Session != null)
-                .Select(x => x.Session)
+            var sessions = receivedSubmissions.Select(x => x.GetSession())
                 .Select(s => new SessionWithVotes
                 {
                     Id = s.Id.ToString(),
@@ -63,7 +62,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => new Presenter
+                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
                         {
                             Id = p.Id.ToString(),
                             Name = p.Name,
@@ -140,7 +139,7 @@ namespace DDD.Functions
     public class AnalysedVote : IEquatable<AnalysedVote>
     {
         public AnalysedVote(Vote vote, IList<Vote> allVotes, IList<string> validTicketNumbers,
-            List<AppInsightsVotingUser> userSessions)
+            IList<AppInsightsVotingUser> userSessions)
         {
             var orderedIndices = vote.GetIndices().Select(int.Parse).OrderBy(x => x).ToArray();
             var indexGaps = orderedIndices.Select((index, i) => i == 0 ? 0 : index - orderedIndices[i - 1]).Skip(1).OrderBy(x => x).ToArray();

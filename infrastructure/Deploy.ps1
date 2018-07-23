@@ -26,23 +26,19 @@ Param (
   [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableTo,
   [string] [Parameter(Mandatory = $true)] $AnonymousSubmissions,
   [string] [Parameter(Mandatory = $true)] $ConferenceInstance,
-  [string] [Parameter(Mandatory = $true)] $VotingTable,
   [string] [Parameter(Mandatory = $true)] $VotingAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $VotingAvailableTo,
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,
-  [string] [Parameter(Mandatory = $true)] $EventbriteTable,
   [string] [Parameter(Mandatory = $true)] $EventbriteEventId,
   [string] [Parameter(Mandatory = $true)] $StopSyncingEventbriteFrom,
-  [string] [Parameter(Mandatory = $true)] $AppInsightsTable,
   [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationId,
   [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationKey,
   [string] [Parameter(Mandatory = $true)] $StartSyncingAppInsightsFrom,
   [string] [Parameter(Mandatory = $true)] $StopSyncingAppInsightsFrom,
   [string] [Parameter(Mandatory = $true)] $StopSyncingAgendaFrom,
   [string] [Parameter(Mandatory = $true)] $SessionizeAgendaApiKey,
-  [string] $SyncSchedule = "0 */5 * * * *",
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
 
@@ -54,7 +50,6 @@ function Get-Parameters() {
     "storageType"                       = "Standard_LRS";
     "dataStorageName"                   = "$($ConferenceName)data$AppEnvironment".ToLower();
     "dataStorageType"                   = "Standard_GRS";
-    "sessionizeReadModelSyncSchedule"   = $SyncSchedule;
     "stopSyncingSessionsFrom"           = $StopSyncingSessionsFrom;
     "newSessionNotificationLogicAppUrl" = $NewSessionNotificationLogicAppUrl;
     "deploymentZipUrl"                  = $DeploymentZipUrl;
@@ -64,17 +59,12 @@ function Get-Parameters() {
     "submissionsAvailableTo"            = $SubmissionsAvailableTo;
     "anonymousSubmissions"              = $AnonymousSubmissions;
     "conferenceInstance"                = $ConferenceInstance;
-    "votingTable"                       = $VotingTable;
     "votingAvailableFrom"               = $VotingAvailableFrom;
     "votingAvailableTo"                 = $VotingAvailableTo;
     "minVotes"                          = $MinVotes;
     "maxVotes"                          = $MaxVotes;
-    "eventbriteSyncSchedule"            = $SyncSchedule;
-    "eventbriteTable"                   = $EventbriteTable;
     "eventbriteEventId"                 = $EventbriteEventId;
     "stopSyncingEventbriteFrom"         = $StopSyncingEventbriteFrom;
-    "appInsightsSyncSchedule"           = $SyncSchedule;
-    "appInsightsTable"                  = $AppInsightsTable;
     "appInsightsApplicationId"          = $AppInsightsApplicationId;
     "appInsightsApplicationKey"         = $AppInsightsApplicationKey;
     "startSyncingAppInsightsFrom"       = $StartSyncingAppInsightsFrom;

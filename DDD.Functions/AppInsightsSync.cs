@@ -4,11 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Core.AzureStorage;
 using DDD.Functions.Config;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace DDD.Functions
@@ -20,39 +18,35 @@ namespace DDD.Functions
             [TimerTrigger("%AppInsightsSyncSchedule%")]
             TimerInfo timer,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
             [BindAppInsightsSyncConfig]
-            AppInsightsSyncConfig config
+            AppInsightsSyncConfig appInsights,
+            [BindKeyDatesConfig]
+            KeyDatesConfig keyDates
         )
         {
-            if (config.Now > config.StopSyncingAppInsightsFromDate.AddMinutes(10))
+            if (keyDates.Before(x => x.StartSyncingAppInsightsFromDate) || keyDates.After(x => x.StopSyncingAppInsightsFromDate, TimeSpan.FromMinutes(10)))
             {
-                log.LogInformation("AppInsightsSync sync date passed");
+                log.LogInformation("AppInsightsSync sync not active");
                 return;
             }
 
             var http = new HttpClient();
-            http.DefaultRequestHeaders.Add("x-api-key", config.AppInsightsApplicationKey);
+            http.DefaultRequestHeaders.Add("x-api-key", appInsights.ApplicationKey);
 
-            var response = await http.GetAsync($"https://api.applicationinsights.io/v1/apps/{config.AppInsightsApplicationId}/query?timespan={WebUtility.UrlEncode(config.StartSyncingAppInsightsFrom)}%2F{WebUtility.UrlEncode(config.StopSyncingAppInsightsFrom)}&query={WebUtility.UrlEncode(VotingUserQuery.Query)}");
+            var response = await http.GetAsync($"https://api.applicationinsights.io/v1/apps/{appInsights.ApplicationId}/query?timespan={WebUtility.UrlEncode(keyDates.StartSyncingAppInsightsFrom)}%2F{WebUtility.UrlEncode(keyDates.StopSyncingAppInsightsFrom)}&query={WebUtility.UrlEncode(VotingUserQuery.Query)}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsAsync<AppInsightsQueryResponse<VotingUserQuery>>();
-            var currentRecords = content.Data.Select(x => new AppInsightsVotingUser(config.ConferenceInstance, x.UserId, x.VoteId, x.StartTime)).ToArray();
+            var currentRecords = content.Data.Select(x => new AppInsightsVotingUser(conference.ConferenceInstance, x.UserId, x.VoteId, x.StartTime)).ToArray();
 
-            var account = CloudStorageAccount.Parse(config.ConnectionString);
-            var table = account.CreateCloudTableClient().GetTableReference(config.AppInsightsTable);
-            await table.CreateIfNotExistsAsync();
-            var existingRecords = await table.GetAllByPartitionKeyAsync<AppInsightsVotingUser>(config.ConferenceInstance);
+            var repo = await appInsights.GetRepositoryAsync();
+            var existingRecords = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
             var newRecords = currentRecords.Except(existingRecords, new AppInsightsVotingUserComparer()).Take(100).ToArray();
-            log.LogInformation("Found {existingCount} existing app insights voting users and {currentCount} current aapp insights voting users. Inserting {newCount} new orders.", existingRecords.Count(), currentRecords.Count(), newRecords.Count());
-
-            if (newRecords.Length > 0)
-            {
-                var batch = new TableBatchOperation();
-                newRecords.ToList().ForEach(u => batch.Add(TableOperation.Insert(u)));
-                await table.ExecuteBatchAsync(batch);
-            }
+            log.LogInformation("Found {existingCount} existing app insights voting users and {currentCount} current app insights voting users. Inserting {newCount} new orders.", existingRecords.Count, currentRecords.Length, newRecords.Length);
+            await repo.CreateBatchAsync(newRecords);
         }
     }
 

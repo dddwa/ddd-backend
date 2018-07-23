@@ -1,14 +1,10 @@
-
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using DDD.Core.DocumentDb;
+using DDD.Core.AzureStorage;
 using DDD.Functions.Config;
-using DDD.Sessionize;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -18,47 +14,50 @@ namespace DDD.Functions
     public static class NewSessionNotification
     {
         [FunctionName("NewSessionNotification")]
-        public static async Task Run([CosmosDBTrigger(
-            "%SessionsDataSourceCosmosDatabaseId%",
-            "%SessionsDataSourceCosmosCollectionId%",
-            ConnectionStringSetting = "SessionsConnectionString",
-            CreateLeaseCollectionIfNotExists = true)]
-            IReadOnlyList<Document> input,
+        public static async Task Run(
+            [TimerTrigger("%NewSessionNotificationSchedule%")]
+            TimerInfo timer,
             ILogger log,
+            [BindConferenceConfig]
+            ConferenceConfig conference,
             [BindNewSessionNotificationConfig]
-            NewSessionNotificationConfig config)
+            NewSessionNotificationConfig newSessionNotification,
+            [BindSubmissionsConfig]
+            SubmissionsConfig submissions)
         {
-            var documentDbClient = DocumentDbAccount.Parse(config.ConnectionString);
-            var repo = new DocumentDbRepository<SessionOrPresenter>(documentDbClient, config.CosmosDatabaseId, config.CosmosCollectionId);
-            await repo.InitializeAsync();
+            var (submissionsRepo, submittersRepo) = await submissions.GetRepositoryAsync();
+            var notifiedSessionsRepo = await newSessionNotification.GetRepositoryAsync();
+
+            var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var allSubmitters = await submittersRepo.GetAllAsync(conference.ConferenceInstance);
+            var notifiedSessions = await notifiedSessionsRepo.GetAllAsync();
+            var sessionsToNotify = allSubmissions.Where(s => notifiedSessions.All(n => n.Id != s.Id)).ToArray();
+
+            log.LogInformation("Found {numberOfSessions} sessions, {numberOfSessionsAlreadyNotified} already notified and notifying another {numberOfSessionsBeingNotified}", allSubmissions.Count, notifiedSessions.Count, sessionsToNotify.Length);
 
             using (var client = new HttpClient())
             {
-                foreach (var document in input)
+                foreach (var submission in sessionsToNotify)
                 {
-                    // Only want new sessions
-                    var sessionOrPresentation = await repo.GetItemAsync(document.Id);
-                    if (sessionOrPresentation.Session == null || sessionOrPresentation.Session.ModifiedDate != null)
-                        continue;
-
-                    // Get denormalised data
-                    var session = sessionOrPresentation.Session;
-                    var presenterIds = session.PresenterIds.Select(x => x.ToString()).ToArray();
-                    var presenters = await repo.GetItemsAsync(sop => presenterIds.Contains(sop.Id));
+                    var presenterIds = submission.GetSession().PresenterIds.Select(x => x.ToString()).ToArray();
+                    var presenters = allSubmitters.Where(submitter => presenterIds.Contains(submitter.Id.ToString()));
                     var postContent = JsonConvert.SerializeObject(new
                     {
-                        Session = session,
-                        Presenters = presenters.Select(x => x.Presenter).ToArray()
+                        Session = submission.GetSession(),
+                        Presenters = presenters.Select(x => x.GetPresenter()).ToArray()
                     }, Formatting.None, new StringEnumConverter());
 
                     // Post the data
-                    log.LogInformation("Posting {documentId} to {logicAppUrl}", document.Id, config.LogicAppUrl);
-                    var response = await client.PostAsync(config.LogicAppUrl, new StringContent(postContent, Encoding.UTF8, "application/json"));
+                    log.LogInformation("Posting {submissionId} to {logicAppUrl}", submission.Id, newSessionNotification.LogicAppUrl);
+                    var response = await client.PostAsync(newSessionNotification.LogicAppUrl, new StringContent(postContent, Encoding.UTF8, "application/json"));
                     if (!response.IsSuccessStatusCode)
                     {
-                        log.LogError("Unsuccessful request to post {documentId}; received {statusCode} and {responseBody}", document.Id, response.StatusCode, await response.Content.ReadAsStringAsync());
+                        log.LogError("Unsuccessful request to post {documentId}; received {statusCode} and {responseBody}", submission.Id, response.StatusCode, await response.Content.ReadAsStringAsync());
                         response.EnsureSuccessStatusCode();
                     }
+
+                    // Persist the notification record
+                    await notifiedSessionsRepo.CreateAsync(new NotifiedSessionEntity(submission.Id));
                 }
             }
         }

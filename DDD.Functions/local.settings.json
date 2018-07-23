@@ -4,21 +4,25 @@
     // Web Jobs
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     // Conference
     "ConferenceInstance": "2018",
     // SessionizeReadModelSync
     "SessionizeReadModelSyncSchedule": "* * * * *",
-    "SessionsConnectionString": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
-    "SessionsDataSourceType": "Cosmos",
-    "SessionsDataSourceCosmosDatabaseId": "Conference",
-    "SessionsDataSourceCosmosCollectionId": "Sessions",
+    "SessionsConnectionString": "UseDevelopmentStorage=true",
+    "SubmissionsTable": "Submissions",
+    "SubmittersTable": "Submitters",
+    "SessionsTable": "Sessions",
+    "PresentersTable": "Presenters",
     "StopSyncingSessionsFrom": "2018-06-10T00:00:00+08:00",
     "SessionizeApiKey": "mdhxdmti",
     // SessionizeAgendaSync
     "StopSyncingAgendaFrom": "2018-08-04T18:00:00+08:00",
     "SessionizeAgendaApiKey": "fx26jbjt",
     // NewSessionNotification
+    "NewSessionNotificationSchedule": "* * * * *",
     "NewSessionNotificationLogicAppUrl": "http://localhost",
+    "NotifiedSessionsTable": "NotifiedSessions",
     // EventbriteNotification
     "queue_STORAGE": "UseDevelopmentStorage=true",
     "EventbriteApiBearerToken": "{token}",

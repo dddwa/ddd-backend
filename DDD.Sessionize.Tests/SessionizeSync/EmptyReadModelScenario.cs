@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DDD.Core.DocumentDb;
+using DDD.Core.AzureStorage;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using DDD.Sessionize.Tests.TestHelpers;
@@ -14,7 +14,8 @@ namespace DDD.Sessionize.Tests.SessionizeSync
     {
         public void GivenEmptyReadModel()
         {
-            _documentDbRepository = new DocumentDbRepositoryMock<SessionOrPresenter>();
+            _sessionRepository = new TableStorageRepositoryMock<SessionEntity>();
+            _presenterRepository = new TableStorageRepositoryMock<PresenterEntity>();
         }
         
         public void AndGivenSessionizeHasPresentersAndSessions()
@@ -25,18 +26,18 @@ namespace DDD.Sessionize.Tests.SessionizeSync
 
         public async Task WhenPerformingSync()
         {
-            await SyncService.Sync(_sessionizeApiClient, _documentDbRepository, _logger, _dateTimeProvider, deleteNonExistantData: true);
+            await SyncService.Sync(_sessionizeApiClient, _sessionRepository, _presenterRepository, _logger, _dateTimeProvider, "2018");
         }
 
         public async Task ThenTheReadModelIsPopulated()
         {
-            _readModel = (await _documentDbRepository.GetAllItemsAsync()).ToArray();
+            _readModel = (await _sessionRepository.GetAllAsync("2018")).ToArray();
             _readModel.ShouldNotBeEmpty();
         }
 
-        public void AndTheReadModelHasTheCorrectPresenters()
+        public async Task AndTheReadModelHasTheCorrectPresenters()
         {
-            Approve(SessionOrPresenterAssertions.PreparePresentersForApproval(_readModel), "json");
+            Approve(SessionOrPresenterAssertions.PreparePresentersForApproval((await _presenterRepository.GetAllAsync("2018")).ToArray()), "json");
         }
 
         public void AndTheReadModelHasTheCorrectSessions()
@@ -56,9 +57,10 @@ namespace DDD.Sessionize.Tests.SessionizeSync
         }
 
         private readonly StaticDateTimeProvider _dateTimeProvider = new StaticDateTimeProvider(new DateTimeOffset(2010, 1, 1, 0, 0, 0, TimeSpan.Zero));
-        private IDocumentDbRepository<SessionOrPresenter> _documentDbRepository;
+        private TableStorageRepositoryMock<SessionEntity> _sessionRepository;
+        private TableStorageRepositoryMock<PresenterEntity> _presenterRepository;
         private ISessionizeApiClient _sessionizeApiClient;
         private readonly Xunit2Logger _logger;
-        private SessionOrPresenter[] _readModel;
+        private SessionEntity[] _readModel;
     }
 }
