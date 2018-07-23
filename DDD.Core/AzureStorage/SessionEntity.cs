@@ -32,9 +32,6 @@ namespace DDD.Core.AzureStorage
 
         public SessionEntity Update(Session newData, IDateTimeProvider dateTimeProvider)
         {
-            if (newData.Id != Id)
-                throw new ArgumentException($"Attempt to a session with a different one {Id} vs {newData.Id}.");
-
             var existing = GetSession();
             newData.UpdateFromExisting(existing, dateTimeProvider);
 
