@@ -44,6 +44,17 @@ namespace DDD.Functions.Config
             return repo;
         }
 
+        public static async Task<(ITableStorageRepository<ConferenceFeedbackEntity>, ITableStorageRepository<SessionFeedbackEntity>)> GetRepositoryAsync(this FeedbackConfig feedback)
+        {
+            var storageAccount = CloudStorageAccount.Parse(feedback.ConnectionString);
+            var conferenceFeedbackRepository = new TableStorageRepository<ConferenceFeedbackEntity>(storageAccount, feedback.ConferenceFeedbackTable);
+            var sessionFeedbackRepository = new TableStorageRepository<SessionFeedbackEntity>(storageAccount, feedback.SessionFeedbackTable);
+            await conferenceFeedbackRepository.InitializeAsync();
+            await sessionFeedbackRepository.InitializeAsync();
+
+            return (conferenceFeedbackRepository, sessionFeedbackRepository);
+        }
+
         private static async Task<(ITableStorageRepository<SessionEntity>, ITableStorageRepository<PresenterEntity>)> GetSessionRepositoryAsync(string connectionString, string sessionsTable, string presentersTable)
         {
             var storageAccount = CloudStorageAccount.Parse(connectionString);

@@ -115,7 +115,10 @@
         "sessionsTable": "Sessions",
         "presentersTable": "Presenters",
         "newSessionNotificationSchedule": "0 */5 * * * *",
-        "notifiedSessionsTable": "NotifiedSessions"
+        "notifiedSessionsTable": "NotifiedSessions",
+        "sessionFeedbackTable": "SessionFeedback",
+        "conferenceFeedbackTable": "ConferenceFeedback",
+        "minNumSessionFeedbackForPrizeDraw": "4"
     },
     "resources": [
         {
@@ -220,7 +223,11 @@
                         "SessionsTable": "[variables('sessionsTable')]",
                         "PresentersTable": "[variables('presentersTable')]",
                         "NewSessionNotificationSchedule": "[variables('newSessionNotificationSchedule')]",
-                        "NotifiedSessionsTable": "[variables('notifiedSessionsTable')]"
+                        "NotifiedSessionsTable": "[variables('notifiedSessionsTable')]",
+                        "FeedbackConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
+                        "SessionFeedbackTable": "[variables('sessionFeedbackTable')]",
+                        "ConferenceFeedbackTable": "[variables('conferenceFeedbackTable')]",
+                        "MinNumSessionFeedbackForPrizeDraw": "[variables('minNumSessionFeedbackForPrizeDraw')]"
                     }
                 },
                 {
