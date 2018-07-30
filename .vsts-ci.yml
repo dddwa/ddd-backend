@@ -40,7 +40,7 @@ steps:
 
 - task: AzureFileCopy@1
   inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)\$(Build.BuildNumber).zip'
+    SourcePath: '$(Build.ArtifactStagingDirectory)\$(Build.BuildNumber)\$(Build.BuildNumber).zip'
     azureSubscription: 'Microsoft Azure Sponsorship (dd079971-2023-4b56-be3a-85a346d51344)'
     Destination: AzureBlob
     storage: '$(StorageAccount)'
