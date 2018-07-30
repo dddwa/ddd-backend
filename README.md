@@ -9,6 +9,7 @@ This project contains backend functionality to run the DDD conferences, includin
 * API to return analysed voting information
 * Ability to trigger an Azure Logic App when a new session is detected from Sessionize (which can then be used to create Microsoft Teams / Slack notifications for visibility to the organising committee and/or to trigger moderation actions)
 * Eventbrite webhook to take order notifications, de-duplicate them and place them in queue storage so they can be picked up by a Logic App (or similar) to do things like create Microsoft Teams / Slack notifications for visibility to the organising committee
+* Getting feedback information and prize draw names
 
 # Structure
 

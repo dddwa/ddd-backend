@@ -22,6 +22,11 @@ namespace DDD.Functions.Config
         [AppSetting(Default = "MaxVotes")]
         public string MaxVotesSetting { get; set; }
         public int MaxVotes => MaxVotesSetting != null ? Int32.Parse(MaxVotesSetting) : 0;
+
+        // Min session feedback for prize draw
+        [AppSetting(Default = "MinNumSessionFeedbackForPrizeDraw")]
+        public string MinNumSessionFeedbackForPrizeDrawSetting { get; set; }
+        public int MinNumSessionFeedbackForPrizeDraw => MinNumSessionFeedbackForPrizeDrawSetting != null ? Int32.Parse(MinNumSessionFeedbackForPrizeDrawSetting) : 0;
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
