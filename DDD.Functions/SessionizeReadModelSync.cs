@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using DDD.Core.Time;
-using DDD.Functions.Config;
+using DDD.Functions.Extensions;
 using DDD.Sessionize.Sessionize;
 using DDD.Sessionize.Sync;
 using Microsoft.Azure.WebJobs;

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using DDD.Functions.Config;
+using DDD.Core.Eventbrite;
+using DDD.Functions.Extensions;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
 namespace DDD.Functions
@@ -80,20 +80,5 @@ namespace DDD.Functions
     {
         public string Continuation { get; set; }
         [JsonProperty("has_more_items")] public bool HasMoreItems { get; set; }
-    }
-
-    public class EventbriteOrder : TableEntity
-    {
-        public EventbriteOrder()
-        {
-        }
-
-        public EventbriteOrder(string conferenceInstance, string orderNumber)
-        {
-            PartitionKey = conferenceInstance;
-            RowKey = orderNumber;
-        }
-
-        public string OrderId => RowKey;
     }
 }

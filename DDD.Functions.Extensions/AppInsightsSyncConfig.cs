@@ -2,7 +2,7 @@
 using Microsoft.Azure.WebJobs.Description;
 using Microsoft.Azure.WebJobs.Host.Config;
 
-namespace DDD.Functions.Config
+namespace DDD.Functions.Extensions
 {
     public class AppInsightsSyncConfig : Attribute
     {

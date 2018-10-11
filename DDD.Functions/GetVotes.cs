@@ -2,14 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs.Host;
-using DDD.Functions.Config;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using DDD.Core.AppInsights;
+using DDD.Core.Voting;
+using DDD.Functions.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DDD.Functions
 {
@@ -19,7 +21,7 @@ namespace DDD.Functions
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
             HttpRequest req,
-            TraceWriter log,
+            ILogger log,
             [BindConferenceConfig]
             ConferenceConfig conference,
             [BindSubmissionsConfig]
@@ -175,7 +177,7 @@ namespace DDD.Functions
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Vote.VoteId.Equals(((AnalysedVote) obj).Vote.VoteId);
         }
 

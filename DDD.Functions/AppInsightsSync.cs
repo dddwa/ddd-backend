@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DDD.Functions.Config;
+using DDD.Core.AppInsights;
+using DDD.Functions.Extensions;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace DDD.Functions
 {
@@ -91,36 +90,5 @@ namespace DDD.Functions
         public string UserId { get; set; }
         public string StartTime { get; set; }
         public string VoteId { get; set; }
-    }
-
-    public class AppInsightsVotingUser : TableEntity
-    {
-        public AppInsightsVotingUser() {}
-
-        public AppInsightsVotingUser(string conferenceInstance, string userId, string voteId, string startTime)
-        {
-            PartitionKey = conferenceInstance;
-            RowKey = Guid.NewGuid().ToString();
-            UserId = userId;
-            VoteId = voteId;
-            StartTime = startTime;
-        }
-
-        public string UserId { get; set; }
-        public string VoteId { get; set; }
-        public string StartTime { get; set; }
-    }
-
-    public class AppInsightsVotingUserComparer : IEqualityComparer<AppInsightsVotingUser>
-    {
-        public bool Equals(AppInsightsVotingUser x, AppInsightsVotingUser y)
-        {
-            return x.UserId == y.UserId && x.VoteId == y.VoteId;
-        }
-
-        public int GetHashCode(AppInsightsVotingUser obj)
-        {
-            return (obj.UserId + "|" + obj.VoteId).GetHashCode();
-        }
     }
 }
