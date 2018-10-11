@@ -1,8 +1,11 @@
 ﻿using System.Threading.Tasks;
+using DDD.Core.AppInsights;
 using DDD.Core.AzureStorage;
+using DDD.Core.Eventbrite;
+using DDD.Core.Voting;
 using Microsoft.WindowsAzure.Storage;
 
-namespace DDD.Functions.Config
+namespace DDD.Functions.Extensions
 {
     public static class SessionData
     {
