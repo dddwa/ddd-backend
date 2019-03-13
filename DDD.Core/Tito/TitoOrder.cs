@@ -1,14 +1,14 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 
-namespace DDD.Core.Eventbrite
+namespace DDD.Core.Tito
 {
-    public class EventbriteOrder : TableEntity
+    public class TitoOrder : TableEntity
     {
-        public EventbriteOrder()
+        public TitoOrder()
         {
         }
 
-        public EventbriteOrder(string conferenceInstance, string orderNumber)
+        public TitoOrder(string conferenceInstance, string orderNumber)
         {
             PartitionKey = conferenceInstance;
             RowKey = orderNumber;

@@ -46,7 +46,7 @@
         "sessionizeApiKey": {
             "type": "securestring"
         },
-        "eventbriteApiBearerToken": {
+        "titoApiBearerToken": {
             "type": "securestring"
         },
         "submissionsAvailableFrom": {
@@ -77,10 +77,13 @@
         "maxVotes": {
             "type": "string"
         },
-        "eventbriteEventId": {
+        "titoEventId": {
+            "type": "string"
+        },        
+        "titoAccountId": {
             "type": "string"
         },
-        "stopSyncingEventbriteFrom": {
+        "stopSyncingTitoFrom": {
             "type": "string"
         },
         "appInsightsApplicationId": {
@@ -106,8 +109,8 @@
         "appInsightsLocation": "East US",
         "sessionizeReadModelSyncSchedule": "0 */5 * * * *",
         "votingTable": "Votes",
-        "eventbriteSyncSchedule": "0 */5 * * * *",
-        "eventbriteTable": "Eventbrite",
+        "titoSyncSchedule": "0 */5 * * * *",
+        "titoTable": "Tito",
         "appInsightsSyncSchedule": "0 */5 * * * *",
         "appInsightsTable": "AppInsights",
         "submissionsTable": "Submissions",
@@ -196,7 +199,7 @@
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
                         "SessionizeReadModelSyncSchedule": "[variables('sessionizeReadModelSyncSchedule')]",
                         "StopSyncingSessionsFrom": "[parameters('stopSyncingSessionsFrom')]",
-                        "EventbriteApiBearerToken": "[parameters('eventbriteApiBearerToken')]",
+                        "TitoApiBearerToken": "[parameters('titoApiBearerToken')]",
                         "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
                         "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
                         "AnonymousSubmissions": "[parameters('anonymousSubmissions')]",
@@ -205,10 +208,11 @@
                         "VotingTable": "[variables('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
-                        "EventbriteSyncSchedule": "[variables('eventbriteSyncSchedule')]",
-                        "EventbriteTable": "[variables('eventbriteTable')]",
-                        "EventbriteEventId": "[parameters('eventbriteEventId')]",
-                        "StopSyncingEventbriteFrom": "[parameters('stopSyncingEventbriteFrom')]",
+                        "TitoSyncSchedule": "[variables('titoSyncSchedule')]",
+                        "TitoTable": "[variables('titoTable')]",
+                        "TitoEventId": "[parameters('titoEventId')]",
+                        "TitoAccountId": "[parameters('titoEventId')]",
+                        "StopSyncingTitoFrom": "[parameters('stopSyncingTitoFrom')]",
                         "MinVotes": "[parameters('minVotes')]",
                         "MaxVotes": "[parameters('maxVotes')]",
                         "AppInsightsSyncSchedule": "[variables('appInsightsSyncSchedule')]",
