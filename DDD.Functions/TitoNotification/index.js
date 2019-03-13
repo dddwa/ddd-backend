@@ -57,7 +57,7 @@ module.exports = function (context, req) {
     }
 
     var deDupePayload = {
-        webhook: "eventbrite",
+        webhook: "tito",
         action: req.body.config.action,
         id: req.body.api_url
     };
@@ -68,23 +68,20 @@ module.exports = function (context, req) {
             return;
         }
 
-        var orderUrl = req.body.api_url + "?expand=attendees,event,attendees.ticket_class";
-        var bearer = process.env["EventbriteApiBearerToken"]
-        request.get(orderUrl, {auth: {bearer: bearer}}, function(error, response, body) {
+        var orderUrl = req.body.api_url;
+        var token = process.env["TitoApiBearerToken"]
+        request.get(orderUrl, {auth: {token: `token=${token}`}}, function(error, response, body) {
 
             try {
 
                 var bodyAsJson = JSON.parse(body);
 
                 if (response && response.statusCode && response.statusCode === 200) {
-                    var attendees = bodyAsJson.attendees.map(function(attendee) {
+                    var attendees = bodyAsJson.tickets.map(function(ticket) {
                         return {
-                            name: attendee.profile.name,
+                            name: ticket.name,
                             event: bodyAsJson.event.name.text,
-                            ticketClass: attendee.ticket_class_name,
-                            qtySold: attendee.ticket_class.quantity_sold,
-                            totalQty: attendee.ticket_class.quantity_total,
-                            orderId: attendee.order_id
+                            orderId: ticket.registration_id
                         };
                     });
                     context.log("Attendee(s):", attendees);
@@ -98,7 +95,7 @@ module.exports = function (context, req) {
                     });
 
                 } else {
-                    context.log("ERROR calling EventBrite: (", response.statusCode, ") ", body);
+                    context.log("ERROR calling Tito: (", response.statusCode, ") ", body);
                     end(500);
                 }
             } catch (e) {
@@ -120,9 +117,9 @@ Test using:
     {
         action: 'order.placed',
         user_id: '141671750594',
-        endpoint_url: 'https://dddperth-eventbritewebhook.azurewebsites.net/api/HttpTriggerJS1?code=...',
+        endpoint_url: 'https://dddperth-titowebhook.azurewebsites.net/api/HttpTriggerJS1?code=...',
         webhook_id: '438789'
     },
-    api_url: 'https://www.eventbriteapi.com/v3/orders/650520140/'
+    api_url: 'https://api.tito.io/v3/:account_slug/:event_slug/registrations/:registration_slug'
 }
 */

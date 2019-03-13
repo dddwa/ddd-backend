@@ -45,10 +45,12 @@ namespace DDD.Functions.Extensions
         public string StopSyncingAppInsightsFrom { get; set; }
         public DateTimeOffset StopSyncingAppInsightsFromDate => StopSyncingAppInsightsFrom != null ? DateTimeOffset.Parse(StopSyncingAppInsightsFrom) : DateTimeOffset.MinValue;
 
-        // Eventbrite Sync
-        [AppSetting(Default = "StopSyncingEventbriteFrom")]
-        public string StopSyncingEventbriteFrom { get; set; }
-        public DateTimeOffset StopSyncingEventbriteFromDate => StopSyncingEventbriteFrom != null ? DateTimeOffset.Parse(StopSyncingEventbriteFrom) : DateTimeOffset.MinValue;
+
+        // Tito Sync
+        [AppSetting(Default = "StopSyncingTitoFrom")]
+        public string StopSyncingTitoFrom { get; set; }
+        public DateTimeOffset StopSyncingTitoFromDate => StopSyncingTitoFrom != null ? DateTimeOffset.Parse(StopSyncingTitoFrom) : DateTimeOffset.MinValue;
+
 
         public bool Before(Func<KeyDatesConfig, DateTimeOffset> date, TimeSpan? tolerance = null)
         {
