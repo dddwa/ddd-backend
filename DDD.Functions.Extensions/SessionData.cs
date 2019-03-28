@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DDD.Core.AppInsights;
 using DDD.Core.AzureStorage;
-using DDD.Core.Eventbrite;
+using DDD.Core.Tito;
 using DDD.Core.Voting;
 using Microsoft.WindowsAzure.Storage;
 
@@ -26,9 +26,9 @@ namespace DDD.Functions.Extensions
             return GetSessionRepositoryAsync(config.ConnectionString, config.SessionsTable, config.PresentersTable);
         }
 
-        public static async Task<ITableStorageRepository<EventbriteOrder>> GetRepositoryAsync(this EventbriteSyncConfig config)
+        public static async Task<ITableStorageRepository<TitoOrder>> GetRepositoryAsync(this TitoSyncConfig config)
         {
-            var repo = new TableStorageRepository<EventbriteOrder>(CloudStorageAccount.Parse(config.ConnectionString), config.Table);
+            var repo = new TableStorageRepository<TitoOrder>(CloudStorageAccount.Parse(config.ConnectionString), config.Table);
             await repo.InitializeAsync();
             return repo;
         }

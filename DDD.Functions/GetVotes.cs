@@ -28,8 +28,8 @@ namespace DDD.Functions
             SubmissionsConfig submissions,
             [BindVotingConfig]
             VotingConfig voting,
-            [BindEventbriteSyncConfig]
-            EventbriteSyncConfig eventbrite,
+            [BindTitoSyncConfig]
+            TitoSyncConfig titoSyncConfig,
             [BindAppInsightsSyncConfig]
             AppInsightsSyncConfig appInsights)
         {
@@ -42,17 +42,17 @@ namespace DDD.Functions
             var votingRepo = await voting.GetRepositoryAsync();
             var votes = await votingRepo.GetAllAsync(conference.ConferenceInstance);
 
-            // Get Eventbrite ids
-            var ebRepo = await eventbrite.GetRepositoryAsync();
-            var eventbriteOrders = await ebRepo.GetAllAsync(conference.ConferenceInstance);
-            var eventbriteIds = eventbriteOrders.Select(o => o.OrderId).ToArray();
+            // Get Tito ids
+            var titoRebo = await titoSyncConfig.GetRepositoryAsync();
+            var titoOrders = await titoRebo.GetAllAsync(conference.ConferenceInstance);
+            var titoIds = titoOrders.Select(o => o.OrderId).ToArray();
 
             // Get AppInsights sessions
             var aiRepo = await appInsights.GetRepositoryAsync();
             var userSessions = await aiRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Analyse votes
-            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, eventbriteIds, userSessions)).ToArray();
+            var analysedVotes = votes.Select(v => new AnalysedVote(v, votes, titoIds, userSessions)).ToArray();
 
             // Get summary
             var sessions = receivedSubmissions.Select(x => x.GetSession())
