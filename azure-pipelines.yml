@@ -6,7 +6,7 @@ queue:
 
 
 variables:
-  StorageAccount: 'dddperthdeployments'
+  StorageAccount: 'dddmelbournedeployments'
   StorageContainer: 'ddd-functions'
 steps:
 - task: Npm@1

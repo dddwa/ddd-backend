@@ -23,15 +23,16 @@
     "NewSessionNotificationSchedule": "* * * * *",
     "NewSessionNotificationLogicAppUrl": "http://localhost",
     "NotifiedSessionsTable": "NotifiedSessions",
-    // EventbriteNotification
+    // TitoNotification
     "queue_STORAGE": "UseDevelopmentStorage=true",
-    "EventbriteApiBearerToken": "{token}",
+    "TitoApiBearerToken": "{titoToken}",
     "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
-    // EventbriteSync
-    "EventbriteSyncSchedule": "* * * * *",
-    "EventbriteTable": "Eventbrite",
-    "EventbriteEventId": "44602457150",
-    "StopSyncingEventbriteFrom": "2018-06-18T23:59:59+08:00",
+    // TitoSync
+    "TitoSyncSchedule": "* * * * *",
+    "TitoTable": "Tito",
+    "TitoEventId": "44602457150",
+    "TitoAccountId": "ddd-melbourne",
+    "StopSyncingTitoFrom": "2018-06-18T23:59:59+08:00",
     // GetSubmissions
     "SubmissionsAvailableFrom": "2018-06-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2018-06-17T23:59:59+08:00",

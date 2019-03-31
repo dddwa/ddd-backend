@@ -21,7 +21,7 @@ Param (
   [string] [Parameter(Mandatory = $true)] $NewSessionNotificationLogicAppUrl,
   [string] [Parameter(Mandatory = $true)] $DeploymentZipUrl,
   [string] [Parameter(Mandatory = $true)] $SessionizeApiKey,
-  [string] [Parameter(Mandatory = $true)] $EventbriteApiBearerToken,
+  [string] [Parameter(Mandatory = $true)] $TitoApiBearerToken,
   [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $SubmissionsAvailableTo,
   [string] [Parameter(Mandatory = $true)] $AnonymousSubmissions,
@@ -31,8 +31,9 @@ Param (
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,
-  [string] [Parameter(Mandatory = $true)] $EventbriteEventId,
-  [string] [Parameter(Mandatory = $true)] $StopSyncingEventbriteFrom,
+  [string] [Parameter(Mandatory = $true)] $TitoEventId,
+  [string] [Parameter(Mandatory = $true)] $TitoAccountId,
+  [string] [Parameter(Mandatory = $true)] $StopSyncingTitoFrom,
   [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationId,
   [string] [Parameter(Mandatory = $true)] $AppInsightsApplicationKey,
   [string] [Parameter(Mandatory = $true)] $StartSyncingAppInsightsFrom,
@@ -54,7 +55,7 @@ function Get-Parameters() {
     "newSessionNotificationLogicAppUrl" = $NewSessionNotificationLogicAppUrl;
     "deploymentZipUrl"                  = $DeploymentZipUrl;
     "sessionizeApiKey"                  = $SessionizeApiKey;
-    "eventbriteApiBearerToken"          = $EventbriteApiBearerToken;
+    "titoApiBearerToken"                = $TitoApiBearerToken;
     "submissionsAvailableFrom"          = $SubmissionsAvailableFrom;
     "submissionsAvailableTo"            = $SubmissionsAvailableTo;
     "anonymousSubmissions"              = $AnonymousSubmissions;
@@ -63,8 +64,9 @@ function Get-Parameters() {
     "votingAvailableTo"                 = $VotingAvailableTo;
     "minVotes"                          = $MinVotes;
     "maxVotes"                          = $MaxVotes;
-    "eventbriteEventId"                 = $EventbriteEventId;
-    "stopSyncingEventbriteFrom"         = $StopSyncingEventbriteFrom;
+    "titoEventId"                       = $TitoEventId;
+    "titoAccountId"                     = $TitoAccountId;
+    "stopSyncingtitoFrom"               = $StopSyncingTitoFrom;
     "appInsightsApplicationId"          = $AppInsightsApplicationId;
     "appInsightsApplicationKey"         = $AppInsightsApplicationKey;
     "startSyncingAppInsightsFrom"       = $StartSyncingAppInsightsFrom;
