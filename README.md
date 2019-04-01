@@ -5,10 +5,10 @@ This project contains backend functionality to run the DDD conferences, includin
 * Syncing data from [Sessionize](https://sessionize.com/) to Azure Table Storage (tenanted by conference year) for submitted sessions (and submitters) and separate to that, selected sessions (and presenters)
 * APIs that return submission and session (agenda) information during allowed times
 * APIs to facilitate voting by the community against (optionally anonymous) submitted sessions (notes stored to Azure Table Storage tenanted by conference year) including various mechanisms to detect fraud
-* Syncing Eventbrite order IDs and Azure App Insights voting user IDs to assist with voting fraud detection and validation
+* Syncing Tito order IDs and Azure App Insights voting user IDs to assist with voting fraud detection and validation
 * API to return analysed voting information
 * Ability to trigger an Azure Logic App when a new session is detected from Sessionize (which can then be used to create Microsoft Teams / Slack notifications for visibility to the organising committee and/or to trigger moderation actions)
-* Eventbrite webhook to take order notifications, de-duplicate them and place them in queue storage so they can be picked up by a Logic App (or similar) to do things like create Microsoft Teams / Slack notifications for visibility to the organising committee
+* Tito webhook to take order notifications, de-duplicate them and place them in queue storage so they can be picked up by a Logic App (or similar) to do things like create Microsoft Teams / Slack notifications for visibility to the organising committee
 * Getting feedback information and prize draw names
 
 # Structure
@@ -16,8 +16,8 @@ This project contains backend functionality to run the DDD conferences, includin
 * `DDD.Core`: Cross-cutting logic and core domain model
 * `DDD.Functions`: Azure Functions project that contains:
     * `AppInsightsSync`: C# Azure Function that syncs app insights user IDs to Azure Table Storage for users that submitted a vote
-    * `EventbriteNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Eventbrite (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
-	* `EventbriteSync`: C# Azure Function that syncs Eventbrite order IDs to Azure Table Storage for a configured event
+    * `TitoNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Tito (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
+	* `TitoSync`: C# Azure Function that syncs Tito order IDs to Azure Table Storage for a configured event
 	* `GetAgenda`: C# Azure Function that returns sessions and presenters that have been approved for agenda
 	* `GetSubmissions`: C# Azure Function that returns submissions and submitters for use with either voting or showing submitted sessions
 	* `GetVotes`: C# Azure Function that returns analysed vote information; can be piped into Microsoft Power BI or similar for further processing and visualisation
@@ -141,7 +141,7 @@ The `NewSessionNotificationLogicAppUrl` value is gotten by creating a logic app 
 * `Post message` action (for Teams/Slack) with something like `@{join(actionOutputs('Compose'), ', ')} submitted a talk '@{triggerBody()?['Session']['Title']}' as @{triggerBody()?['Session']['Format']} / @{triggerBody()?['Session']['Level']} with tags @{join(triggerBody()?['Session']['Tags'], ', ')}.`
 * `Send an email` action (for O365/GMail/Outlook.com depending on what you have) that sends an email if the previous step failed (via `Configure run after`)
 
-# Eventbrite notification logic app
+# Tito notification logic app
 
 The logic app would roughly have:
 
