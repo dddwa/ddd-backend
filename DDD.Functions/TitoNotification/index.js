@@ -61,7 +61,7 @@ module.exports = function (context, req) {
     };
 
     deDupeWebhookRequest(deDupePayload, context.log, function() {
-        if (req.body.config.action !== 'order.placed') {
+        if (req.body.config.action !== 'registration.finished') {
             end(200);
             return;
         }
@@ -78,8 +78,8 @@ module.exports = function (context, req) {
                     var attendees = bodyAsJson.tickets.map(function(ticket) {
                         return {
                             name: ticket.name,
-                            event: bodyAsJson.event.name.text,
-                            orderId: tickets.registration_id
+                            event: bodyAsJson.event.title,
+                            orderId: ticket.reference
                         };
                     });
                     context.log("Attendee(s):", attendees);
@@ -113,9 +113,9 @@ Test using:
 {
     config: 
     {
-        action: 'order.placed',
+        action: 'registration.finished',
         user_id: '141671750594',
-        endpoint_url: 'https://dddperth-titowebhook.azurewebsites.net/api/HttpTriggerJS1?code=...',
+        endpoint_url: 'https://dddperth.azurewebsites.net/api/TitoNotification?code=...',
         webhook_id: '438789'
     },
     api_url: 'https://api.tito.io/v3/:account_slug/:event_slug/registrations/:registration_slug'
