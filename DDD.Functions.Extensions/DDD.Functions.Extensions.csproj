@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="microsoft.net.sdk.functions" Version="1.0.22" />
+    <PackageReference Include="microsoft.net.sdk.functions" Version="1.0.26" />
   </ItemGroup>
 
   <ItemGroup>
