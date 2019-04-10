@@ -61,7 +61,9 @@ namespace DDD.Functions
         {
             var response = await http.GetAsync(titoUrl);
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsAsync<PaginatedTitoOrderResponse>();
+            var formatters = new MediaTypeFormatterCollection();
+            formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.api+json"));
+            var content = await response.Content.ReadAsAsync<PaginatedTitoOrderResponse>(formatters);
             return (content.Registrations, content.Meta.HasMoreItems, content.Meta.NextPage);
         }
     }
