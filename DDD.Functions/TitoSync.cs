@@ -73,12 +73,16 @@ namespace DDD.Functions
 
     public class PaginatedTitoOrderResponse
     {
+        [JsonProperty("meta")]
         public Meta Meta { get; set; }
+        
+        [JsonProperty("data")]
         public Registration[] Registrations { get; set; }
     }
 
     public class Registration
     {
+        [JsonProperty("id")]
         public string Id { get; set; }
     }
 
