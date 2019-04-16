@@ -15,6 +15,8 @@ namespace DDD.Functions
 {
     public static class TitoSync
     {
+        private static TitoSyncConfig TitoSyncConfig;
+
         [FunctionName("TitoSync")]
         public static async Task Run(
             [TimerTrigger("%TitoSyncSchedule%")]
@@ -31,18 +33,23 @@ namespace DDD.Functions
                 return;
             }
 
+            TitoSyncConfig = titoSyncConfig;
             var ids = new List<string>();
             var http = new HttpClient();
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={titoSyncConfig.ApiKey}");
 
-            var (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(http,
-                $"https://api.tito.io/v3/{titoSyncConfig.AccountId}/{titoSyncConfig.EventId}/registrations/");
-            ids.AddRange(registrations.Select(o => o.Id));
-
-            while (hasMoreItems)
+            var (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(http);
+            
+            if(registrations!= null && registrations.Count() > 0)
             {
-                (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(http,
-                    $"https://api.tito.io/v3/{titoSyncConfig.AccountId}/{titoSyncConfig.EventId}/registrations?page={nextPage}");
+                ids.AddRange(registrations.Select(o => o.Id));
+                log.LogInformation("Retrieved and inserted {registrationsCount} orders from Tito.", registrations.Count());
+            }
+
+            while (hasMoreItems && nextPage.HasValue)
+            {
+                (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(http, nextPage.Value);
+                log.LogInformation("Found more ti.to orders. Retrieving and inserting {registrationsCount} orders from Tito.", registrations.Count());
                 ids.AddRange(registrations.Select(o => o.Id));
             }
 
@@ -58,8 +65,9 @@ namespace DDD.Functions
                 .ToArray());
         }
 
-        private static async Task<(Registration[], bool, int?)> GetRegistrationsAsync(HttpClient http, string titoUrl)
+        private static async Task<(Registration[], bool, int?)> GetRegistrationsAsync(HttpClient http, int pageNumber = 1)
         {
+            var titoUrl = $"https://api.tito.io/v3/{TitoSyncConfig.AccountId}/{TitoSyncConfig.EventId}/registrations?page={pageNumber}";
             var response = await http.GetAsync(titoUrl);
             response.EnsureSuccessStatusCode();
 
