@@ -30,9 +30,9 @@
     // TitoSync
     "TitoSyncSchedule": "* * * * *",
     "TitoTable": "Tito",
-    "TitoEventId": "dddperth2019",
+    "TitoEventId": "testevent",
     "TitoAccountId": "dddperth",
-    "StopSyncingTitoFrom": "2018-06-18T23:59:59+08:00",
+    "StopSyncingTitoFrom": "2019-06-18T23:59:59+08:00",
     // GetSubmissions
     "SubmissionsAvailableFrom": "2018-06-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2018-06-17T23:59:59+08:00",

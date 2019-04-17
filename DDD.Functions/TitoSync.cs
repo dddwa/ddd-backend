@@ -16,7 +16,8 @@ namespace DDD.Functions
     public static class TitoSync
     {
         private static TitoSyncConfig TitoSyncConfig;
-        private static HttpClient http;
+        private static HttpClient HttpClient;
+        private static ILogger Logger;
 
         [FunctionName("TitoSync")]
         public static async Task Run(
@@ -28,38 +29,43 @@ namespace DDD.Functions
             [BindTitoSyncConfig] TitoSyncConfig titoSyncConfig
         )
         {
+            TitoSyncConfig = titoSyncConfig;
+            Logger = log;
+
             if (keyDates.After(x => x.StopSyncingTitoFromDate, TimeSpan.FromMinutes(10)))
             {
-                log.LogInformation("TitoSync sync date passed");
+                Logger.LogInformation("TitoSync sync date passed");
                 return;
             }
-
-            TitoSyncConfig = titoSyncConfig;
+            
             var ids = new List<string>();
-            http = new HttpClient();
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={titoSyncConfig.ApiKey}");
+            HttpClient = new HttpClient();
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={titoSyncConfig.ApiKey}");
 
             var (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync();
             
             if (registrations != null && registrations.Any())
             {
                 ids.AddRange(registrations.Select(o => o.Id));
-                log.LogInformation("Retrieved and inserted {registrationsCount} orders from Tito.", registrations.Count());
+                Logger.LogInformation("Retrieved {registrationsCount} orders from Tito.", registrations.Count());
             }
-
+            
             while (hasMoreItems)
             {
                 (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(nextPage.Value);
-                log.LogInformation("Found more ti.to orders. Retrieving and inserting {registrationsCount} orders from Tito.", registrations.Count());
-                ids.AddRange(registrations.Select(o => o.Id));
+                if (registrations != null && registrations.Any())
+                {
+                    Logger.LogInformation("Found more {registrationsCount} orders from Tito.", registrations.Count());
+                    ids.AddRange(registrations.Select(o => o.Id));
+                }
             }
-
+            
             var repo = await titoSyncConfig.GetRepositoryAsync();
             var existingOrders = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
             var newOrders = ids.Except(existingOrders.Select(x => x.OrderId).ToArray()).Distinct().Take(100).ToArray();
-            log.LogInformation(
+            Logger.LogInformation(
                 "Found {existingCount} existing orders and {currentCount} current orders. Inserting {newCount} new orders.",
                 existingOrders.Count, ids.Count, newOrders.Count());
             await repo.CreateBatchAsync(newOrders.Select(o => new TitoOrder(conference.ConferenceInstance, o))
@@ -69,14 +75,27 @@ namespace DDD.Functions
         private static async Task<(Registration[], bool, int?)> GetRegistrationsAsync(int pageNumber = 1)
         {
             var titoUrl = $"https://api.tito.io/v3/{TitoSyncConfig.AccountId}/{TitoSyncConfig.EventId}/registrations?page={pageNumber}";
-            var response = await http.GetAsync(titoUrl);
-            response.EnsureSuccessStatusCode();
-
-            var formatters = new MediaTypeFormatterCollection();
-            formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.api+json"));
-            var content = await response.Content.ReadAsAsync<PaginatedTitoOrderResponse>(formatters);
-            
-            return (content.Registrations, content.Meta.HasMoreItems, content.Meta.NextPage);
+            var response = await HttpClient.GetAsync(titoUrl);
+            if(response.IsSuccessStatusCode) 
+            {
+                try
+                {
+                    var formatters = new MediaTypeFormatterCollection();
+                    formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.api+json"));
+                    var content = await response.Content.ReadAsAsync<PaginatedTitoOrderResponse>(formatters);
+                    
+                    return (content.Registrations, content.Meta.HasMoreItems, content.Meta.NextPage);
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogCritical("Error fomratting/reading Tito response. ", ex);
+                }
+            }
+            else 
+            {
+                Logger.LogCritical("Error connecting to Tito with http response: {reason}. The dump of the response: ", response.StatusCode, response.Content.ReadAsStringAsync());
+            }
+            return (null, false, null);
         }
     }
 
