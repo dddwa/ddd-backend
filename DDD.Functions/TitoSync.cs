@@ -42,39 +42,39 @@ namespace DDD.Functions
             HttpClient = new HttpClient();
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={titoSyncConfig.ApiKey}");
 
-            var (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync();
+            var (tickets, hasMoreItems, nextPage) = await GetTicketsAsync();
             
-            if (registrations != null && registrations.Any())
+            if (tickets != null && tickets.Any())
             {
-                ids.AddRange(registrations.Select(o => o.Id));
-                Logger.LogInformation("Retrieved {registrationsCount} orders from Tito.", registrations.Count());
+                ids.AddRange(tickets.Select(o => o.Id));
+                Logger.LogInformation("Retrieved {ticketsCount} tickets from Tito.", tickets.Count());
             }
             
             while (hasMoreItems)
             {
-                (registrations, hasMoreItems, nextPage) = await GetRegistrationsAsync(nextPage.Value);
-                if (registrations != null && registrations.Any())
+                (tickets, hasMoreItems, nextPage) = await GetTicketsAsync(nextPage.Value);
+                if (tickets != null && tickets.Any())
                 {
-                    Logger.LogInformation("Found more {registrationsCount} orders from Tito.", registrations.Count());
-                    ids.AddRange(registrations.Select(o => o.Id));
+                    Logger.LogInformation("Found more {ticketsCount} tickets from Tito.", tickets.Count());
+                    ids.AddRange(tickets.Select(o => o.Id));
                 }
             }
             
             var repo = await titoSyncConfig.GetRepositoryAsync();
-            var existingOrders = await repo.GetAllAsync(conference.ConferenceInstance);
+            var existingTickets = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
-            var newOrders = ids.Except(existingOrders.Select(x => x.OrderId).ToArray()).Distinct().Take(100).ToArray();
+            var newTickets = ids.Except(existingTickets.Select(x => x.TicketId).ToArray()).Distinct().Take(100).ToArray();
             Logger.LogInformation(
-                "Found {existingCount} existing orders and {currentCount} current orders. Inserting {newCount} new orders.",
-                existingOrders.Count, ids.Count, newOrders.Count());
-            await repo.CreateBatchAsync(newOrders.Select(o => new TitoOrder(conference.ConferenceInstance, o))
+                "Found {existingCount} existing tickets and {currentCount} current tickets. Inserting {newCount} new tickets.",
+                existingTickets.Count, ids.Count, newTickets.Count());
+            await repo.CreateBatchAsync(newTickets.Select(o => new TitoTicket(conference.ConferenceInstance, o))
                 .ToArray());
         }
 
-        private static async Task<(Registration[], bool, int?)> GetRegistrationsAsync(int pageNumber = 1)
+        private static async Task<(Ticket[], bool, int?)> GetTicketsAsync(int pageNumber = 1)
         {
-            var titoUrl = $"https://api.tito.io/v3/{TitoSyncConfig.AccountId}/{TitoSyncConfig.EventId}/registrations?page={pageNumber}";
+            var titoUrl = $"https://api.tito.io/v3/{TitoSyncConfig.AccountId}/{TitoSyncConfig.EventId}/tickets?page={pageNumber}";
             var response = await HttpClient.GetAsync(titoUrl);
             if(response.IsSuccessStatusCode) 
             {
@@ -82,9 +82,9 @@ namespace DDD.Functions
                 {
                     var formatters = new MediaTypeFormatterCollection();
                     formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.api+json"));
-                    var content = await response.Content.ReadAsAsync<PaginatedTitoOrderResponse>(formatters);
+                    var content = await response.Content.ReadAsAsync<PaginatedTitoTicketsResponse>(formatters);
                     
-                    return (content.Registrations, content.Meta.HasMoreItems, content.Meta.NextPage);
+                    return (content.Tickets, content.Meta.HasMoreItems, content.Meta.NextPage);
                 }
                 catch(Exception ex)
                 {
@@ -99,16 +99,16 @@ namespace DDD.Functions
         }
     }
 
-    public class PaginatedTitoOrderResponse
+    public class PaginatedTitoTicketsResponse
     {
         [JsonProperty("meta")]
         public Meta Meta { get; set; }
         
-        [JsonProperty("data")]
-        public Registration[] Registrations { get; set; }
+        [JsonProperty("tickets")]
+        public Ticket[] Tickets { get; set; }
     }
 
-    public class Registration
+    public class Ticket
     {
         [JsonProperty("id")]
         public string Id { get; set; }
