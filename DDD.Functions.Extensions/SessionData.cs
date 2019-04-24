@@ -26,6 +26,13 @@ namespace DDD.Functions.Extensions
             return GetSessionRepositoryAsync(config.ConnectionString, config.SessionsTable, config.PresentersTable);
         }
 
+        public static async Task<ITableStorageRepository<DedupeEntity>> GetRepositoryAsync(this TitoWebhookConfig config)
+        {
+            var repo = new TableStorageRepository<DedupeEntity>(CloudStorageAccount.Parse(config.ConnectionString), config.Table);
+            await repo.InitializeAsync();
+            return repo;
+        }
+
         public static async Task<ITableStorageRepository<TitoTicket>> GetRepositoryAsync(this TitoSyncConfig config)
         {
             var repo = new TableStorageRepository<TitoTicket>(CloudStorageAccount.Parse(config.ConnectionString), config.Table);

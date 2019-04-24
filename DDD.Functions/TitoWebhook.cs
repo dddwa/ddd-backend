@@ -1,12 +1,15 @@
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DDD.Functions.Extensions;
+using DDD.Core.AzureStorage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace DDD.Functions
 {
@@ -18,19 +21,63 @@ namespace DDD.Functions
             HttpRequestMessage req,
             ILogger log,
             [BindKeyDatesConfig]
-            KeyDatesConfig keyDates)
+            KeyDatesConfig keyDates,
+            [BindTitoWebhookConfig] TitoWebhookConfig titoSyncConfig)
         {
             var headers = JsonConvert.SerializeObject(req.Headers);
             var data = await req.Content.ReadAsStringAsync();
-            var tito = await req.Content.ReadAsAsync<TitoWebhookData>();
+            var payload = await req.Content.ReadAsAsync<TicketCompletedPayload>();
 
-            return null;
+            // TODO: checking for security toekn from Tito here
+            // return new StatusCodeResult((int) HttpStatusCode.Unauthorized);
+
+            if(payload == null || string.IsNullOrEmpty(payload.Id))
+            {
+                log.LogCritical("Error reading information from Tito webhook payload.");
+                return null;
+            }
+
+            var repo = await titoSyncConfig.GetRepositoryAsync();
+            var existingNotifications = await repo.GetAllAsync();
+
+            if(existingNotifications.Any(n => n.OrderId == payload.Id))
+            {
+                log.LogInformation("Ticket {ticketId} has been notified before, this webhook message will be ignored", payload.Id);
+                return new StatusCodeResult((int) HttpStatusCode.OK);
+            }
+
+            log.LogInformation("Inserting ticket {ticketId}...", payload.Id);
+
+            var message = new DedupeEntity(payload.Id, 
+            $"{payload.Name} is attending {payload.Event.Title} as {payload.TicketName}.");
+                
+            await repo.CreateAsync(message);
+            return new StatusCodeResult((int) HttpStatusCode.Created);
         }
     }
 
-    public class TitoWebhookData
+    public class TicketCompletedPayload
     {
+        [JsonProperty("id")]
+        public string Id {get; set;}
 
+        [JsonProperty("event")]
+        public Event Event {get; set;}
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("company_name")]
+        public string CompanyName { get; set; }
+
+        [JsonProperty("release_title")]
+        public string TicketName {get; set;}
+    }
+
+    public class Event
+    {
+        [JsonProperty("title")]
+        public string Title {get; set;}
     }
 }
 
