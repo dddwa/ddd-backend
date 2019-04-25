@@ -1,17 +1,17 @@
-using System.IO;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
-using DDD.Functions.Extensions;
 using DDD.Core.AzureStorage;
+using DDD.Functions.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net;
-using System.Text.RegularExpressions;
-using System;
 
 namespace DDD.Functions
 {
@@ -22,85 +22,200 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequestMessage req,
             ILogger log,
-            [BindKeyDatesConfig] KeyDatesConfig keyDates,
-            [BindTitoWebhookConfig] TitoWebhookConfig titoSyncConfig)
+            [BindTitoWebhookConfig]
+            TitoWebhookConfig config)
         {
-            var headers = JsonConvert.SerializeObject(req.Headers);
-            var data = await req.Content.ReadAsStringAsync();
-            var payload = await req.Content.ReadAsAsync<TicketCompletedPayload>();
-
-            // TODO: checking for security toekn from Tito here
-            // return new StatusCodeResult((int) HttpStatusCode.Unauthorized);
-
-            if(payload == null || string.IsNullOrEmpty(payload.Id))
+            if (string.IsNullOrEmpty(config.Secret))
             {
-                log.LogCritical("Error reading information from Tito webhook payload.");
-                return null;
+                log.LogWarning("Received Tito webhook request, but webhook isn't configured.");
+                return new StatusCodeResult(404);
             }
 
-            var repo = await titoSyncConfig.GetRepositoryAsync();
-            var existingNotifications = await repo.GetAllAsync();
-
-            if (existingNotifications.Any(n => n.TicketId == payload.Id))
+            // Verify signature to ensure request came from Tito
+            var signature = req.Headers.Where(h => h.Key == "Tito-Signature").SelectMany(x => x.Value).FirstOrDefault();
+            var payload = await req.Content.ReadAsStringAsync();
+            var expectedSignature = Convert.ToBase64String(
+                new HMACSHA256(Encoding.UTF8.GetBytes(config.Secret))
+                    .ComputeHash(Encoding.UTF8.GetBytes(payload)));
+            if (signature != expectedSignature)
             {
-                log.LogInformation("Ticket {ticketId} has been notified before, this webhook message will be ignored", payload.Id);
-                return new StatusCodeResult((int) HttpStatusCode.OK);
+                log.LogWarning("Received invalid payload signature: {payload}, {signature}, {expectedSignature}", payload, signature, expectedSignature);
+                return new StatusCodeResult(400);
+            }
+            log.LogDebug("Received valid signature {signature}", signature);
+
+            var eventType = req.Headers.Where(h => h.Key == "X-Webhook-Name").SelectMany(x => x.Value).FirstOrDefault();
+
+            // Prevent duplicate webhook handling
+            var webhookPayload = JsonConvert.DeserializeObject<WebhookPayload>(payload);
+            var (deDupeRepo, orderNotificationQueue, ticketNotificationQueue) = await config.GetRepositoryAsync();
+            var processedWebhook = new DedupeWebhookEntity("Tito", eventType, webhookPayload.Id);
+            var existingProcessing = await deDupeRepo.GetAsync(processedWebhook.PartitionKey, processedWebhook.RowKey);
+            if (existingProcessing != null)
+            {
+                log.LogInformation("Received duplicate webhook with id {id}", webhookPayload.Id);
+                return new StatusCodeResult(202);
             }
 
-            log.LogInformation("Inserting ticket {ticketId}...", payload.Id);
-
-            // insert into deduqe
-            try 
+            // Tickets purchased and name/email added to registration
+            if (eventType == "registration.finished")
             {
-                var dedqueMessage = new DedupeEntity(payload.Id, GetDeDupeRowKey("ticket.completed", payload.TicketUrl));
-                await repo.CreateAsync(dedqueMessage);
+                var registration = JsonConvert.DeserializeObject<RegistrationPayload>(payload);
+                var notification = new OrderNotificationEvent
+                {
+                    OrdererName = registration.OrdererName,
+                    EventName = registration.Event.Name,
+                    OrderNumber = registration.OrderNumber,
+                    AdminUrl = registration.OrderAdminUrl,
+                    Total = registration.Total,
+                    TicketsPurchasedDescription = string.Join(",", registration.LineItems.Select(l => $"{l.Quantity} x {l.TicketType} @ {l.Total:C}"))
+                };
+                log.LogInformation("Pushing order notification to queue for order {orderNumber}", registration.OrderNumber);
+                await orderNotificationQueue.PushAsync(notification);
             }
-            catch(Exception ex)
+
+            // Ticket completed, including attendee information / Q&A
+            if (eventType == "ticket.completed")
             {
-                log.LogWarning($"Cannot insert into dedque table: {ex.Message}");
-                return new StatusCodeResult((int) HttpStatusCode.OK); 
+                var ticket = JsonConvert.DeserializeObject<TicketPayload>(payload);
+                var notification = new TicketNotificationEvent
+                {
+                    AttendeeName = ticket.AttendeeName,
+                    EventName = ticket.Event.Name,
+                    TicketClass = ticket.TicketClass,
+                    TicketNumber = ticket.TicketNumber,
+                    AdminUrl = ticket.TicketAdminUrl
+                };
+                log.LogInformation("Pushing ticket notification to queue for ticket {ticketNumber}", ticket.TicketNumber);
+                await ticketNotificationQueue.PushAsync(notification);
             }
-            
-            // TODO: insert a message into queue
 
-            return new StatusCodeResult((int) HttpStatusCode.Created);
-        }
+            await deDupeRepo.CreateAsync(processedWebhook);
 
-        private static string GetDeDupeRowKey(string action, string url) 
-        {
-            return action + "|" + Regex.Replace(url, @"[^0-9a-zA-Z]+", "");
+            return new StatusCodeResult(202);
         }
     }
 
-    public class TicketCompletedPayload
+    public class WebhookPayload
     {
-        [JsonProperty("id")]
-        public string Id {get; set;}
+        [JsonProperty("slug")]
+        public string Id { get; set; }
+    }
 
+    public class TicketPayload
+    {
         [JsonProperty("event")]
-        public Event Event {get; set;}
+        public Event Event { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string AttendeeName { get; set; }
 
-        [JsonProperty("company_name")]
-        public string CompanyName { get; set; }
+        [JsonProperty("first_name")]
+        public string AttendeeFirstName { get; set; }
+
+        [JsonProperty("last_name")]
+        public string AttendeeLastName { get; set; }
+
+        [JsonProperty("email")]
+        public string AttendeeEmail { get; set; }
+
+        [JsonProperty("slug")]
+        public string TicketId { get; set; }
+
+        [JsonProperty("reference")]
+        public string TicketNumber { get; set; }
 
         [JsonProperty("release_title")]
-        public string TicketName {get; set;}
+        public string TicketClass { get; set; }
+
+        [JsonProperty("state_name")]
+        public string TicketState { get; set; }
 
         [JsonProperty("admin_url")]
-        public string TicketUrl { get; set;}
+        public string TicketAdminUrl { get; set; }
+
+        [JsonProperty("release_slug")]
+        public string LineItemSlug { get; set; }
+
+        [JsonProperty("responses")]
+        public Dictionary<string, string> Responses { get; set; }
+
+        [JsonProperty("custom")]
+        public string CustomData { get; set; }
     }
 
     public class Event
     {
+        public string Id => $"{Account}/{Slug}";
+
         [JsonProperty("title")]
-        public string Title {get; set;}
+        public string Name { get; set; }
+
+        [JsonProperty("account_slug")]
+        public string Account { get; set; }
+
+        [JsonProperty("slug")]
+        public string Slug { get; set; }
     }
+
+    public class RegistrationPayload
+    {
+        [JsonProperty("event")]
+        public Event Event { get; set; }
+
+        [JsonProperty("name")]
+        public string OrdererName { get; set; }
+
+        [JsonProperty("first_name")]
+        public string OrdererFirstName { get; set; }
+
+        [JsonProperty("last_name")]
+        public string OrdererLastName { get; set; }
+
+        [JsonProperty("email")]
+        public string OrdererEmail { get; set; }
+
+        [JsonProperty("slug")]
+        public string OrderId { get; set; }
+
+        [JsonProperty("reference")]
+        public string OrderNumber { get; set; }
+
+        [JsonProperty("paid")]
+        public bool OrderPaid { get; set; }
+
+        [JsonProperty("admin_url")]
+        public string OrderAdminUrl => $"https://ti.to/{Event.Id}/admin/registrations/{OrderId}";
+
+        [JsonProperty("line_items")]
+        public IEnumerable<LineItemPayload> LineItems { get; set; }
+
+        [JsonProperty("custom")]
+        public string CustomData { get; set; }
+
+        [JsonProperty("total")]
+        public decimal Total { get; set; }
+}
+
+    public class LineItemPayload
+    {
+        [JsonProperty("release_slug")]
+        public string Slug { get; set; }
+
+        [JsonProperty("title")]
+        public string TicketType { get; set; }
+
+        [JsonProperty("quantity")]
+        public int Quantity { get; set; }
+
+        [JsonProperty("total")]
+        public decimal Total { get; set; }
+    }
+
 }
 
 /*
+ * https://ti.to/docs/webhook
  * POST request with the following headers:
  *
  * X-Webhook-Name: ticket.created

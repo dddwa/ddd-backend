@@ -23,10 +23,13 @@
     "NewSessionNotificationSchedule": "* * * * *",
     "NewSessionNotificationLogicAppUrl": "http://localhost",
     "NotifiedSessionsTable": "NotifiedSessions",
-    // TitoNotification
-    "queue_STORAGE": "UseDevelopmentStorage=true",
-    "TitoApiBearerToken": "{titoToken}",
-    "AZURE_STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
+    // TitoWebhook
+    "TitoWebhookSecret": "{webhook_secret}",
+    "TitoWebhookConnectionString": "UseDevelopmentStorage=true",
+    "TitoWebhookDeDupeTable": "WebhookDeDupe",
+    "TitoWebhookOrderNotificationQueue": "ordernotification",
+    "TitoWebhookTicketNotificationQueue": "ticketnotification",
+    "TitoApiToken": "{api_token}",
     // TitoSync
     "TitoSyncSchedule": "* * * * *",
     "TitoTable": "Tito",

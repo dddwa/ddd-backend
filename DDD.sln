@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Core", "DDD.Core\DDD.Core.csproj", "{694C5BD7-98DF-489A-9812-32138F1AFF3F}"
 EndProject
@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDD.Functions.Extensions", "DDD.Functions.Extensions\DDD.Functions.Extensions.csproj", "{F47E6BF3-D07E-4E0C-8EC5-068743F9031A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DDD.Functions.Extensions", "DDD.Functions.Extensions\DDD.Functions.Extensions.csproj", "{F47E6BF3-D07E-4E0C-8EC5-068743F9031A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
