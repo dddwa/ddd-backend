@@ -14,6 +14,6 @@ namespace DDD.Core.AzureStorage
             RowKey = notificationMessage;
         }
 
-        public string OrderId => RowKey;
+        public string TicketId => RowKey;
     }
 }

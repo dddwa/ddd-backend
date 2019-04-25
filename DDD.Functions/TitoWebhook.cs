@@ -10,6 +10,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text.RegularExpressions;
+using System;
 
 namespace DDD.Functions
 {
@@ -20,8 +22,7 @@ namespace DDD.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequestMessage req,
             ILogger log,
-            [BindKeyDatesConfig]
-            KeyDatesConfig keyDates,
+            [BindKeyDatesConfig] KeyDatesConfig keyDates,
             [BindTitoWebhookConfig] TitoWebhookConfig titoSyncConfig)
         {
             var headers = JsonConvert.SerializeObject(req.Headers);
@@ -40,7 +41,7 @@ namespace DDD.Functions
             var repo = await titoSyncConfig.GetRepositoryAsync();
             var existingNotifications = await repo.GetAllAsync();
 
-            if(existingNotifications.Any(n => n.OrderId == payload.Id))
+            if (existingNotifications.Any(n => n.TicketId == payload.Id))
             {
                 log.LogInformation("Ticket {ticketId} has been notified before, this webhook message will be ignored", payload.Id);
                 return new StatusCodeResult((int) HttpStatusCode.OK);
@@ -48,11 +49,26 @@ namespace DDD.Functions
 
             log.LogInformation("Inserting ticket {ticketId}...", payload.Id);
 
-            var message = new DedupeEntity(payload.Id, 
-            $"{payload.Name} is attending {payload.Event.Title} as {payload.TicketName}.");
-                
-            await repo.CreateAsync(message);
+            // insert into deduqe
+            try 
+            {
+                var dedqueMessage = new DedupeEntity(payload.Id, GetDeDupeRowKey("ticket.completed", payload.TicketUrl));
+                await repo.CreateAsync(dedqueMessage);
+            }
+            catch(Exception ex)
+            {
+                log.LogWarning($"Cannot insert into dedque table: {ex.Message}");
+                return new StatusCodeResult((int) HttpStatusCode.OK); 
+            }
+            
+            // TODO: insert a message into queue
+
             return new StatusCodeResult((int) HttpStatusCode.Created);
+        }
+
+        private static string GetDeDupeRowKey(string action, string url) 
+        {
+            return action + "|" + Regex.Replace(url, @"[^0-9a-zA-Z]+", "");
         }
     }
 
@@ -72,6 +88,9 @@ namespace DDD.Functions
 
         [JsonProperty("release_title")]
         public string TicketName {get; set;}
+
+        [JsonProperty("admin_url")]
+        public string TicketUrl { get; set;}
     }
 
     public class Event
