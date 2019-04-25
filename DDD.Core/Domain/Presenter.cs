@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using DDD.Core.Time;
 
 namespace DDD.Core.Domain
@@ -15,6 +17,7 @@ namespace DDD.Core.Domain
         public string ProfilePhotoUrl { get; set; }
         public string WebsiteUrl { get; set; }
         public string TwitterHandle { get; set; }
+        public Dictionary<string, string> DataFields { get; set; }
 
         public bool DataEquals(Presenter p)
         {
@@ -23,7 +26,8 @@ namespace DDD.Core.Domain
                 && Bio == p.Bio
                 && ProfilePhotoUrl == p.ProfilePhotoUrl
                 && WebsiteUrl == p.WebsiteUrl
-                && TwitterHandle == p.TwitterHandle;
+                && TwitterHandle == p.TwitterHandle
+                && DataFields.Count == p.DataFields.Count && !DataFields.Except(p.DataFields).Any();
         }
 
         public void UpdateFromExisting(Presenter existingPresenter, IDateTimeProvider dateTimeProvider)
@@ -38,6 +42,8 @@ namespace DDD.Core.Domain
             ProfilePhotoUrl = ProfilePhotoUrl ?? existingPresenter.ProfilePhotoUrl;
             WebsiteUrl = WebsiteUrl ?? existingPresenter.WebsiteUrl;
             TwitterHandle = TwitterHandle ?? existingPresenter.TwitterHandle;
+            existingPresenter.DataFields.Keys.Except(DataFields.Keys).ToList().ForEach(key =>
+                DataFields[key] = existingPresenter.DataFields[key]);
         }
     }
 }

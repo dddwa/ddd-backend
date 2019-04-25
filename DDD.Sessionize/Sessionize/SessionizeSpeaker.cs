@@ -17,6 +17,10 @@ namespace DDD.Sessionize.Sessionize
         public string ProfilePictureUrl { get; set; }
 
         public SessionizeSpeakerLink[] Links { get; set; }
+        [JsonProperty("categoryItems")]
+        public int[] CategoryItemIds { get; set; }
+
+        public SessionizeQuestionAnswer[] QuestionAnswers { get; set; }
     }
 
     public class SessionizeSpeakerLink
