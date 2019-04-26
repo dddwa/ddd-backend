@@ -77,6 +77,9 @@
         "maxVotes": {
             "type": "string"
         },
+        "titoWebhookSecret": {
+            "type": "string"
+        },
         "titoEventId": {
             "type": "string"
         },
@@ -121,7 +124,10 @@
         "notifiedSessionsTable": "NotifiedSessions",
         "sessionFeedbackTable": "SessionFeedback",
         "conferenceFeedbackTable": "ConferenceFeedback",
-        "minNumSessionFeedbackForPrizeDraw": "4"
+        "minNumSessionFeedbackForPrizeDraw": "4",
+        "titoWebhookDeDupeTable": "WebhookDeDupe",
+        "titoWebhookOrderNotificationQueue": "ordernotification",
+        "titoWebhookTicketNotificationQueue": "ticketnotification"
     },
     "resources": [
         {
@@ -192,14 +198,12 @@
                         "ApplicationInsights:InstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
                         "AzureWebJobsDashboard":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "AzureWebJobsStorage":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
-                        "AZURE_STORAGE_CONNECTION_STRING":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
-                        "queue_STORAGE":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "TitoWebhookConnectionString":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "NewSessionNotificationLogicAppUrl": "[parameters('newSessionNotificationLogicAppUrl')]",
                         "SessionsConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
                         "SessionizeReadModelSyncSchedule": "[variables('sessionizeReadModelSyncSchedule')]",
                         "StopSyncingSessionsFrom": "[parameters('stopSyncingSessionsFrom')]",
-                        "TitoApiBearerToken": "[parameters('titoApiBearerToken')]",
                         "SubmissionsAvailableFrom": "[parameters('submissionsAvailableFrom')]",
                         "SubmissionsAvailableTo": "[parameters('submissionsAvailableTo')]",
                         "AnonymousSubmissions": "[parameters('anonymousSubmissions')]",
@@ -208,6 +212,11 @@
                         "VotingTable": "[variables('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
+                        "TitoWebhookSecret": "[parameters('titoWebhookSecret')]",
+                        "TitoWebhookDeDupeTable": "[variables('titoWebhookDeDupeTable')]",
+                        "TitoWebhookOrderNotificationQueue": "[variables('titoWebhookOrderNotificationQueue')]",
+                        "TitoWebhookTicketNotificationQueue": "[variables('titoWebhookTicketNotificationQueue')]",
+                        "TitoApiBearerToken": "[parameters('titoApiBearerToken')]",
                         "TitoSyncSchedule": "[variables('titoSyncSchedule')]",
                         "TitoTable": "[variables('titoTable')]",
                         "TitoEventId": "[parameters('titoEventId')]",

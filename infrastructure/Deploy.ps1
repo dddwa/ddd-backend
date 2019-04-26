@@ -31,6 +31,7 @@ Param (
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,
+  [string] [Parameter(Mandatory = $true)] $TitoWebhookSecret,
   [string] [Parameter(Mandatory = $true)] $TitoEventId,
   [string] [Parameter(Mandatory = $true)] $TitoAccountId,
   [string] [Parameter(Mandatory = $true)] $StopSyncingTitoFrom,
@@ -64,6 +65,7 @@ function Get-Parameters() {
     "votingAvailableTo"                 = $VotingAvailableTo;
     "minVotes"                          = $MinVotes;
     "maxVotes"                          = $MaxVotes;
+    "titoWebhookSecret"                 = $TitoWebhookSecret;
     "titoEventId"                       = $TitoEventId;
     "titoAccountId"                     = $TitoAccountId;
     "stopSyncingTitoFrom"               = $StopSyncingTitoFrom;
