@@ -15,10 +15,6 @@ namespace DDD.Functions
 {
     public static class TitoSync
     {
-        private static TitoSyncConfig TitoSyncConfig;
-        private static HttpClient HttpClient;
-        private static ILogger Logger;
-
         [FunctionName("TitoSync")]
         public static async Task Run(
             [TimerTrigger("%TitoSyncSchedule%")]
@@ -26,57 +22,54 @@ namespace DDD.Functions
             ILogger log,
             [BindConferenceConfig] ConferenceConfig conference,
             [BindKeyDatesConfig] KeyDatesConfig keyDates,
-            [BindTitoSyncConfig] TitoSyncConfig titoSyncConfig
+            [BindTitoSyncConfig] TitoSyncConfig config
         )
         {
-            TitoSyncConfig = titoSyncConfig;
-            Logger = log;
-
             if (keyDates.After(x => x.StopSyncingTitoFromDate, TimeSpan.FromMinutes(10)))
             {
-                Logger.LogInformation("TitoSync sync date passed");
+                log.LogInformation("TitoSync sync date passed");
                 return;
             }
             
             var ids = new List<string>();
-            HttpClient = new HttpClient();
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={titoSyncConfig.ApiKey}");
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", $"token={config.ApiKey}");
 
-            var (tickets, hasMoreItems, nextPage) = await GetTicketsAsync();
+            var (tickets, hasMoreItems, nextPage) = await GetTicketsAsync(httpClient, config, log);
             
             if (tickets != null && tickets.Any())
             {
                 ids.AddRange(tickets.Select(o => o.Id));
-                Logger.LogInformation("Retrieved {ticketsCount} tickets from Tito.", tickets.Count());
+                log.LogInformation("Retrieved {ticketsCount} tickets from Tito.", tickets.Count());
             }
             
             while (hasMoreItems)
             {
-                (tickets, hasMoreItems, nextPage) = await GetTicketsAsync(nextPage.Value);
+                (tickets, hasMoreItems, nextPage) = await GetTicketsAsync(httpClient, config, log, nextPage.Value);
                 if (tickets != null && tickets.Any())
                 {
-                    Logger.LogInformation("Found more {ticketsCount} tickets from Tito.", tickets.Count());
+                    log.LogInformation("Found more {ticketsCount} tickets from Tito.", tickets.Count());
                     ids.AddRange(tickets.Select(o => o.Id));
                 }
             }
             
-            var repo = await titoSyncConfig.GetRepositoryAsync();
+            var repo = await config.GetRepositoryAsync();
             var existingTickets = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit
             var newTickets = ids.Except(existingTickets.Select(x => x.TicketId).ToArray()).Distinct().Take(100).ToArray();
-            Logger.LogInformation(
+            log.LogInformation(
                 "Found {existingCount} existing tickets and {currentCount} current tickets. Inserting {newCount} new tickets.",
                 existingTickets.Count, ids.Count, newTickets.Count());
             await repo.CreateBatchAsync(newTickets.Select(o => new TitoTicket(conference.ConferenceInstance, o))
                 .ToArray());
         }
 
-        private static async Task<(Ticket[], bool, int?)> GetTicketsAsync(int pageNumber = 1)
+        private static async Task<(Ticket[], bool, int?)> GetTicketsAsync(HttpClient httpClient, TitoSyncConfig config, ILogger log, int pageNumber = 1)
         {
-            var titoUrl = $"https://api.tito.io/v3/{TitoSyncConfig.AccountId}/{TitoSyncConfig.EventId}/tickets?page={pageNumber}";
-            var response = await HttpClient.GetAsync(titoUrl);
-            if(response.IsSuccessStatusCode) 
+            var titoUrl = $"https://api.tito.io/v3/{config.AccountId}/{config.EventId}/tickets?page={pageNumber}";
+            var response = await httpClient.GetAsync(titoUrl);
+            if (response.IsSuccessStatusCode) 
             {
                 try
                 {
@@ -88,12 +81,12 @@ namespace DDD.Functions
                 }
                 catch(Exception ex)
                 {
-                    Logger.LogCritical("Error fomratting/reading Tito response. ", ex);
+                    log.LogCritical("Error reading Tito response.", ex);
                 }
             }
             else 
             {
-                Logger.LogCritical("Error connecting to Tito with http response: {reason}. The dump of the response: ", response.StatusCode, response.Content.ReadAsStringAsync());
+                log.LogCritical("Error connecting to Tito with http response: {reason}. The dump of the response: ", response.StatusCode, response.Content.ReadAsStringAsync());
             }
             return (null, false, null);
         }
@@ -110,7 +103,7 @@ namespace DDD.Functions
 
     public class Ticket
     {
-        [JsonProperty("id")]
+        [JsonProperty("reference")]
         public string Id { get; set; }
     }
 
