@@ -45,9 +45,10 @@ namespace DDD.Sessionize.SessionizeAdapter
                 PresenterIds = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).Select(p => p.Id).ToArray(),
                 DataFields = s.QuestionAnswers.Select(qa => new {q = sessionizeData.Questions.Single(q => q.Id == qa.QuestionId).Question, a = qa.AnswerValue})
                     .Concat(s.CategoryItemIds
-                        .Where(cId => categories.Any(c => c.Type == CategoryType.Other && c.Id == cId))
                         .Select(cId => categories.First(c => c.Id == cId))
                         .Select(c => new {q = c.TypeText, a = c.Title})
+                        .GroupBy(x => x.q)
+                        .Select(x => new {q = x.Key, a = string.Join(",", x.Select(y => y.a))})
                     )
                     .ToDictionary(x => x.q, x => x.a),
             }).ToArray();
@@ -72,6 +73,8 @@ namespace DDD.Sessionize.SessionizeAdapter
                     .Concat((s.CategoryItemIds ?? new int[]{})
                         .Select(cId => categories.First(c => c.Id == cId))
                         .Select(c => new { q = c.TypeText, a = c.Title })
+                        .GroupBy(x => x.q)
+                        .Select(x => new { q = x.Key, a = string.Join(",", x.Select(y => y.a)) })
                     )
                     .ToDictionary(x => x.q, x => x.a),
             }).ToArray();
