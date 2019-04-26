@@ -12,7 +12,7 @@ namespace DDD.Sessionize.SessionizeAdapter
         public static Tuple<Session[], Presenter[]> Convert(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
         {
             var categories = GetCategories(sessionizeData);
-            var presenters = GetPresenters(sessionizeData, dateTimeProvider);
+            var presenters = GetPresenters(sessionizeData, categories, dateTimeProvider);
             var sessions = GetSessions(sessionizeData, categories, presenters, dateTimeProvider);
 
             return Tuple.Create(sessions, presenters);
@@ -45,15 +45,16 @@ namespace DDD.Sessionize.SessionizeAdapter
                 PresenterIds = s.SpeakerIds.Select(sId => presenters.Single(p => p.ExternalId == sId)).Select(p => p.Id).ToArray(),
                 DataFields = s.QuestionAnswers.Select(qa => new {q = sessionizeData.Questions.Single(q => q.Id == qa.QuestionId).Question, a = qa.AnswerValue})
                     .Concat(s.CategoryItemIds
-                        .Where(cId => categories.Any(c => c.Type == CategoryType.Other && c.Id == cId))
                         .Select(cId => categories.First(c => c.Id == cId))
                         .Select(c => new {q = c.TypeText, a = c.Title})
+                        .GroupBy(x => x.q)
+                        .Select(x => new {q = x.Key, a = string.Join(",", x.Select(y => y.a))})
                     )
                     .ToDictionary(x => x.q, x => x.a),
             }).ToArray();
         }
 
-        private static Presenter[] GetPresenters(SessionizeResponse sessionizeData, IDateTimeProvider dateTimeProvider)
+        private static Presenter[] GetPresenters(SessionizeResponse sessionizeData, CategoryItem[] categories, IDateTimeProvider dateTimeProvider)
         {
             return sessionizeData.Speakers.Select(s => new Presenter
             {
@@ -67,7 +68,15 @@ namespace DDD.Sessionize.SessionizeAdapter
                 ProfilePhotoUrl = s.ProfilePictureUrl,
                 WebsiteUrl = s.Links.Where(l => l.LinkType == BlogType).Select(l => l.Url).FirstOrDefault()
                              ?? s.Links.Where(l => l.LinkType == LinkedInType).Select(l => l.Url).FirstOrDefault(),
-                TwitterHandle = s.Links.Where(l => l.LinkType == TwitterType).Select(l => l.Url.Replace("https://twitter.com/", "")).FirstOrDefault()
+                TwitterHandle = s.Links.Where(l => l.LinkType == TwitterType).Select(l => l.Url.Replace("https://twitter.com/", "")).FirstOrDefault(),
+                DataFields = (s.QuestionAnswers ?? new SessionizeQuestionAnswer[]{}).Select(qa => new { q = sessionizeData.Questions.Single(q => q.Id == qa.QuestionId).Question, a = qa.AnswerValue })
+                    .Concat((s.CategoryItemIds ?? new int[]{})
+                        .Select(cId => categories.First(c => c.Id == cId))
+                        .Select(c => new { q = c.TypeText, a = c.Title })
+                        .GroupBy(x => x.q)
+                        .Select(x => new { q = x.Key, a = string.Join(",", x.Select(y => y.a)) })
+                    )
+                    .ToDictionary(x => x.q, x => x.a),
             }).ToArray();
         }
 
@@ -79,7 +88,7 @@ namespace DDD.Sessionize.SessionizeAdapter
                     ? CategoryType.SessionFormat
                     : c.Title == LevelTitle
                         ? CategoryType.Level
-                        : c.Title == TagsTitle
+                        : TagsTitles.Contains(c.Title)
                             ? CategoryType.Tags
                             : CategoryType.Other;
 
@@ -95,7 +104,7 @@ namespace DDD.Sessionize.SessionizeAdapter
 
         public const string SessionFormatTitle = "Session format";
         public const string LevelTitle = "Level";
-        public const string TagsTitle = "Tags";
+        public static readonly string[] TagsTitles = new[] {"Tags", "General Topic Category", "Primary Topic", "Secondary Topic"};
 
         public const string LinkedInType = "LinkedIn";
         public const string TwitterType = "Twitter";

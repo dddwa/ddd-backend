@@ -29,11 +29,18 @@
     "Tags": [
       "Testing",
       "Design and UX",
-      "Agile"
+      "Agile",
+      "Backend Development",
+      "APIs"
     ],
     "DataFields": {
       "Mobile number": "0400777763",
-      "Other": "Item 1"
+      "Session format": "45 mins (40 mins talking)",
+      "Level": "Intermediate",
+      "Tags": "Testing,Design and UX,Agile",
+      "Other": "Item 1",
+      "General Topic Category": "Backend Development",
+      "Primary Topic": "APIs"
     }
   }
 ]
