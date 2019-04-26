@@ -23,6 +23,9 @@
     "ProfilePhotoUrl": "https://sessionize.com/image?f=00000000-0000-0000-0000-000000000005,200,200,True,False,00000000-0000-0000-0000-000000000006.jpg",
     "WebsiteUrl": "https://robdmoore.id.au/",
     "TwitterHandle": "robdmoore2",
-    "DataFields": {}
+    "DataFields": {
+      "Mobile number": "0400000000",
+      "Level": "Introductory"
+    }
   }
 ]

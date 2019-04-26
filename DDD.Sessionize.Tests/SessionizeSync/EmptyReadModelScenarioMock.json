@@ -32,7 +32,9 @@
         7460,
         7459,
         7462,
-        9999
+        9999,
+        18381,
+        18350
       ],
       "questionAnswers": [
         {
@@ -72,7 +74,14 @@
       "sessions": [
         38112
       ],
-      "fullName": "Rob Moore"
+      "fullName": "Rob Moore",
+      "categoryItems": [ 2665 ],
+      "questionAnswers": [
+        {
+          "questionId": 159,
+          "answerValue": "0400777763"
+        }
+      ]
     },
     {
       "id": "00000000-0000-0000-0000-000000000000",
@@ -210,6 +219,185 @@
         }
       ],
       "sort": 4
+    },
+    {
+      "id": 14588,
+      "title": "General Topic Category",
+      "items": [
+        {
+          "id": 18381,
+          "name": "Backend Development",
+          "sort": 7
+        },
+        {
+          "id": 18382,
+          "name": "Cloud",
+          "sort": 8
+        },
+        {
+          "id": 18383,
+          "name": "Data & Analytics",
+          "sort": 9
+        },
+        {
+          "id": 18384,
+          "name": "Design and UX",
+          "sort": 10
+        },
+        {
+          "id": 18385,
+          "name": "Frontend Development",
+          "sort": 11
+        },
+        {
+          "id": 18386,
+          "name": "Soft Skills",
+          "sort": 12
+        }
+      ],
+      "sort": 2
+    },
+    {
+      "id": 14589,
+      "title": "Primary Topic",
+      "items": [
+        {
+          "id": 18349,
+          "name": "Agile",
+          "sort": 13
+        },
+        {
+          "id": 18350,
+          "name": "APIs",
+          "sort": 14
+        },
+        {
+          "id": 18351,
+          "name": "Architecture",
+          "sort": 15
+        },
+        {
+          "id": 18352,
+          "name": "Augmented/Virtual Reality",
+          "sort": 16
+        },
+        {
+          "id": 18353,
+          "name": "AWS",
+          "sort": 17
+        },
+        {
+          "id": 18354,
+          "name": "Azure",
+          "sort": 18
+        },
+        {
+          "id": 18355,
+          "name": "Career",
+          "sort": 19
+        },
+        {
+          "id": 18356,
+          "name": "Chatbots",
+          "sort": 20
+        },
+        {
+          "id": 18387,
+          "name": "Cloud",
+          "sort": 21
+        },
+        {
+          "id": 18388,
+          "name": "Containers",
+          "sort": 22
+        },
+        {
+          "id": 18389,
+          "name": "Continuous Delivery",
+          "sort": 23
+        },
+        {
+          "id": 18390,
+          "name": "Design",
+          "sort": 24
+        },
+        {
+          "id": 18391,
+          "name": "Devops",
+          "sort": 25
+        },
+        {
+          "id": 18392,
+          "name": "Functional Programming",
+          "sort": 26
+        },
+        {
+          "id": 18393,
+          "name": "Google Cloud Platform",
+          "sort": 27
+        },
+        {
+          "id": 18394,
+          "name": "IoT",
+          "sort": 28
+        },
+        {
+          "id": 18395,
+          "name": "Leadership",
+          "sort": 29
+        },
+        {
+          "id": 18396,
+          "name": "Machine Learning",
+          "sort": 30
+        },
+        {
+          "id": 18397,
+          "name": "Microservices",
+          "sort": 31
+        },
+        {
+          "id": 18398,
+          "name": "Mobile",
+          "sort": 32
+        },
+        {
+          "id": 18357,
+          "name": "Security",
+          "sort": 33
+        },
+        {
+          "id": 18358,
+          "name": "Serverless",
+          "sort": 34
+        },
+        {
+          "id": 18359,
+          "name": "Teams",
+          "sort": 35
+        },
+        {
+          "id": 18360,
+          "name": "Testing",
+          "sort": 36
+        },
+        {
+          "id": 18361,
+          "name": "Tooling",
+          "sort": 37
+        },
+        {
+          "id": 18362,
+          "name": "UX",
+          "sort": 38
+        },
+        {
+          "id": 18363,
+          "name": "Web",
+          "sort": 39
+        }
+      ],
+      "sort": 3
     }
   ],
   "rooms": []

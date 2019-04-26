@@ -31,12 +31,16 @@
     "Tags": [
       "Testing",
       "Design and UX",
-      "Agile"
+      "Agile",
+      "Career",
+      "Soft Skills"
     ],
     "DataFields": {
       "Mobile number": "0400777763",
       "Session format": "45 mins (40 mins talking)",
       "Tags": "Testing,Design and UX,Agile",
+      "Primary Topic": "Career",
+      "General Topic Category": "Soft Skills",
       "Level": "Intermediate",
       "Other": "Item 1"
     }
