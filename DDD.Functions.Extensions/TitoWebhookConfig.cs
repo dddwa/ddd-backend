@@ -21,7 +21,7 @@ namespace DDD.Functions.Extensions
         [AppSetting(Default = "TitoWebhookTicketNotificationQueue")]
         public string TicketNotificationQueue { get; set; }
 
-        [AppSetting(Default = "TitoApiToken")]
+        [AppSetting(Default = "TitoApiBearerToken")]
         public string ApiBearerToken { get; set; }
     }
 

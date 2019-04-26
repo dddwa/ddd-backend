@@ -29,7 +29,7 @@
     "TitoWebhookDeDupeTable": "WebhookDeDupe",
     "TitoWebhookOrderNotificationQueue": "ordernotification",
     "TitoWebhookTicketNotificationQueue": "ticketnotification",
-    "TitoApiToken": "{api_token}",
+    "TitoApiBearerToken": "{api_token}",
     // TitoSync
     "TitoSyncSchedule": "* * * * *",
     "TitoTable": "Tito",
