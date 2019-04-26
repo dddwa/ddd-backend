@@ -19,6 +19,7 @@
     "MinVotes": "8",
     "MaxVotes": "12",
     "StopSyncingSessionsFrom": "2018-06-14T23:59:59+08:00",
+    "TitoWebhookSecret": "",
     "TitoEventId": "dddperth2019",
     "TitoAccountId": "dddperth",
     "StopSyncingTitoFrom": "2018-06-14T23:59:59+08:00",

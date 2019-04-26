@@ -26,6 +26,18 @@ namespace DDD.Functions.Extensions
             return GetSessionRepositoryAsync(config.ConnectionString, config.SessionsTable, config.PresentersTable);
         }
 
+        public static async Task<(ITableStorageRepository<DedupeWebhookEntity>, IQueueStorageRepository<OrderNotificationEvent>, IQueueStorageRepository<TicketNotificationEvent>)> GetRepositoryAsync(this TitoWebhookConfig config)
+        {
+            var storageAccount = CloudStorageAccount.Parse(config.ConnectionString);
+            var deDupeRepository = new TableStorageRepository<DedupeWebhookEntity>(storageAccount, config.DeDupeTable);
+            var orderNotificationQueue = new QueueStorageRepository<OrderNotificationEvent>(storageAccount, config.OrderNotificationQueue);
+            var ticketNotificationQueue = new QueueStorageRepository<TicketNotificationEvent>(storageAccount, config.TicketNotificationQueue);
+            await deDupeRepository.InitializeAsync();
+            await orderNotificationQueue.InitializeAsync();
+            await ticketNotificationQueue.InitializeAsync();
+            return (deDupeRepository, orderNotificationQueue, ticketNotificationQueue);
+        }
+
         public static async Task<ITableStorageRepository<TitoTicket>> GetRepositoryAsync(this TitoSyncConfig config)
         {
             var repo = new TableStorageRepository<TitoTicket>(CloudStorageAccount.Parse(config.ConnectionString), config.Table);
