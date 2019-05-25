@@ -16,7 +16,7 @@
     "ConferenceInstance": "2018",
     "VotingAvailableFrom": "2018-06-05T08:00:00+08:00",
     "VotingAvailableTo": "2018-06-14T23:59:59+08:00",
-    "MinVotes": "8",
+    "MinVotes": "6",
     "MaxVotes": "12",
     "StopSyncingSessionsFrom": "2018-06-14T23:59:59+08:00",
     "TitoWebhookSecret": "",

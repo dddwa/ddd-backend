@@ -28,7 +28,9 @@ namespace DDD.Functions
             [BindSubmissionsConfig]
             SubmissionsConfig submissions,
             [BindVotingConfig]
-            VotingConfig voting
+            VotingConfig voting,
+            [BindTitoSyncConfig]
+            TitoSyncConfig tickets
             )
         {
             var vote = await req.Content.ReadAsAsync<VoteRequest>();
@@ -60,6 +62,16 @@ namespace DDD.Functions
             if (vote.VotingStartTime > keyDates.Now.AddMinutes(5) || vote.VotingStartTime < keyDates.VotingAvailableFromDate.AddMinutes(-5))
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with invalid start time (got {submittedStartTime} instead of {votingStartTime} - {now}).", vote.VotingStartTime, keyDates.VotingAvailableFromDate, keyDates.Now);
+                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+            }
+
+            // Get tickets
+            var ticketsRepo = await tickets.GetRepositoryAsync();
+            var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber);
+            // Only if you have a valid ticket
+            if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
+            {
+                log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {}", vote.TicketNumber);
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
