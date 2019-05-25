@@ -67,11 +67,11 @@ namespace DDD.Functions
 
             // Get tickets
             var ticketsRepo = await tickets.GetRepositoryAsync();
-            var allTickets = await ticketsRepo.GetAllAsync(conference.ConferenceInstance);
+            var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber);
             // Only if you have a valid ticket
-            if (string.IsNullOrEmpty(vote.TicketNumber) || allTickets.Any(t => t.PartitionKey == conference.ConferenceInstance && t.TicketId == vote.TicketNumber))
+            if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
             {
-                log.LogWarning("Attempt to vote SubmitVote endpoint without a valid ticket order. Ticket id sent was {}", vote.TicketNumber);
+                log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {}", vote.TicketNumber);
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
