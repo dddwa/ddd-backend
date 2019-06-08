@@ -71,7 +71,7 @@ namespace DDD.Functions
             // Only if you have a valid ticket
             if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
             {
-                log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {}", vote.TicketNumber);
+                log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {ticketNumber}", vote.TicketNumber);
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
