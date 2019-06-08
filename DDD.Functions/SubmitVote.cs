@@ -67,7 +67,7 @@ namespace DDD.Functions
 
             // Get tickets
             var ticketsRepo = await tickets.GetRepositoryAsync();
-            var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber);
+            var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
             // Only if you have a valid ticket
             if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
             {
@@ -105,7 +105,7 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received vote with Id {voteId}; persisting...", vote.Id);
-            var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber, ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
+            var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber.ToUpperInvariant(), ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
             await repo.CreateAsync(voteToPersist);
 
             return new StatusCodeResult((int) HttpStatusCode.NoContent);
