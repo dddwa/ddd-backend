@@ -6,7 +6,7 @@
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     // Conference
-    "ConferenceInstance": "2018",
+    "ConferenceInstance": "2019",
     // SessionizeReadModelSync
     "SessionizeReadModelSyncSchedule": "* * * * *",
     "SessionsConnectionString": "UseDevelopmentStorage=true",
@@ -37,8 +37,8 @@
     "TitoAccountId": "dddperth",
     "StopSyncingTitoFrom": "2019-06-18T23:59:59+08:00",
     // GetSubmissions
-    "SubmissionsAvailableFrom": "2018-06-05T08:00:00+08:00",
-    "SubmissionsAvailableTo": "2018-06-17T23:59:59+08:00",
+    "SubmissionsAvailableFrom": "2019-06-05T08:00:00+08:00",
+    "SubmissionsAvailableTo": "2019-06-17T23:59:59+08:00",
     "AnonymousSubmissions": "true",
     // SubmitVote
     "VotesConnectionString": "UseDevelopmentStorage=true",
