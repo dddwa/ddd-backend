@@ -9,6 +9,8 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using DDD.Core.AppInsights;
+using DDD.Core.AzureStorage;
+using DDD.Core.Domain;
 using DDD.Core.Voting;
 using DDD.Functions.Extensions;
 using Microsoft.Extensions.Logging;
@@ -64,7 +66,7 @@ namespace DDD.Functions
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
-                    Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
+                    Presenters = GetPresentersFromSession(presenters, s, ps => ps.Select(p => new Presenter
                         {
                             Id = p.Id.ToString(),
                             Name = p.Name,
@@ -73,13 +75,13 @@ namespace DDD.Functions
                             ProfilePhotoUrl = p.ProfilePhotoUrl,
                             TwitterHandle = p.TwitterHandle,
                             WebsiteUrl = p.WebsiteUrl
-                        }).Single()).ToArray(),
+                        }).ToArray()),
                     CreatedDate = s.CreatedDate,
                     ModifiedDate = s.ModifiedDate,
-                    IsUnderrepresented = s.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(s.DataFields["Are you a member of any underrepresented groups?"]),
-                    Pronoun = s.DataFields["Your preferred pronoun"],
-                    JobRole = s.DataFields["How would you identify your job role?"],
-                    SpeakingExperience = s.DataFields["How much speaking experience do you have?"],
+                    IsUnderrepresented = GetPresentersFromSession(presenters, s, IsUnderrepresented),
+                    Pronoun = CollapsePresenterField(presenters, s, p => p.DataFields["Your pronoun"]),
+                    JobRole = CollapsePresenterField(presenters, s, p => p.DataFields["How would you identify your job role?"]),
+                    SpeakingExperience = CollapsePresenterField(presenters, s, p => p.DataFields["How much speaking experience do you have?"]),
                     VoteSummary = new VoteSummary(analysedVotes.Where(v => v.Vote.GetSessionIds().Contains(s.Id.ToString())).ToArray())
                 })
                 .OrderBy(s => s.Title)
@@ -103,6 +105,38 @@ namespace DDD.Functions
             var settings = new JsonSerializerSettings {ContractResolver = new DefaultContractResolver()};
 
             return new JsonResult(response, settings);
+        }
+
+        private static T GetPresentersFromSession<T>(IEnumerable<PresenterEntity> presenters, Session session, Func<Core.Domain.Presenter[], T> conversion)
+        {
+            try
+            {
+                var sessionPresenters = session.PresenterIds
+                    .Select(pId => presenters
+                        .Where(p => p.Id == pId)
+                        .Select(p => p.GetPresenter())
+                        .Single()
+                );
+                return conversion(sessionPresenters.ToArray());
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
+        private static string CollapsePresenterField(IEnumerable<PresenterEntity> presenters, Session session, Func<Core.Domain.Presenter, string> fieldToCollapse)
+        {
+            return GetPresentersFromSession(presenters, session, p => string.Join(", ", p.Select(fieldToCollapse)));
+        }
+
+        private static bool IsUnderrepresented(IEnumerable<Core.Domain.Presenter> presenters)
+        {
+            return presenters.Any(p =>
+                p.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(p.DataFields["Are you a member of any underrepresented groups?"])
+                || (p.DataFields["Your pronoun"] != "He / Him" && p.DataFields["Your pronoun"] != "I'd rather not answer")
+                || (p.DataFields["How would you identify your job role?"] == "Graduate / Junior")
+            );
         }
     }
 
