@@ -48,6 +48,7 @@ namespace DDD.Functions
                     Abstract = s.Abstract,
                     Format = s.Format,
                     Level = s.Level,
+                    Category = s.DataFields.ContainsKey("General Topic Category") ? s.DataFields["General Topic Category"] : null,
                     Tags = s.Tags,
                     Presenters = conference.AnonymousSubmissions
                         ? new Submitter[0]
@@ -78,6 +79,7 @@ namespace DDD.Functions
             public string Abstract { get; set; }
             public string Format { get; set; }
             public string Level { get; set; }
+            public string Category { get; set; }
             public string[] Tags { get; set; }
             public Submitter[] Presenters { get; set; }
         }
