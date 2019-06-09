@@ -49,6 +49,15 @@ namespace DDD.Sessionize.Sync
                 (dest, src) => new { dest, src }).ToArray();
             var editedPresenters = existingPresenters.Where(x => !x.dest.GetPresenter().DataEquals(x.src)).ToArray();
 
+            // Update presenter ids on sessions
+            sourceSessions.ToList().ForEach(s => s.PresenterIds = s.PresenterIds.Select(pId =>
+                    existingPresenters
+                        .Where(x => x.src.Id == pId)
+                        .Select(x => x.dest.Id)
+                        .Cast<Guid?>()
+                        .SingleOrDefault() ?? pId)
+                .ToArray());
+
             // Sync presenters
             if (newPresenters.Any())
                 log.LogInformation("Adding new presenters to read model: {newPresenterIds}", (object) newPresenters.Select(x => x.Id).ToArray());
@@ -66,15 +75,6 @@ namespace DDD.Sessionize.Sync
 
             // Exclude cancelled sessions
             sourceSessions = sourceSessions.Where(s => !s.Title.Contains("[Cancelled]")).ToArray();
-
-            // Update presenter ids on sessions
-            sourceSessions.ToList().ForEach(s => s.PresenterIds = s.PresenterIds.Select(pId =>
-                existingPresenters
-                    .Where(x => x.src.Id == pId)
-                    .Select(x => x.dest.Id)
-                    .Cast<Guid?>()
-                    .SingleOrDefault() ?? pId)
-                .ToArray());
 
             // Diff speakers
             var newSessions = sourceSessions.Except(destinationSessions.Select(x => x.GetSession()), new SessionSync()).ToArray();

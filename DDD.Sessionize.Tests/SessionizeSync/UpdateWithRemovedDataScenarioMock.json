@@ -1,0 +1,392 @@
+﻿{
+  "sessions": [
+    {
+      "id": "14093",
+      "title": "Sophia's Session",
+      "description": "Usually, you would find a session description here. But, this is not a real session submission, so description is missing. Ha!",
+      "startsAt": null,
+      "endsAt": null,
+      "isServiceSession": false,
+      "isPlenumSession": false,
+      "speakers": [
+        "00000000-0000-0000-0000-000000000000"
+      ],
+      "categoryItems": [],
+      "questionAnswers": [],
+      "roomId": null
+    },
+    {
+      "id": "38112",
+      "title": "An Agile Retrospective",
+      "description": "One of the core principles behind Agile software development is being retrospective and fostering a culture of continuous improvement. In this session you will see us do that on a macro scale. As consultants we've seen more than our fair share of Agile done right and Agile done poorly as well as everything in between.\r\n\r\nBack in 2011, Rob made a prediction on his blog that \"within the next 5 years Agile won’t exist anymore because everyone will be doing it; kind of like what happened to Object Orientation\". Now, on first thought, a talk about Agile in 2017 seems a bit outdated. The problem is, to this day a lot of companies/teams still can't get it right and we have famous Agile advocates saying things like \"Agile is dead\". So, while Rob's prediction hasn't completely held true, it's still a good time to reflect on it.\r\n\r\nThis session will cover a bunch of stuff that we notice all the time across multiple companies that doesn't hold true against the values and principles of the Agile manifesto, we'll blow a hole through all of the strawman arguments we hear day in, day out, and we will inject some enthusiasm and experience by describing the techniques we use to stay true to the original values and principles of Agile and helps us consistently deliver great software outcomes.",
+      "startsAt": null,
+      "endsAt": null,
+      "isServiceSession": false,
+      "isPlenumSession": false,
+      "speakers": [
+        "86ab1cc5-ddd4-4ed4-b919-dd0eb429bfa9"
+      ],
+      "categoryItems": [
+        7450,
+        2665,
+        7460,
+        7459,
+        7462,
+        9999,
+        18381,
+        18350
+      ],
+      "roomId": null
+    }
+  ],
+  "speakers": [
+    {
+      "id": "86ab1cc5-ddd4-4ed4-b919-dd0eb429bfa9",
+      "firstName": "Rob",
+      "lastName": "Moore",
+      "bio": "Rob is a Principal Consultant with Readify and specialises in leading teams towards the delivery of business value using Agile and Lean values and principles and by adopting DevOps and Continuous Delivery practices.\r\n\r\nRob has a proven track record of successfully delivering software projects with a particular focus on accelerated business value delivery, measurement and realisation and he has also been a proponent for and leader towards positive cultural change and gradual continuous improvement across a number of organisations, teams and projects.",
+      "tagLine": "Principal Consultant at Readify",
+      "profilePicture": "https://sessionize.com/image?f=16e0f6a55cbb88b7e6dadd1f8c201177,200,200,True,False,a4706553-287c-4f9c-8d94-2b3bf2987236.jpg",
+      "isTopSpeaker": false,
+      "links": [
+        {
+          "title": "Twitter",
+          "url": "https://twitter.com/robdmoore",
+          "linkType": "Twitter"
+        },
+        {
+          "title": "Blog",
+          "url": "https://robdmoore.id.au/",
+          "linkType": "Blog"
+        },
+        {
+          "title": "LinkedIn",
+          "url": "https://www.linkedin.com/in/robdmoore1/",
+          "linkType": "LinkedIn"
+        }
+      ],
+      "sessions": [
+        38112
+      ],
+      "fullName": "Rob Moore",
+      "categoryItems": [ 2665 ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "firstName": "Sophia",
+      "lastName": "Test",
+      "bio": "Award-winning zombie specialist. Reader. Twitter fan. Total introvert. Internet evangelist. Thinker. Beer junkie. Food advocate.",
+      "tagLine": "CEO / Contoso",
+      "profilePicture": "https://sessionize.com/image?f=a05637ce74e148041247720cf878dce0,200,200,True,False,test0.jpg",
+      "isTopSpeaker": false,
+      "links": [
+        {
+          "title": "Twitter",
+          "url": "https://twitter.com/sessionizecom",
+          "linkType": "Twitter"
+        }
+      ],
+      "sessions": [
+        14093
+      ],
+      "fullName": "Sophia Test"
+    }
+  ],
+  "questions": [
+    {
+      "id": 159,
+      "question": "Mobile number",
+      "questionType": "Short_Text",
+      "sort": 5
+    }
+  ],
+  "categories": [
+    {
+      "id": 630,
+      "title": "Session format",
+      "items": [
+        {
+          "id": 7450,
+          "name": "45 mins (40 mins talking)",
+          "sort": 1
+        },
+        {
+          "id": 7451,
+          "name": "20 mins (15 mins talking)",
+          "sort": 2
+        },
+        {
+          "id": 8814,
+          "name": "Either (45 mins or 20 mins)",
+          "sort": 3
+        }
+      ],
+      "sort": 0
+    },
+    {
+      "id": 632,
+      "title": "Level",
+      "items": [
+        {
+          "id": 8815,
+          "name": "Introductory",
+          "sort": 1
+        },
+        {
+          "id": 2665,
+          "name": "Intermediate",
+          "sort": 2
+        },
+        {
+          "id": 2666,
+          "name": "Advanced",
+          "sort": 3
+        },
+        {
+          "id": 8816,
+          "name": "Non-technical",
+          "sort": 4
+        }
+      ],
+      "sort": 1
+    },
+    {
+      "id": 999,
+      "title": "Other",
+      "items": [
+        {
+          "id": 9999,
+          "name": "Item 1",
+          "sort": 1
+        }
+      ]
+    },
+    {
+      "id": 1636,
+      "title": "Tags",
+      "items": [
+        {
+          "id": 7456,
+          "name": "Soft skills",
+          "sort": 1
+        },
+        {
+          "id": 7457,
+          "name": "Backend dev",
+          "sort": 2
+        },
+        {
+          "id": 7458,
+          "name": "Frontend dev",
+          "sort": 3
+        },
+        {
+          "id": 7459,
+          "name": "Design and UX",
+          "sort": 4
+        },
+        {
+          "id": 7460,
+          "name": "Testing",
+          "sort": 5
+        },
+        {
+          "id": 7461,
+          "name": "Security",
+          "sort": 6
+        },
+        {
+          "id": 7462,
+          "name": "Agile",
+          "sort": 7
+        },
+        {
+          "id": 7463,
+          "name": "Data and analytics",
+          "sort": 8
+        }
+      ],
+      "sort": 4
+    },
+    {
+      "id": 14588,
+      "title": "General Topic Category",
+      "items": [
+        {
+          "id": 18381,
+          "name": "Backend Development",
+          "sort": 7
+        },
+        {
+          "id": 18382,
+          "name": "Cloud",
+          "sort": 8
+        },
+        {
+          "id": 18383,
+          "name": "Data & Analytics",
+          "sort": 9
+        },
+        {
+          "id": 18384,
+          "name": "Design and UX",
+          "sort": 10
+        },
+        {
+          "id": 18385,
+          "name": "Frontend Development",
+          "sort": 11
+        },
+        {
+          "id": 18386,
+          "name": "Soft Skills",
+          "sort": 12
+        }
+      ],
+      "sort": 2
+    },
+    {
+      "id": 14589,
+      "title": "Primary Topic",
+      "items": [
+        {
+          "id": 18349,
+          "name": "Agile",
+          "sort": 13
+        },
+        {
+          "id": 18350,
+          "name": "APIs",
+          "sort": 14
+        },
+        {
+          "id": 18351,
+          "name": "Architecture",
+          "sort": 15
+        },
+        {
+          "id": 18352,
+          "name": "Augmented/Virtual Reality",
+          "sort": 16
+        },
+        {
+          "id": 18353,
+          "name": "AWS",
+          "sort": 17
+        },
+        {
+          "id": 18354,
+          "name": "Azure",
+          "sort": 18
+        },
+        {
+          "id": 18355,
+          "name": "Career",
+          "sort": 19
+        },
+        {
+          "id": 18356,
+          "name": "Chatbots",
+          "sort": 20
+        },
+        {
+          "id": 18387,
+          "name": "Cloud",
+          "sort": 21
+        },
+        {
+          "id": 18388,
+          "name": "Containers",
+          "sort": 22
+        },
+        {
+          "id": 18389,
+          "name": "Continuous Delivery",
+          "sort": 23
+        },
+        {
+          "id": 18390,
+          "name": "Design",
+          "sort": 24
+        },
+        {
+          "id": 18391,
+          "name": "Devops",
+          "sort": 25
+        },
+        {
+          "id": 18392,
+          "name": "Functional Programming",
+          "sort": 26
+        },
+        {
+          "id": 18393,
+          "name": "Google Cloud Platform",
+          "sort": 27
+        },
+        {
+          "id": 18394,
+          "name": "IoT",
+          "sort": 28
+        },
+        {
+          "id": 18395,
+          "name": "Leadership",
+          "sort": 29
+        },
+        {
+          "id": 18396,
+          "name": "Machine Learning",
+          "sort": 30
+        },
+        {
+          "id": 18397,
+          "name": "Microservices",
+          "sort": 31
+        },
+        {
+          "id": 18398,
+          "name": "Mobile",
+          "sort": 32
+        },
+        {
+          "id": 18357,
+          "name": "Security",
+          "sort": 33
+        },
+        {
+          "id": 18358,
+          "name": "Serverless",
+          "sort": 34
+        },
+        {
+          "id": 18359,
+          "name": "Teams",
+          "sort": 35
+        },
+        {
+          "id": 18360,
+          "name": "Testing",
+          "sort": 36
+        },
+        {
+          "id": 18361,
+          "name": "Tooling",
+          "sort": 37
+        },
+        {
+          "id": 18362,
+          "name": "UX",
+          "sort": 38
+        },
+        {
+          "id": 18363,
+          "name": "Web",
+          "sort": 39
+        }
+      ],
+      "sort": 3
+    }
+  ],
+  "rooms": []
+}
