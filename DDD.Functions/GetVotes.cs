@@ -133,8 +133,8 @@ namespace DDD.Functions
         private static bool IsUnderrepresented(IEnumerable<Core.Domain.Presenter> presenters)
         {
             return presenters.Any(p =>
-                p.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(p.DataFields["Are you a member of any underrepresented groups?"])
-                || (p.DataFields["Your pronoun"] != "He / Him" && p.DataFields["Your pronoun"] != "I'd rather not answer")
+                (p.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(p.DataFields["Are you a member of any underrepresented groups?"]))
+                || (!string.IsNullOrEmpty(p.DataFields["Your pronoun"]) && p.DataFields["Your pronoun"] != "He/Him" && p.DataFields["Your pronoun"] != "I'd rather not answer")
                 || (p.DataFields["How would you identify your job role?"] == "Graduate / Junior")
             );
         }
