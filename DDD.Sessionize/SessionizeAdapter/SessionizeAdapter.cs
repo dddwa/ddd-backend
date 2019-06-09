@@ -2,7 +2,6 @@
 using System.Linq;
 using DDD.Core.Domain;
 using DDD.Core.Time;
-using DDD.Functions.Config;
 using DDD.Sessionize.Sessionize;
 
 namespace DDD.Sessionize.SessionizeAdapter
@@ -22,7 +21,7 @@ namespace DDD.Sessionize.SessionizeAdapter
         {
             return sessionizeData.Sessions.Select(s => new Session
             {
-                Id = SessionIds2018.ExternalIdToSessionId.ContainsKey(s.Id) ? Guid.Parse(SessionIds2018.ExternalIdToSessionId[s.Id]) : Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 ExternalId = s.Id,
                 Title = s.Title,
                 Abstract = s.Description,

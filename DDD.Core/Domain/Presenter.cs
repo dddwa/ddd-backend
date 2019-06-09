@@ -35,15 +35,6 @@ namespace DDD.Core.Domain
             Id = existingPresenter.Id;
             CreatedDate = existingPresenter.CreatedDate;
             ModifiedDate = dateTimeProvider.Now();
-
-            Name = Name ?? existingPresenter.Name;
-            Tagline = Tagline ?? existingPresenter.Tagline;
-            Bio = Bio ?? existingPresenter.Bio;
-            ProfilePhotoUrl = ProfilePhotoUrl ?? existingPresenter.ProfilePhotoUrl;
-            WebsiteUrl = WebsiteUrl ?? existingPresenter.WebsiteUrl;
-            TwitterHandle = TwitterHandle ?? existingPresenter.TwitterHandle;
-            existingPresenter.DataFields.Keys.Except(DataFields.Keys).ToList().ForEach(key =>
-                DataFields[key] = existingPresenter.DataFields[key]);
         }
     }
 }
