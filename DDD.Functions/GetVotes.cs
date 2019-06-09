@@ -82,7 +82,9 @@ namespace DDD.Functions
                     Pronoun = CollapsePresenterField(presenters, s, p => p.DataFields["Your pronoun"]),
                     JobRole = CollapsePresenterField(presenters, s, p => p.DataFields["How would you identify your job role?"]),
                     SpeakingExperience = CollapsePresenterField(presenters, s, p => p.DataFields["How much speaking experience do you have?"]),
-                    VoteSummary = new VoteSummary(analysedVotes.Where(v => v.Vote.GetSessionIds().Contains(s.Id.ToString())).ToArray())
+                    VoteSummary = new VoteSummary(analysedVotes.Where(v => v.Vote.GetSessionIds().Contains(s.Id.ToString())).ToArray()),
+                    FirstPreferenceCount = analysedVotes.Count(v => v.Vote.GetSessionIds()[0] == s.Id.ToString()),
+                    Top3PreferenceCount = analysedVotes.Count(v => new [] {v.Vote.GetSessionIds()[0], v.Vote.GetSessionIds()[1], v.Vote.GetSessionIds()[2]}.Contains(s.Id.ToString()))
                 })
                 .OrderBy(s => s.Title)
                 .ToArray();
@@ -133,8 +135,8 @@ namespace DDD.Functions
         private static bool IsUnderrepresented(IEnumerable<Core.Domain.Presenter> presenters)
         {
             return presenters.Any(p =>
-                p.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(p.DataFields["Are you a member of any underrepresented groups?"])
-                || (p.DataFields["Your pronoun"] != "He / Him" && p.DataFields["Your pronoun"] != "I'd rather not answer")
+                (p.DataFields.ContainsKey("Are you a member of any underrepresented groups?") && !string.IsNullOrEmpty(p.DataFields["Are you a member of any underrepresented groups?"]))
+                || (!string.IsNullOrEmpty(p.DataFields["Your pronoun"]) && p.DataFields["Your pronoun"] != "He/Him" && p.DataFields["Your pronoun"] != "I'd rather not answer")
                 || (p.DataFields["How would you identify your job role?"] == "Graduate / Junior")
             );
         }
@@ -238,6 +240,8 @@ namespace DDD.Functions
         public string SpeakingExperience { get; set; }
 
         public VoteSummary VoteSummary { get; set; }
+        public int FirstPreferenceCount { get; set; }
+        public int Top3PreferenceCount { get; set; }
     }
 
     public class Presenter
