@@ -75,6 +75,8 @@ function Get-Parameters() {
     "stopSyncingAppInsightsFrom"        = $StopSyncingAppInsightsFrom;
     "stopSyncingAgendaFrom"             = $StopSyncingAgendaFrom;
     "sessionizeAgendaApiKey"            = $SessionizeAgendaApiKey;
+    "feedbackAvailableFrom"             = $FeedbackAvailableFrom;
+    "feedbackAvailableTo"               = $FeedbackAvailableTo;
   }
 }
 
