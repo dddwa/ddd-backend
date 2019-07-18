@@ -53,11 +53,11 @@ namespace DDD.Functions.Extensions
         // Feedback
         [AppSetting(Default = "FeedbackAvailableFrom")]
         public string FeedbackAvailableFrom { get; set; }
-        public DateTimeOffset FeedbackAvailableFromDate => FeedbackAvailableFrom != null ? DateTimeOffset.Parse(FeedbackAvailableFrom) : DateTimeOffset.MaxValue;
+        public DateTimeOffset FeedbackAvailableFromDate => FeedbackAvailableFrom != null ? DateTimeOffset.Parse(FeedbackAvailableFrom) : DateTimeOffset.MinValue;
 
         [AppSetting(Default = "FeedbackAvailableTo")]
         public string FeedbackAvailableTo { get; set; }
-        public DateTimeOffset FeedbackAvailableToDate => FeedbackAvailableTo != null ? DateTimeOffset.Parse(FeedbackAvailableTo) : DateTimeOffset.MinValue;
+        public DateTimeOffset FeedbackAvailableToDate => FeedbackAvailableTo != null ? DateTimeOffset.Parse(FeedbackAvailableTo) : DateTimeOffset.MaxValue;
         public bool Before(Func<KeyDatesConfig, DateTimeOffset> date, TimeSpan? tolerance = null)
         {
             return Now < date(this).Add(tolerance ?? TimeSpan.Zero);

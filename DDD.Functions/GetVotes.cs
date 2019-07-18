@@ -121,7 +121,7 @@ namespace DDD.Functions
                 );
                 return conversion(sessionPresenters.ToArray());
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }
