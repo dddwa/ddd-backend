@@ -27,7 +27,7 @@ namespace DDD.Functions
             var conferenceFeedback = await conferenceFeedbackRepo.GetAllAsync(conference.ConferenceInstance);
             var sessionFeedback = await sessionFeedbackRepo.GetAllAsync(conference.ConferenceInstance);
             
-            // we might need to use the SessionId instead of SessionName here
+            // we might need to use the SessionId instead of SessionName here but this will break compatibility with the old office forms
             var prizeDraw = conferenceFeedback.Select(x => x.Name)
                 .Where(name =>
                     sessionFeedback.Count(s => s.Name.ToLowerInvariant() == name.ToLowerInvariant()) >=
