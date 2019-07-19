@@ -39,7 +39,7 @@ namespace DDD.Functions
             }
 
             // Valid feedback 
-            if ((feedback.Rating < 1 || feedback.Rating > 5) && string.IsNullOrWhiteSpace(feedback.Likes) && string.IsNullOrWhiteSpace(feedback.ImprovementIdeas))
+            if (string.IsNullOrWhiteSpace(feedback.Likes) && string.IsNullOrWhiteSpace(feedback.ImprovementIdeas))
             {
                 log.LogWarning("Attempt to access SubmitSessionFeedback endpoint with invalid feedback details from {DeviceId}", feedback.DeviceId);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
@@ -69,7 +69,8 @@ namespace DDD.Functions
                 feedback.Rating.ToString(),
                 feedback.Likes,
                 feedback.ImprovementIdeas,
-                $"{session.Title} - {presenterNames}");
+                $"{session.Title} - {presenterNames}",
+                feedback.DeviceId.ToString());
 
             var (_, sessionFeedbackRepo) = await feedbackConfig.GetRepositoryAsync();
             await sessionFeedbackRepo.CreateAsync(feedbackToPersist);
@@ -80,7 +81,6 @@ namespace DDD.Functions
 
     public class SessionFeedbackRequest
     {
-        // not used for now
         public Guid DeviceId { get; set; }
         public string SessionId { get; set; }
         public string Name { get; set; }

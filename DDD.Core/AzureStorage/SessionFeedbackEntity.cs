@@ -7,7 +7,7 @@ namespace DDD.Core.AzureStorage
     {
         public SessionFeedbackEntity() {}
 
-        public SessionFeedbackEntity(string sessionId, string conferenceInstance, string name, string rating, string liked, string improvementIdeas, string sessionName) {
+        public SessionFeedbackEntity(string sessionId, string conferenceInstance, string name, string rating, string liked, string improvementIdeas, string sessionName, string deviceId) {
             PartitionKey = conferenceInstance;
             RowKey = Guid.NewGuid().ToString();
             SessionId = sessionId;
@@ -17,6 +17,7 @@ namespace DDD.Core.AzureStorage
             ImprovementIdeas = improvementIdeas;
             SessionName = sessionName;
             Time = null;
+            DeviceId = deviceId;
         }
 
         public string Name { get; set; }
@@ -25,6 +26,7 @@ namespace DDD.Core.AzureStorage
         public string ImprovementIdeas { get; set; }
         public string SessionId { get; set; }
         public string SessionName { get; set; }
+        public string DeviceId { get; set; }
         public string Time { get; set; }
     }
 }
