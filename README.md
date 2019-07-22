@@ -33,6 +33,12 @@ This project contains backend functionality to run the DDD conferences, includin
     * `azuredeploy.json`: Azure ARM template
 * `.vsts-ci.yml`: VSTS Continuous Integration definition for this project
 
+# Infrastructure Prerequisites
+
+The backend application depends on programatic access to the [Frontend Website's](https://github.com/dddwa/dddperth-website) Application Insights to pull and store information on voting behaviour.
+
+To supply this access, create an API key with `Read telemetry` permissions within the frontend website's Application Insights instance in the Azure Portal, and enter the Application ID and Key presented into the `AppInsightsApplicationId` and `AppInsightsApplicationKey` parameters.
+
 # Setting up Continuous Delivery in VSTS
 
 VSTS doesn't yet support .yml files for Continuous Delivery (Release) so the steps to set it up are:
