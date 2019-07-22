@@ -11,10 +11,10 @@ $fields = ConvertFrom-Json ([System.IO.File]::ReadAllText($privateParamsFile))
 $fieldsAsHashTable = @{}
 $fields.PSObject.Properties | ForEach-Object { $fieldsAsHashTable[$_.Name] = $_.Value }
 
-$profile = Select-AzureRmProfile -Path "$PSScriptRoot\profile.json" -ErrorAction SilentlyContinue
+$profile = Import-AzureRmContext -Path "$PSScriptRoot\profile.json" -ErrorAction SilentlyContinue
 if (-not $profile.Context) {
-    Login-AzureRmAccount -TenantId $TenantId | Out-Null
-    Save-AzureRmProfile -Path "$PSScriptRoot\profile.json"
+    Login-AzureRmAccount -TenantId $fieldsAsHashTable['TenantId'] | Out-Null
+    Save-AzureRmContext -Path "$PSScriptRoot\profile.json"
 }
 
 & $PSScriptRoot\Deploy.ps1 -AlreadyLoggedIn @fieldsAsHashTable
