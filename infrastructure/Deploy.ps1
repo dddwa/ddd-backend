@@ -41,6 +41,8 @@ Param (
   [string] [Parameter(Mandatory = $true)] $StopSyncingAppInsightsFrom,
   [string] [Parameter(Mandatory = $true)] $StopSyncingAgendaFrom,
   [string] [Parameter(Mandatory = $true)] $SessionizeAgendaApiKey,
+  [string] [Parameter(Mandatory = $true)] $FeedbackAvailableFrom,
+  [string] [Parameter(Mandatory = $true)] $FeedbackAvailableTo,
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
 
