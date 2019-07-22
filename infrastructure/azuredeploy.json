@@ -106,6 +106,12 @@
         },
         "sessionizeAgendaApiKey": {
             "type": "string"
+        },
+        "feedbackAvailableFrom": {
+            "type": "string"
+        },
+        "feedbackAvailableTo": {
+            "type": "string"
         }
     },
     "variables": {
@@ -241,7 +247,9 @@
                         "FeedbackConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "SessionFeedbackTable": "[variables('sessionFeedbackTable')]",
                         "ConferenceFeedbackTable": "[variables('conferenceFeedbackTable')]",
-                        "MinNumSessionFeedbackForPrizeDraw": "[variables('minNumSessionFeedbackForPrizeDraw')]"
+                        "MinNumSessionFeedbackForPrizeDraw": "[variables('minNumSessionFeedbackForPrizeDraw')]",
+                        "FeedbackAvailableFrom": "[parameters('feedbackAvailableFrom')]",
+                        "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]"
                     }
                 },
                 {
