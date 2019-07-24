@@ -65,14 +65,17 @@ namespace DDD.Functions
                 return new StatusCodeResult((int) HttpStatusCode.BadRequest);
             }
 
-            // Get tickets
-            var ticketsRepo = await tickets.GetRepositoryAsync();
-            var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
-            // Only if you have a valid ticket
-            if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
+            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required)
             {
-                log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {ticketNumber}", vote.TicketNumber);
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                // Get tickets
+                var ticketsRepo = await tickets.GetRepositoryAsync();
+                var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
+                // Only if you have a valid ticket
+                if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
+                {
+                    log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {ticketNumber}", vote.TicketNumber);
+                    return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                }
             }
 
             // Get submitted sessions
@@ -105,7 +108,7 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received vote with Id {voteId}; persisting...", vote.Id);
-            var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber.ToUpperInvariant(), ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
+            var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber?.ToUpperInvariant(), ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
             await repo.CreateAsync(voteToPersist);
 
             return new StatusCodeResult((int) HttpStatusCode.NoContent);
