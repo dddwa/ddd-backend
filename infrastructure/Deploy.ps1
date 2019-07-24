@@ -28,6 +28,7 @@ Param (
   [string] [Parameter(Mandatory = $true)] $ConferenceInstance,
   [string] [Parameter(Mandatory = $true)] $VotingAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $VotingAvailableTo,
+  [ValidateSet("None","Optional","Required")] [string] [Parameter(Mandatory = $true)] $TicketNumberWhileVoting,
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,
@@ -65,6 +66,7 @@ function Get-Parameters() {
     "conferenceInstance"                = $ConferenceInstance;
     "votingAvailableFrom"               = $VotingAvailableFrom;
     "votingAvailableTo"                 = $VotingAvailableTo;
+	"ticketNumberWhileVoting"			= $TicketNumberWhileVoting;
     "minVotes"                          = $MinVotes;
     "maxVotes"                          = $MaxVotes;
     "titoWebhookSecret"                 = $TitoWebhookSecret;

@@ -71,6 +71,14 @@
         "votingAvailableTo": {
             "type": "string"
         },
+        "ticketNumberWhileVoting": {
+            "type": "string",
+            "allowedValues": [
+                "None",
+                "Optional",
+                "Required"
+            ]
+        },
         "minVotes": {
             "type": "string"
         },
@@ -218,6 +226,7 @@
                         "VotingTable": "[variables('votingTable')]",
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
+                        "TicketNumberWhileVoting": "[parameters('ticketNumberWhileVoting')]",
                         "TitoWebhookSecret": "[parameters('titoWebhookSecret')]",
                         "TitoWebhookDeDupeTable": "[variables('titoWebhookDeDupeTable')]",
                         "TitoWebhookOrderNotificationQueue": "[variables('titoWebhookOrderNotificationQueue')]",
