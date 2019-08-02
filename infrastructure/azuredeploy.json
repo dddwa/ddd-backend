@@ -115,6 +115,9 @@
         "sessionizeAgendaApiKey": {
             "type": "string"
         },
+        "isSingleVoteEligibleForPrizeDraw": {
+            "type": "string"
+        },
         "feedbackAvailableFrom": {
             "type": "string"
         },
@@ -257,6 +260,7 @@
                         "SessionFeedbackTable": "[variables('sessionFeedbackTable')]",
                         "ConferenceFeedbackTable": "[variables('conferenceFeedbackTable')]",
                         "MinNumSessionFeedbackForPrizeDraw": "[variables('minNumSessionFeedbackForPrizeDraw')]",
+                        "IsSingleVoteEligibleForPrizeDraw": "[parameters('isSingleVoteEligibleForPrizeDraw')]",
                         "FeedbackAvailableFrom": "[parameters('feedbackAvailableFrom')]",
                         "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]"
                     }
