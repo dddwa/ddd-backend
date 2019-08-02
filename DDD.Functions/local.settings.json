@@ -59,6 +59,7 @@
     "FeedbackConnectionString": "UseDevelopmentStorage=true",
     "SessionFeedbackTable": "SessionFeedback",
     "ConferenceFeedbackTable": "ConferenceFeedback",
+    "IsSingleVoteEligibleForPrizeDraw": "true",
     "MinNumSessionFeedbackForPrizeDraw": "4",
     "FeedbackAvailableFrom": "2018-08-03T08:00:00+08:00",
     "FeedbackAvailableTo": "2019-08-03T05:00:00+08:00"
