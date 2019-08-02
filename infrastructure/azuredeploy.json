@@ -116,7 +116,11 @@
             "type": "string"
         },
         "isSingleVoteEligibleForPrizeDraw": {
-            "type": "string"
+            "type": "string",
+            "allowedValues": [
+                "true",
+                "false"
+            ]
         },
         "feedbackAvailableFrom": {
             "type": "string"
