@@ -266,3 +266,4 @@ __pycache__/
 # Infrastructure
 infrastructure/profile.json
 infrastructure/local.private.json
+.DS_Store
