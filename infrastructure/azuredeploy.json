@@ -318,7 +318,7 @@
             "type": "microsoft.insights/metricAlerts",
             "name": "Request_Failures",
             "apiVersion": "2018-03-01",
-            "location": "[variables('appInsightsLocation')]",
+            "location": "global",
             "tags": {
                 "[concat('hidden-link:', resourceId('Microsoft.Insights/components', parameters('functionsAppName')))]": "Resource"
             },
