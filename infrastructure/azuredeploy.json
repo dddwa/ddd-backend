@@ -345,7 +345,7 @@
                             "dimensions":[],
                             "operator": "GreaterThan",
                             "threshold" : 0,
-                            "timeAggregation": "Total",
+                            "timeAggregation": "Count",
                             "criterionType": "StaticThresholdCriterion"
                         }
                     ],
