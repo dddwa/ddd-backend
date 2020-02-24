@@ -336,29 +336,28 @@
                 ],
                 "evaluationFrequency": "PT1M",
                 "windowSize": "PT5M",
+                "templateType": 8,
                 "criteria": {
                      "allOf": [
                         {
                             "name" : "Request failures is more than zero",
-                            "metricName": "requestFailed.count",
+                            "metricNamespace": "microsoft.insights/components",
+                            "metricName": "requests/failed",
                             "dimensions":[],
                             "operator": "GreaterThan",
                             "threshold" : 0,
+                            "monitorTemplateType": 8,
                             "timeAggregation": "Total", 
                             "alertSensitivity": "High",
-                            "criterionType": "DynamicThresholdCriterion",
-                            "failingPeriods": {
-                                "numberOfEvaluationPeriods": 4,
-                                "minFailingPeriodsToAlert": 3
-                            }
+                            "criterionType": "StaticThresholdCriterion"
                         }
                     ],
                     "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
                     "dataSource": {
                         "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
                         "resourceUri": "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]",
-                        "metricNamespace": null,
-                        "metricName": "requestFailed.count"
+                        "metricNamespace": "microsoft.insights/components",
+                        "metricName": "requests/failed"
                     }
                 },
                 "action": {
