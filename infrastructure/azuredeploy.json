@@ -334,25 +334,22 @@
                 "scopes": [
                     "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]"
                 ],
-                "evaluationFrequency": "PT1M",
+                "evaluationFrequency": "PT5M",
                 "windowSize": "PT5M",
-                "templateType": 8,
                 "criteria": {
                      "allOf": [
                         {
-                            "name" : "Request failures is more than zero",
+                            "name" : "Request_failures_more_than_zero",
                             "metricNamespace": "microsoft.insights/components",
                             "metricName": "requests/failed",
                             "dimensions":[],
                             "operator": "GreaterThan",
                             "threshold" : 0,
-                            "monitorTemplateType": 8,
-                            "timeAggregation": "Total", 
-                            "alertSensitivity": "High",
+                            "timeAggregation": "Total",
                             "criterionType": "StaticThresholdCriterion"
                         }
                     ],
-                    "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria",
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
                     "dataSource": {
                         "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
                         "resourceUri": "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]",
