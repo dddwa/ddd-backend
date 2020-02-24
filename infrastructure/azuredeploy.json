@@ -331,6 +331,9 @@
                 "description": "Alert for request failures",
                 "severity": 3,
                 "enabled": true,
+                "scopes": [
+                    "[resourceId('microsoft.insights/components', parameters('functionsAppName'))]"
+                ],
                 "evaluationFrequency": "PT1M",
                 "windowSize": "PT5M",
                 "criteria": {
