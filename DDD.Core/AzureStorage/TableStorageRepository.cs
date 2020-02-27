@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
-using CloudStorageAccount = Microsoft.Azure.Cosmos.Table.CloudStorageAccount;
 
 namespace DDD.Core.AzureStorage
 {
