@@ -212,7 +212,7 @@
                     "properties": {
                         "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
                         "WEBSITE_NODE_DEFAULT_VERSION": "8.9.4",
-                        "FUNCTIONS_EXTENSION_VERSION": "~2",
+                        "FUNCTIONS_EXTENSION_VERSION": "~3",
                         "FUNCTION_APP_EDIT_MODE": "readonly",
                         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
