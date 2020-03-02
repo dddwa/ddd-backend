@@ -267,3 +267,6 @@ __pycache__/
 infrastructure/profile.json
 infrastructure/local.private.json
 .DS_Store
+.vscode/
+
+DDD.Functions/local.settings.dev.json
