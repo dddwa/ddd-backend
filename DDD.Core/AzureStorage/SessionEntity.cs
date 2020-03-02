@@ -1,7 +1,7 @@
 ﻿using System;
 using DDD.Core.Domain;
 using DDD.Core.Time;
-using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Cosmos.Table;
 using Newtonsoft.Json;
 
 namespace DDD.Core.AzureStorage
