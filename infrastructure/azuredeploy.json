@@ -195,6 +195,9 @@
                 "name": "[parameters('functionsAppName')]",
                 "serverFarmId": "[parameters('serverFarmResourceId')]"
             },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
+            ],
             "tags": {
                 "[concat('hidden-related:', parameters('serverFarmResourceId'))]": "Resource"
             },
