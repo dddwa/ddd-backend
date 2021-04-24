@@ -181,12 +181,7 @@
             "name": "[parameters('dataStorageName')]",
             "apiVersion": "2019-04-01",
             "sku": {
-                "name": "[parameters('dataStorageType')]",
-                "restrictions": [
-                {
-                    "reasonCode": "QuotaId"
-                }
-                ]
+                "name": "[parameters('dataStorageType')]"
             },
             "kind": "StorageV2",
             "location": "[resourceGroup().location]"
