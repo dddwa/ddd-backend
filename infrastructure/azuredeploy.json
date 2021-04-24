@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "serverFarmResourceId": {
@@ -170,11 +170,12 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
-            "apiVersion": "2015-06-15",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "accountType": "[parameters('storageType')]"
-            }
+            "apiVersion": "2019-04-01",
+            "sku": {
+                "name": "[parameters('storageType')]"
+            },
+            "kind": "StorageV2",
+            "location": "[resourceGroup().location]"
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
@@ -187,10 +188,10 @@
             "location": "[resourceGroup().location]"
         },
         {
-            "type": "Microsoft.Web/sites",
+            "type": "Microsoft.Web/sites/functions",
             "name": "[parameters('functionsAppName')]",
             "kind": "functionapp",
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
             "properties": {
                 "name": "[parameters('functionsAppName')]",
@@ -204,7 +205,7 @@
             },
             "resources": [
                 {
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2018-11-01",
                     "name": "appsettings",
                     "type": "config",
                     "dependsOn": [
@@ -221,9 +222,9 @@
                         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
                         "ApplicationInsights:InstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', parameters('functionsAppName')), '2014-04-01').InstrumentationKey]",
-                        "AzureWebJobsDashboard":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
-                        "AzureWebJobsStorage":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
-                        "TitoWebhookConnectionString":"[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "TitoWebhookConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "NewSessionNotificationLogicAppUrl": "[parameters('newSessionNotificationLogicAppUrl')]",
                         "SessionsConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "SessionizeApiKey": "[parameters('sessionizeApiKey')]",
@@ -274,7 +275,7 @@
                     }
                 },
                 {
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2018-11-01",
                     "name": "web",
                     "type": "config",
                     "dependsOn": [
@@ -302,7 +303,7 @@
                     }
                 },
                 {
-                    "apiVersion": "2015-08-01",
+                    "apiVersion": "2018-11-01",
                     "name": "logs",
                     "type": "config",
                     "dependsOn": [
@@ -341,14 +342,14 @@
                 "evaluationFrequency": "PT5M",
                 "windowSize": "PT5M",
                 "criteria": {
-                     "allOf": [
+                    "allOf": [
                         {
-                            "name" : "Request_failures_more_than_zero",
+                            "name": "Request_failures_more_than_zero",
                             "metricNamespace": "microsoft.insights/components",
                             "metricName": "requests/failed",
-                            "dimensions":[],
+                            "dimensions": [],
                             "operator": "GreaterThan",
-                            "threshold" : 0,
+                            "threshold": 0,
                             "timeAggregation": "Count",
                             "criterionType": "StaticThresholdCriterion"
                         }
