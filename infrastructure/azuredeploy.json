@@ -179,11 +179,17 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('dataStorageName')]",
-            "apiVersion": "2015-06-15",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "accountType": "[parameters('dataStorageType')]"
-            }
+            "apiVersion": "2019-04-01",
+            "sku": {
+                "name": "[parameters('dataStorageType')]",
+                "restrictions": [
+                {
+                    "reasonCode": "QuotaId"
+                }
+                ]
+            },
+            "kind": "StorageV2",
+            "location": "[resourceGroup().location]"
         },
         {
             "type": "Microsoft.Web/sites",
