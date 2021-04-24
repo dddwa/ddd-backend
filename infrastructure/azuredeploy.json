@@ -207,7 +207,7 @@
                 {
                     "apiVersion": "2018-11-01",
                     "name": "appsettings",
-                    "type": "Microsoft.Web/sites/config",
+                    "type": "config",
                     "dependsOn": [
                         "[parameters('functionsAppName')]",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
@@ -277,7 +277,7 @@
                 {
                     "apiVersion": "2018-11-01",
                     "name": "web",
-                    "type": "Microsoft.Web/sites/config",
+                    "type": "config",
                     "dependsOn": [
                         "[parameters('functionsAppName')]"
                     ],
@@ -305,7 +305,7 @@
                 {
                     "apiVersion": "2018-11-01",
                     "name": "logs",
-                    "type": "Microsoft.Web/sites/config",
+                    "type": "config",
                     "dependsOn": [
                         "[parameters('functionsAppName')]"
                     ],
