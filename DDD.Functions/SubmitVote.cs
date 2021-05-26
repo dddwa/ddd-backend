@@ -40,7 +40,7 @@ namespace DDD.Functions
             if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate, TimeSpan.FromMinutes(5)))
             {
                 log.LogWarning("Attempt to access SubmitVote endpoint outside of allowed window of {start} -> {end}.", keyDates.VotingAvailableFromDate, keyDates.VotingAvailableToDate);
-                return new StatusCodeResult((int) HttpStatusCode.NotFound);
+                return new StatusCodeResult((int)HttpStatusCode.NotFound);
             }
 
             // Correct number of votes
@@ -48,48 +48,51 @@ namespace DDD.Functions
             if (numVotesSubmitted < conference.MinVotes || numVotesSubmitted > conference.MaxVotes)
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with incorrect number of votes ({numVotes} rather than {minVotes} - {maxVotes}).", numVotesSubmitted, conference.MinVotes, conference.MaxVotes);
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
             // Correct number of indices
             if (numVotesSubmitted != vote.Indices?.Length)
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint without matching indices ({numIndices} vs {numVotes}).", vote.Indices?.Length, numVotesSubmitted);
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
             // Valid voting start time, allowing for 5 minutes of clock drift
             if (vote.VotingStartTime > keyDates.Now.AddMinutes(5) || vote.VotingStartTime < keyDates.VotingAvailableFromDate.AddMinutes(-5))
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with invalid start time (got {submittedStartTime} instead of {votingStartTime} - {now}).", vote.VotingStartTime, keyDates.VotingAvailableFromDate, keyDates.Now);
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required)
+            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
+                && voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.False)
             {
                 // Get tickets
-                var (ticketsRepo, _ ) = await tickets.GetRepositoryAsync();
-                
+                var (ticketsRepo, _) = await tickets.GetRepositoryAsync();
+
                 var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
                 // Only if you have a valid ticket
                 if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
                 {
                     log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {ticketNumber}", vote.TicketNumber);
-                    return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                    return new StatusCodeResult((int)HttpStatusCode.BadRequest);
                 }
             }
 
-            if (voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.True)
+            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
+                && voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.True)
             {
                 // Get waitinglist emails
-                var (_ , waitinglistRepo ) = await tickets.GetRepositoryAsync();
+                var (ticketsRepo, waitinglistRepo) = await tickets.GetRepositoryAsync();
                 // vote.Ticket can carry waiting list email as well as ticket number
-                var matchedTicket = await waitinglistRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
+                var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant()); 
+                var matchedEmail = await waitinglistRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
                 // Only if you have a valid ticket
-                if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
+                if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null || matchedEmail == null)
                 {
-                    log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid waiting list email address. Email address sent was {ticketNumber}", vote.TicketNumber);
-                    return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                    log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket number or a valid waiting list email address. Email/ticket sent was {ticketNumber}", vote.TicketNumber);
+                    return new StatusCodeResult((int)HttpStatusCode.BadRequest);
                 }
             }
 
@@ -102,14 +105,14 @@ namespace DDD.Functions
             if (vote.SessionIds.Any(id => !allSubmissionIds.Contains(id)) || vote.SessionIds.Distinct().Count() != vote.SessionIds.Count())
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with at least one invalid or duplicate submission id (got {sessionIds}).", JsonConvert.SerializeObject(vote.SessionIds));
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
             // Valid indices
             if (vote.Indices.Any(index => index <= 0 || index > allSubmissionIds.Count()) || vote.Indices.Distinct().Count() != vote.Indices.Count())
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with at least one invalid or duplicate index (got {indices} when the number of sessions is {totalNumberOfSessions}).", JsonConvert.SerializeObject(vote.Indices), allSubmissionIds.Count());
-                return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
             // No existing vote
@@ -118,7 +121,7 @@ namespace DDD.Functions
             if (existing != null)
             {
                 log.LogWarning("Attempt to submit to SubmitVotes endpoint with a duplicate vote (got {voteId}).", vote.Id);
-                return new StatusCodeResult((int) HttpStatusCode.Conflict);
+                return new StatusCodeResult((int)HttpStatusCode.Conflict);
             }
 
             // Save vote
@@ -126,7 +129,7 @@ namespace DDD.Functions
             var voteToPersist = new Vote(conference.ConferenceInstance, vote.Id, vote.SessionIds, vote.Indices, vote.TicketNumber?.ToUpperInvariant(), ip, vote.VoterSessionId, vote.VotingStartTime, keyDates.Now);
             await repo.CreateAsync(voteToPersist);
 
-            return new StatusCodeResult((int) HttpStatusCode.NoContent);
+            return new StatusCodeResult((int)HttpStatusCode.NoContent);
         }
     }
 
