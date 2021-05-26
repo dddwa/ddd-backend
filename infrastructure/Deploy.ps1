@@ -29,7 +29,7 @@ Param (
   [string] [Parameter(Mandatory = $true)] $VotingAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $VotingAvailableTo,
   [ValidateSet("None","Optional","Required")] [string] [Parameter(Mandatory = $true)] $TicketNumberWhileVoting,
-  [ValidateSet("True","False")] [string] [Parameter(Mandatory = $true)] $WaitingListCanVoteWithEmail,
+  [string] [Parameter(Mandatory = $true)] $WaitingListCanVoteWithEmail,
   [string] [Parameter(Mandatory = $true)] $MinVotes,
   [string] [Parameter(Mandatory = $true)] $MaxVotes,
   [string] [Parameter(Mandatory = $true)] $StopSyncingSessionsFrom,

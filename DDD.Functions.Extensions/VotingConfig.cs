@@ -27,17 +27,14 @@ namespace DDD.Functions.Extensions
         public string TicketNumberWhileVoting { get; set; }
         
         [AppSetting(Default = "WaitingListCanVoteWithEmail")]
-        public string WaitingListCanVoteWithEmail { get; set; }
+        public string WaitingListCanVoteWithEmailAppSetting { get; set; }
 
         public TicketNumberWhileVoting TicketNumberWhileVotingValue =>
             TicketNumberWhileVoting == null ?
                 Extensions.TicketNumberWhileVoting.None  :
                 (TicketNumberWhileVoting) Enum.Parse(typeof(TicketNumberWhileVoting), TicketNumberWhileVoting);
 
-        public WaitingListCanVoteWithEmail WaitingListCanVoteWithEmailValue =>
-            TicketNumberWhileVoting == null ?
-                Extensions.WaitingListCanVoteWithEmail.False  :
-                (WaitingListCanVoteWithEmail) Enum.Parse(typeof(WaitingListCanVoteWithEmail), WaitingListCanVoteWithEmail);
+        public bool WaitingListCanVoteWithEmail => WaitingListCanVoteWithEmailAppSetting != "false";
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
