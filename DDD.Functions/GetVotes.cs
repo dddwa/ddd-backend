@@ -45,8 +45,8 @@ namespace DDD.Functions
             var votes = await votingRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Get Tito ids
-            var titoRebo = await titoSyncConfig.GetRepositoryAsync();
-            var titoOrders = await titoRebo.GetAllAsync(conference.ConferenceInstance);
+            var (titoRepo, _ ) = await titoSyncConfig.GetRepositoryAsync();
+            var titoOrders = await titoRepo.GetAllAsync(conference.ConferenceInstance);
             var titoIds = titoOrders.Select(o => o.TicketId).ToArray();
 
             // Get AppInsights sessions

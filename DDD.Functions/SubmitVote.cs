@@ -68,12 +68,27 @@ namespace DDD.Functions
             if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required)
             {
                 // Get tickets
-                var ticketsRepo = await tickets.GetRepositoryAsync();
+                var (ticketsRepo, _ ) = await tickets.GetRepositoryAsync();
+                
                 var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
                 // Only if you have a valid ticket
                 if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
                 {
                     log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket. Ticket id sent was {ticketNumber}", vote.TicketNumber);
+                    return new StatusCodeResult((int) HttpStatusCode.BadRequest);
+                }
+            }
+
+            if (voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.True)
+            {
+                // Get waitinglist emails
+                var (_ , waitinglistRepo ) = await tickets.GetRepositoryAsync();
+                // vote.Ticket can carry waiting list email as well as ticket number
+                var matchedTicket = await waitinglistRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
+                // Only if you have a valid ticket
+                if (string.IsNullOrEmpty(vote.TicketNumber) || matchedTicket == null)
+                {
+                    log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid waiting list email address. Email address sent was {ticketNumber}", vote.TicketNumber);
                     return new StatusCodeResult((int) HttpStatusCode.BadRequest);
                 }
             }
