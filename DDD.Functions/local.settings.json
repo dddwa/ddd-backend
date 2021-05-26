@@ -36,6 +36,8 @@
     "TitoEventId": "testevent",
     "TitoAccountId": "dddperth",
     "StopSyncingTitoFrom": "2019-06-18T23:59:59+08:00",
+    "WaitingListTable": "TitoWaitingList",
+    "WaitingListConnectionString": "UseDevelopmentStorage=true",
     // GetSubmissions
     "SubmissionsAvailableFrom": "2019-06-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2019-06-17T23:59:59+08:00",
@@ -46,6 +48,7 @@
     "VotingAvailableFrom": "2018-06-05T08:00:00+08:00",
     "VotingAvailableTo": "2018-06-14T23:59:59+08:00",
     "TicketNumberWhileVoting": "Required",
+    "WaitingListCanVoteWithEmail": "True",
     "MinVotes": "6",
     "MaxVotes": "12",
     // App Insights

@@ -11,6 +11,12 @@ namespace DDD.Functions.Extensions
         Optional
     }
 
+    public enum WaitingListCanVoteWithEmail
+    {
+        False,
+        True
+    }
+
     public class VotingConfig : Attribute
     {
         [AppSetting(Default = "VotesConnectionString")]
@@ -19,11 +25,19 @@ namespace DDD.Functions.Extensions
         public string Table { get; set; }
         [AppSetting(Default = "TicketNumberWhileVoting")]
         public string TicketNumberWhileVoting { get; set; }
+        
+        [AppSetting(Default = "WaitingListCanVoteWithEmail")]
+        public string WaitingListCanVoteWithEmail { get; set; }
 
         public TicketNumberWhileVoting TicketNumberWhileVotingValue =>
             TicketNumberWhileVoting == null ?
                 Extensions.TicketNumberWhileVoting.None  :
                 (TicketNumberWhileVoting) Enum.Parse(typeof(TicketNumberWhileVoting), TicketNumberWhileVoting);
+
+        public WaitingListCanVoteWithEmail WaitingListCanVoteWithEmailValue =>
+            TicketNumberWhileVoting == null ?
+                Extensions.WaitingListCanVoteWithEmail.False  :
+                (WaitingListCanVoteWithEmail) Enum.Parse(typeof(WaitingListCanVoteWithEmail), WaitingListCanVoteWithEmail);
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

@@ -53,7 +53,7 @@ namespace DDD.Functions
                 }
             }
             
-            var repo = await config.GetRepositoryAsync();
+            var (repo, _ ) = await config.GetRepositoryAsync();
             var existingTickets = await repo.GetAllAsync(conference.ConferenceInstance);
 
             // Taking up to 100 records to meet Azure Storage Bulk Operation limit

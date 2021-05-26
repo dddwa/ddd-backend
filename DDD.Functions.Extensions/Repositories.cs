@@ -40,11 +40,13 @@ namespace DDD.Functions.Extensions
             return (deDupeRepository, orderNotificationQueue, ticketNotificationQueue);
         }
 
-        public static async Task<ITableStorageRepository<TitoTicket>> GetRepositoryAsync(this TitoSyncConfig config)
+        public static async Task<(ITableStorageRepository<TitoTicket>, ITableStorageRepository<WaitingList>)> GetRepositoryAsync(this TitoSyncConfig config)
         {
-            var repo = new TableStorageRepository<TitoTicket>(CosmosAccount.Parse(config.ConnectionString), config.Table);
-            await repo.InitializeAsync();
-            return repo;
+            var repoTickets = new TableStorageRepository<TitoTicket>(CosmosAccount.Parse(config.ConnectionString), config.Table);
+            var repoWaitingListEmails = new TableStorageRepository<WaitingList>(CosmosAccount.Parse(config.WaitinglistConnectionString), config.WaitingListTable);
+            await repoTickets.InitializeAsync();
+            await repoWaitingListEmails.InitializeAsync();
+            return (repoTickets, repoWaitingListEmails);
         }
 
         public static async Task<ITableStorageRepository<AppInsightsVotingUser>> GetRepositoryAsync(this AppInsightsSyncConfig config)

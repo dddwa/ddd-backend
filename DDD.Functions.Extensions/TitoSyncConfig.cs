@@ -16,6 +16,10 @@ namespace DDD.Functions.Extensions
         public string EventId { get; set; }
         [AppSetting(Default = "TitoAccountId")]
         public string AccountId { get; set; }
+        [AppSetting(Default = "WaitinglistConnectionString")]
+        public string WaitinglistConnectionString { get; set; }
+        [AppSetting(Default = "WaitingListTable")]
+        public string WaitingListTable { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
