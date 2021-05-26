@@ -79,6 +79,13 @@
                 "Required"
             ]
         },
+        "waitingListCanVoteWithEmail": {
+            "type": "string",
+             "allowedValues": [
+                "true",
+                "false"
+            ]
+        },
         "minVotes": {
             "type": "string"
         },
@@ -135,6 +142,7 @@
         "votingTable": "Votes",
         "titoSyncSchedule": "0 */5 * * * *",
         "titoTable": "Tito",
+        "waitingListTable": "TitoWaitingList",
         "appInsightsSyncSchedule": "0 */5 * * * *",
         "appInsightsTable": "AppInsights",
         "submissionsTable": "Submissions",
@@ -239,6 +247,9 @@
                         "VotingAvailableFrom": "[parameters('votingAvailableFrom')]",
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
                         "TicketNumberWhileVoting": "[parameters('ticketNumberWhileVoting')]",
+                        "WaitingListCanVoteWithEmail": "[parameters('waitingListCanVoteWithEmail')]",
+                        "WaitingListTable": "[variables('waitingListTable')]",
+                        "WaitingListConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
                         "TitoWebhookSecret": "[parameters('titoWebhookSecret')]",
                         "TitoWebhookDeDupeTable": "[variables('titoWebhookDeDupeTable')]",
                         "TitoWebhookOrderNotificationQueue": "[variables('titoWebhookOrderNotificationQueue')]",
