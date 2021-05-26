@@ -93,7 +93,8 @@ namespace DDD.Functions
                 var (ticketsRepo, waitinglistRepo) = await tickets.GetRepositoryAsync();
                 // vote.Ticket can carry waiting list email as well as ticket number
                 var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant()); 
-                var matchedEmail = await waitinglistRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
+                var allWaitingListEmails = await waitinglistRepo.GetAllAsync(conference.ConferenceInstance);
+                var matchedEmail = allWaitingListEmails.FirstOrDefault(e => e.Email.Equals(vote.TicketNumber, StringComparison.InvariantCultureIgnoreCase));
                 // Only if you have a valid ticket or email address
                 if (matchedTicket == null && matchedEmail == null)
                 {
