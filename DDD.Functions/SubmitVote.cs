@@ -66,7 +66,7 @@ namespace DDD.Functions
             }
 
             if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
-                && voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.False)
+                && !voting.WaitingListCanVoteWithEmail)
             {
                 // Get tickets
                 var (ticketsRepo, _) = await tickets.GetRepositoryAsync();
@@ -81,7 +81,7 @@ namespace DDD.Functions
             }
 
             if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
-                && voting.WaitingListCanVoteWithEmailValue == WaitingListCanVoteWithEmail.True)
+                && voting.WaitingListCanVoteWithEmail)
             {
                 // Get waitinglist emails
                 var (ticketsRepo, waitinglistRepo) = await tickets.GetRepositoryAsync();
