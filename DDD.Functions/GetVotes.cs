@@ -31,7 +31,7 @@ namespace DDD.Functions
             [BindVotingConfig]
             VotingConfig voting,
             [BindTitoSyncConfig]
-            TitoSyncConfig titoSyncConfig,
+            TitoSyncConfig tickets,
             [BindAppInsightsSyncConfig]
             AppInsightsSyncConfig appInsights)
         {
@@ -45,9 +45,15 @@ namespace DDD.Functions
             var votes = await votingRepo.GetAllAsync(conference.ConferenceInstance);
 
             // Get Tito ids
-            var (titoRepo, _ ) = await titoSyncConfig.GetRepositoryAsync();
+            var (titoRepo, waitinglistRepo) = await tickets.GetRepositoryAsync();
             var titoOrders = await titoRepo.GetAllAsync(conference.ConferenceInstance);
             var titoIds = titoOrders.Select(o => o.TicketId).ToArray();
+
+            if (voting.WaitingListCanVoteWithEmail)
+            {
+                var waitingListEmails = await waitinglistRepo.GetAllAsync(conference.ConferenceInstance);
+                titoIds = titoIds.Concat(waitingListEmails.Select(w => w.Email.ToUpper())).ToArray();
+            }
 
             // Get AppInsights sessions
             var aiRepo = await appInsights.GetRepositoryAsync();
