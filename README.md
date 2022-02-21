@@ -11,50 +11,76 @@ This project contains backend functionality to run the DDD conferences, includin
 * Tito webhook to take order notifications, de-duplicate them and place them in queue storage so they can be picked up by a Logic App (or similar) to do things like create Microsoft Teams / Slack notifications for visibility to the organising committee
 * Getting feedback information and prize draw names
 
-# Structure
+## Run locally
+
+### Prerequisites
+
+* VSCode (<https://code.visualstudio.com/>) or your preferred IDE
+* Dotnet Core 3.1 (<https://dotnet.microsoft.com/en-us/download/dotnet/3.1>)
+* Azure Functions Core Tools(<https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local>)
+
+### Commands
+
+* `cd DDD.Functions && func host start --build --debug --verbose`
+
+## Structure
 
 * `DDD.Core`: Cross-cutting logic and core domain model
 * `DDD.Functions`: Azure Functions project that contains:
-    * `AppInsightsSync`: C# Azure Function that syncs app insights user IDs to Azure Table Storage for users that submitted a vote
-    * `TitoNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Tito (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
-	* `TitoSync`: C# Azure Function that syncs Tito order IDs to Azure Table Storage for a configured event
-	* `GetAgenda`: C# Azure Function that returns sessions and presenters that have been approved for agenda
-	* `GetSubmissions`: C# Azure Function that returns submissions and submitters for use with either voting or showing submitted sessions
-	* `GetVotes`: C# Azure Function that returns analysed vote information; can be piped into Microsoft Power BI or similar for further processing and visualisation
-    * `NewSessionNotification`: C# Azure Function that responds to new submissions in Azure Table Storage and then calls a Logic App Web Hook URL (from config) with the session and presenter information (marking that session as notified to avoid duplicate notifications)
-	* `SessionizeReadModelSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for submissions
-	* `SessionizeAgendaSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for approved sessions
-	* `SubmitVote`: : C# Azure Function that allows a vote for submissions to be submitted, where it is validated and persisted to Azure Table Storage
+  * `AppInsightsSync`: C# Azure Function that syncs app insights user IDs to Azure Table Storage for users that submitted a vote
+  * `TitoNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Tito (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
+  * `TitoSync`: C# Azure Function that syncs Tito order IDs to Azure Table Storage for a configured event
+  * `GetAgenda`: C# Azure Function that returns sessions and presenters that have been approved for agenda
+  * `GetSubmissions`: C# Azure Function that returns submissions and submitters for use with either voting or showing submitted sessions
+  * `GetVotes`: C# Azure Function that returns analysed vote information; can be piped into Microsoft Power BI or similar for further processing and visualisation
+  * `NewSessionNotification`: C# Azure Function that responds to new submissions in Azure Table Storage and then calls a Logic App Web Hook URL (from config) with the session and presenter information (marking that session as notified to avoid duplicate notifications)
+  * `SessionizeReadModelSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for submissions
+  * `SessionizeAgendaSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for approved sessions
+  * `SubmitVote`: : C# Azure Function that allows a vote for submissions to be submitted, where it is validated and persisted to Azure Table Storage
 * `DDD.Sessionize`: Syncing logic to sync data from sessionize to Azure Table Storage
 * `DDD.Sessionize.Tests`: Unit tests for the Sessionize Syncing code
 * `infrastructure`: Azure ARM deployment scripts to provision the backend environment
-    * `Deploy-Local.ps1`: Run locally to debug or develop the scripts using your user context in Azure
-    * `Deploy.ps1`: Main deployment script that you need to call from CD pipeline
-    * `azuredeploy.json`: Azure ARM template
+  * `Deploy-Local.ps1`: Run locally to debug or develop the scripts using your user context in Azure
+  * `Deploy.ps1`: Main deployment script that you need to call from CD pipeline
+  * `azuredeploy.json`: Azure ARM template
 * `.vsts-ci.yml`: VSTS Continuous Integration definition for this project
 
-# Infrastructure Prerequisites
+## Backend date parameters and usage
 
-The backend application depends on programatic access to the [Frontend Website's](https://github.com/dddwa/dddperth-website) Application Insights to pull and store information on voting behaviour.
+* `StopSyncingSessionsFrom`: this is when we should stop syncing sessions from Sessionize, usually CFP close date
+* `StopSyncingAgendaFrom`: this is when we should stop syncing agenda from Sessionize, usually conference date
+* `StopSyncingTitoFrom`: this is when we should stop syncing tickets holder information from Tito usually the date before conference date
+* `VotingAvailableFrom`: voting start date
+* `VotingAvailableTo`: voting end date
+* `SubmissionsAvailableFrom`: this is when we can retrieve submitted submissions for internal usage and voting, usually it is the when voting opens
+* `SubmissionsAvailableTo`: this is when we cannot retrieve submitted submissions, usually it is when Agenda is published
+* `StartSyncingAppInsightsFrom`: this is when we start collecting insights for voting and submissions, usually when CFP opens
+* `StopSyncingAppInsightsFrom`: this is when we stop collecting insights for voting and submissions, usually when voting closes
+* `FeedbackAvailableFrom`: this is when we start accepting feedback, usually the conference start date at 8:00am
+* `FeedbackAvailableTo`: this is when we stop accepting feedback, usually the conference start date at 5:00pm
+
+## Infrastructure Prerequisites
+
+The backend application depends on programmatic access to the [Frontend Website's](https://github.com/dddwa/dddperth-website) Application Insights to pull and store information on voting behavior.
 
 To supply this access, create an API key with `Read telemetry` permissions within the frontend website's Application Insights instance in the Azure Portal, and enter the Application ID and Key presented into the `AppInsightsApplicationId` and `AppInsightsApplicationKey` parameters.
 
-# Setting up Continuous Delivery in VSTS
+## Setting up Continuous Delivery in VSTS
 
 VSTS doesn't yet support .yml files for Continuous Delivery (Release) so the steps to set it up are:
 
 * Install [SAS Token VSTS extension](https://marketplace.visualstudio.com/items?itemName=pascalnaber.PascalNaber-Xpirit-CreateSasToken)
-    * todo: Just add it to Deploy.ps1
+  * todo: Just add it to Deploy.ps1
 * Create the release definition triggered by the CI build
 * Add a task for the SAS token generation for the storage account you persisted deployments to set the output variables to `DeploymentZipUri` and `DeploymentZipToken` respectively, recommend setting the timeout to a big number so it's always available (e.g. `1000000`), permission should just be `r`
 * Add an Azure PowerShell task against your subscription and:
-    * `$(System.DefaultWorkingDirectory)/{CI build name}/infrastructure/Deploy.ps1` as the script file path
-    * `` as the script arguments
+  * `$(System.DefaultWorkingDirectory)/{CI build name}/infrastructure/Deploy.ps1` as the script file path
+  * `` as the script arguments
 * Add variables, e.g.:
     ![Variables](vsts-cd-variables.png)
 * Profit!
 
-# New Session Notification Logic App
+## New Session Notification Logic App
 
 The `NewSessionNotificationLogicAppUrl` value is gotten by creating a logic app and copying the webhook URL from it. The logic app would roughly have:
 
@@ -143,11 +169,12 @@ The `NewSessionNotificationLogicAppUrl` value is gotten by creating a logic app 
         "type": "object"
     }
     ```
+
 * `For each` action against `Presenters` with a nested `Compose` action against `Name`
 * `Post message` action (for Teams/Slack) with something like `@{join(actionOutputs('Compose'), ', ')} submitted a talk '@{triggerBody()?['Session']['Title']}' as @{triggerBody()?['Session']['Format']} / @{triggerBody()?['Session']['Level']} with tags @{join(triggerBody()?['Session']['Tags'], ', ')}.`
 * `Send an email` action (for O365/GMail/Outlook.com depending on what you have) that sends an email if the previous step failed (via `Configure run after`)
 
-# Tito notification logic app
+## Tito notification logic app
 
 The logic app would roughly have:
 
