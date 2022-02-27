@@ -31,20 +31,17 @@ namespace DDD.Functions
         {
             if (keyDates.Before(x => x.SubmissionsAvailableFromDate) || keyDates.After(x => x.SubmissionsAvailableToDate))
             {
-                log.LogWarning("Attempt to access GetSubmissions endpoint outside of allowed window of {start} -> {end}.", keyDates.SubmissionsAvailableFromDate, keyDates.SubmissionsAvailableToDate);
+                log.LogWarning("Attempt to access EloVotingGetPair endpoint outside of allowed window of {start} -> {end}.", keyDates.SubmissionsAvailableFromDate, keyDates.SubmissionsAvailableToDate);
                 return new StatusCodeResult(404);
             }
 
-            // Within voting window, allowing for 5 minutes of clock drift
-            if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate, TimeSpan.FromMinutes(5)))
-            {
-                log.LogWarning("Attempt to access SubmitVote endpoint outside of allowed window of {start} -> {end}.", keyDates.VotingAvailableFromDate, keyDates.VotingAvailableToDate);
-                return new StatusCodeResult(404);
-            }
+            // the original GetSubmission relies on conference.AnonymousSubmissions flag to return submitters or not
+            // This new Elo voting will not return the submisster to make it faster 
+            //   and DDD is always uses anonymous voting so ignoring the submitter by using _            
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
 
-            // first random
+            // first random submission
             var random = new Random();
             var submissionA = receivedSubmissions.Where(x => x.Session != null)
                 .Select(x => x.GetSession())
@@ -56,16 +53,15 @@ namespace DDD.Functions
                 })
                 .ElementAt(random.Next(receivedSubmissions.Count));
 
-
             var submissionB = receivedSubmissions.Where(x => x.Session != null && x.Id.ToString() != submissionA.Id)
-                            .Select(x => x.GetSession())
-                            .Select(s => new Submission
-                            {
-                                Id = s.Id.ToString(),
-                                Title = s.Title,
-                                Abstract = s.Abstract,
-                            })
-                            .ElementAt(random.Next(receivedSubmissions.Count));
+                .Select(x => x.GetSession())
+                .Select(s => new Submission
+                {
+                    Id = s.Id.ToString(),
+                    Title = s.Title,
+                    Abstract = s.Abstract,
+                })
+                .ElementAt(random.Next(receivedSubmissions.Count));
 
             var results = new PairOfSessions()
             {
