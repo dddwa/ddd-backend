@@ -17,6 +17,7 @@ namespace DDD.Functions
     public static class SubmitVote
     {
         [FunctionName("SubmitVote")]
+        [Obsolete]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
             HttpRequestMessage req,
@@ -152,6 +153,7 @@ namespace DDD.Functions
 
     public static class RequestExtensions
     {
+        [Obsolete]
         public static string GetIpAddress(this HttpRequestMessage req)
         {
             if (req.Properties.ContainsKey("HttpContext"))
