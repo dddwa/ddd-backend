@@ -25,7 +25,7 @@ namespace DDD.Functions
             KeyDatesConfig keyDates,
             [BindSubmissionsConfig]
             SubmissionsConfig submissions,
-            [BindVotingConfig]
+            [BindEloVotingConfig]
             EloVotingConfig eloVoting
         )
         {

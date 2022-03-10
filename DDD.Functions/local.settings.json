@@ -51,6 +51,9 @@
     "WaitingListCanVoteWithEmail": "true",
     "MinVotes": "6",
     "MaxVotes": "12",
+    // EloVoting
+    "EloVotesConnectionString": "UseDevelopmentStorage=true",
+    "EloVotingTable": "EloVotes",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",
