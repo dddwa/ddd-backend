@@ -5,6 +5,7 @@ using DDD.Core.Tito;
 using DDD.Core.Voting;
 using StorageAccount = Microsoft.Azure.Storage.CloudStorageAccount;
 using CosmosAccount = Microsoft.Azure.Cosmos.Table.CloudStorageAccount;
+using DDD.Core.EloVoting;
 
 namespace DDD.Functions.Extensions
 {
@@ -59,6 +60,13 @@ namespace DDD.Functions.Extensions
         public static async Task<ITableStorageRepository<Vote>> GetRepositoryAsync(this VotingConfig config)
         {
             var repo = new TableStorageRepository<Vote>(CosmosAccount.Parse(config.ConnectionString), config.Table);
+            await repo.InitializeAsync();
+            return repo;
+        }
+
+        public static async Task<ITableStorageRepository<EloVote>> GetRepositoryAsync(this EloVotingConfig config)
+        {
+            var repo = new TableStorageRepository<EloVote>(CosmosAccount.Parse(config.ConnectionString), config.Table);
             await repo.InitializeAsync();
             return repo;
         }
