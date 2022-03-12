@@ -12,7 +12,7 @@ namespace DDD.Core.EloVoting
             RowKey = voteId.ToString();
             WinnerSessionId = winnerSessionId;
             LoserSessionId = loserSessionId;
-            IsDraw = isDraw.ToString();
+            IsDraw = isDraw;
             IpAddress = ipAddress;
             VoterSessionId = voterSessionId;
             VotingSubmittedTime = votingSubmittedTime;
@@ -20,7 +20,7 @@ namespace DDD.Core.EloVoting
 
         public string WinnerSessionId { get; set; }
         public string LoserSessionId { get; set; }
-        public string IsDraw { get; private set; }
+        public bool IsDraw { get; set; }
         public string IpAddress { get; set; }
         public string VoterSessionId { get; set; }
         public DateTimeOffset VotingSubmittedTime { get; set; }
