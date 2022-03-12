@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System;
+using Microsoft.AspNetCore.Http;
 using System.Linq;
 using DDD.Functions.Extensions;
 using DDD.Core.EloVoting;
@@ -63,19 +64,19 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", vote.Id);
-            var eloVoteToPersist = new EloVote(conference.ConferenceInstance, vote.Id, winner, loser, vote.isDraw, ip, vote.VoterSessionId, keyDates.Now);
+            var eloVoteToPersist = new EloVote(conference.ConferenceInstance, vote.Id, winner, loser, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
             await repo.CreateAsync(eloVoteToPersist);
 
             return new StatusCodeResult((int)HttpStatusCode.NoContent);
         }
-
+    }
         public class EloVoteRequest
         {
             public Guid Id { get; set; }
             public string WinnerSessionId { get; set; }
             public string LoserSessionId { get; set; }
-            public bool isDraw { get; set; }
+            public bool IsDraw { get; set; }
             public string VoterSessionId { get; set; }
         }
-    }
+
 }
