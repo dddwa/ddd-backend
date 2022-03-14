@@ -16,7 +16,7 @@ This project contains backend functionality to run the DDD conferences, includin
 ### Prerequisites
 
 * VSCode (<https://code.visualstudio.com/>) or your preferred IDE
-* Dotnet Core 3.1 (<https://dotnet.microsoft.com/en-us/download/dotnet/3.1>)
+* Dotnet 6 (<https://dotnet.microsoft.com/en-us/download/dotnet/6>)
 * Azure Functions Core Tools(<https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local>)
 
 ### Commands
