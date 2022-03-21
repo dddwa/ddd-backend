@@ -65,13 +65,13 @@ namespace DDD.Functions
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            if(string.IsNullOrEmpty(vote.TicketNumber))
+            if (string.IsNullOrEmpty(vote.TicketNumber))
             {
                 log.LogWarning("Attempt to submit to SubmitVote endpoint without a valid ticket or email address.");
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
+            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required
                 && !voting.WaitingListCanVoteWithEmail)
             {
                 // Get tickets
@@ -86,13 +86,13 @@ namespace DDD.Functions
                 }
             }
 
-            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required 
+            if (voting.TicketNumberWhileVotingValue == TicketNumberWhileVoting.Required
                 && voting.WaitingListCanVoteWithEmail)
             {
                 // Get waitinglist emails
                 var (ticketsRepo, waitinglistRepo) = await tickets.GetRepositoryAsync();
                 // vote.Ticket can carry waiting list email as well as ticket number
-                var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant()); 
+                var matchedTicket = await ticketsRepo.GetAsync(conference.ConferenceInstance, vote.TicketNumber.ToUpperInvariant());
                 var allWaitingListEmails = await waitinglistRepo.GetAllAsync(conference.ConferenceInstance);
                 var matchedEmail = allWaitingListEmails.FirstOrDefault(e => e.Email.Equals(vote.TicketNumber, StringComparison.InvariantCultureIgnoreCase));
                 // Only if you have a valid ticket or email address
@@ -148,16 +148,5 @@ namespace DDD.Functions
         public int[] Indices { get; set; }
         public string VoterSessionId { get; set; }
         public DateTimeOffset VotingStartTime { get; set; }
-    }
-
-    public static class RequestExtensions
-    {
-        public static string GetIpAddress(this HttpRequestMessage req)
-        {
-            if (req.Properties.ContainsKey("HttpContext"))
-                return ((DefaultHttpContext)req.Properties["HttpContext"])?.Connection?.RemoteIpAddress?.ToString();
-
-            return null;
-        }
     }
 }
