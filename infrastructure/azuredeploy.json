@@ -134,6 +134,9 @@
         },
         "feedbackAvailableTo": {
             "type": "string"
+        },
+        "eloPasswordPhrase": {
+            "type": "string"
         }
     },
     "variables": {
@@ -249,6 +252,7 @@
                         "VotingAvailableTo": "[parameters('votingAvailableTo')]",
                         "EloVotingTable": "[variables('eloVotingTable')]",
                         "EloVotesConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
+                        "EloPasswordPhrase": "[parameters('eloPasswordPhrase')]",
                         "TicketNumberWhileVoting": "[parameters('ticketNumberWhileVoting')]",
                         "WaitingListCanVoteWithEmail": "[parameters('waitingListCanVoteWithEmail')]",
                         "WaitingListTable": "[variables('waitingListTable')]",

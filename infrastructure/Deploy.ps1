@@ -85,6 +85,7 @@ function Get-Parameters() {
     "isSingleVoteEligibleForPrizeDraw"  = $IsSingleVoteEligibleForPrizeDraw
     "feedbackAvailableFrom"             = $FeedbackAvailableFrom;
     "feedbackAvailableTo"               = $FeedbackAvailableTo;
+    "eloPasswordPhrase"                 = $EloPasswordPhrase;
   }
 }
 

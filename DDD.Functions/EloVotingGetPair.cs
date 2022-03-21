@@ -26,7 +26,9 @@ namespace DDD.Functions
             [BindKeyDatesConfig]
             KeyDatesConfig keyDates,
             [BindSubmissionsConfig]
-            SubmissionsConfig submissions
+            SubmissionsConfig submissions,
+            [BindEloVotingConfig]
+            EloVotingConfig eloVoting
         )
         {
             if (keyDates.Before(x => x.SubmissionsAvailableFromDate) || keyDates.After(x => x.SubmissionsAvailableToDate))
@@ -47,7 +49,7 @@ namespace DDD.Functions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = s.Id.ToString(),
+                    Id = Encryptor.EncryptSubmissionId(s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
@@ -57,7 +59,7 @@ namespace DDD.Functions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = s.Id.ToString(),
+                    Id = Encryptor.EncryptSubmissionId(s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })

@@ -11,6 +11,8 @@ namespace DDD.Functions.Extensions
         public string ConnectionString { get; set; }
         [AppSetting(Default = "EloVotingTable")]
         public string Table { get; set; }
+        [AppSetting(Default = "EloPasswordPhrase")]
+        public string EloPasswordPhrase { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

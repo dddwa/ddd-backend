@@ -44,8 +44,19 @@ namespace DDD.Functions
             var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
 
-            var winner = vote.WinnerSessionId;
-            var loser = vote.LoserSessionId;
+            var winnerIdEncrypted = vote.WinnerSessionId;
+            var loserIdEncrypted = vote.LoserSessionId;
+
+            var (winner, winnerUnixTimeSeconds) = Encryptor.DecryptSubmissionId(winnerIdEncrypted.ToString(), eloVoting.EloPasswordPhrase);
+            var (loser, loserUnixTimeSeconds) = Encryptor.DecryptSubmissionId(loserIdEncrypted.ToString(), eloVoting.EloPasswordPhrase);
+            
+            var nowMinus5 = keyDates.Now.AddMinutes(-5).ToUnixTimeSeconds();
+            // make sure the submission is not more 5 minutes form the retrieveing these pair
+            if(winnerUnixTimeSeconds < nowMinus5 ||  loserUnixTimeSeconds < nowMinus5){
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after 5 minutes of GetPair (got {winnerTime} and {loserTime}).", winnerUnixTimeSeconds, loserUnixTimeSeconds);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
+
             // Valid session ids
             if ((!allSubmissionIds.Contains(winner) || !allSubmissionIds.Contains(loser)) || winner == loser)
             {
@@ -70,13 +81,12 @@ namespace DDD.Functions
             return new StatusCodeResult((int)HttpStatusCode.NoContent);
         }
     }
-        public class EloVoteRequest
-        {
-            public Guid Id { get; set; }
-            public string WinnerSessionId { get; set; }
-            public string LoserSessionId { get; set; }
-            public bool IsDraw { get; set; }
-            public string VoterSessionId { get; set; }
-        }
-
+    public class EloVoteRequest
+    {
+        public Guid Id { get; set; }
+        public string WinnerSessionId { get; set; }
+        public string LoserSessionId { get; set; }
+        public bool IsDraw { get; set; }
+        public string VoterSessionId { get; set; }
+    }
 }

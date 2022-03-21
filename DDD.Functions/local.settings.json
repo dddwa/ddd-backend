@@ -54,6 +54,7 @@
     // EloVoting
     "EloVotesConnectionString": "UseDevelopmentStorage=true",
     "EloVotingTable": "EloVotes",
+    "EloPasswordPhrase":"Perth2022",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",
