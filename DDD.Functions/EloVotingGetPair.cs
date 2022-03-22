@@ -43,13 +43,15 @@ namespace DDD.Functions
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
 
+            var voteId = Guid.NewGuid();
+            
             // first random submission
             var random = new Random();
             var submissionA = receivedSubmissions.Where(x => x.Session != null)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = Encryptor.EncryptSubmissionId(s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
+                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(),s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
@@ -59,7 +61,7 @@ namespace DDD.Functions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = Encryptor.EncryptSubmissionId(s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
+                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(), s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })

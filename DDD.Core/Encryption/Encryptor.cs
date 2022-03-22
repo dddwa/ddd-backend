@@ -8,22 +8,23 @@ public class Encryptor
     private const int MAX_IV_LENGTH = 16;
     private const int MAX_KEY_LENGTH = 32;
     private static string SEPARATOR = "|";
-    public static string EncryptSubmissionId(string submissionId, string passwordPhrase, long unixMsNow)
+    public static string EncryptSubmissionId(string voteId, string submissionId, string passwordPhrase, long unixMsNow)
     {
-        var sessionUUIDAndTime = submissionId + SEPARATOR + unixMsNow;
+        // we are adding a GUID as padding on the end to make the returned value even harder to reverse engineer
+        var sessionUUIDAndTime = voteId + SEPARATOR + submissionId + SEPARATOR + unixMsNow + SEPARATOR + Guid.NewGuid().ToString();
         string encrypted = EncryptToBase64(sessionUUIDAndTime, passwordPhrase);
 
         Console.WriteLine(encrypted);
         return string.Empty;
     }
 
-    public static Tuple<string, long> DecryptSubmissionId(string encryptedId, string passwordPhrase)
+    public static Tuple<string, string, long> DecryptSubmissionId(string encryptedId, string passwordPhrase)
     {
         string response = DecryptFromBase64(encryptedId, passwordPhrase);
 
         Console.WriteLine(response);
         string[] parts = response.Split(SEPARATOR);
-        return Tuple.Create(parts[0], long.Parse(parts[1]));
+        return Tuple.Create(parts[0], parts[1], long.Parse(parts[1]));
     }
 
     private static byte[] GenerateValidKey(byte[] keyBytes)
