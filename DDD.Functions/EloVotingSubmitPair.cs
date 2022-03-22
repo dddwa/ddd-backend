@@ -84,12 +84,12 @@ namespace DDD.Functions
             var existing = await repo.GetAsync(conference.ConferenceInstance, voteId);
             if (existing != null)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate vote (got {voteId}).", vote.Id);
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate vote (got {voteId}).", voteId);
                 return new StatusCodeResult((int)HttpStatusCode.Conflict);
             }
 
             // Save vote
-            log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", vote.Id);
+            log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", voteId);
             var eloVoteToPersist = new EloVote(conference.ConferenceInstance, Guid.Parse(voteId), winner, loser, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
             await repo.CreateAsync(eloVoteToPersist);
 
@@ -98,7 +98,6 @@ namespace DDD.Functions
     }
     public class EloVoteRequest
     {
-        public Guid Id { get; set; }
         public string WinnerSessionId { get; set; }
         public string LoserSessionId { get; set; }
         public bool IsDraw { get; set; }
