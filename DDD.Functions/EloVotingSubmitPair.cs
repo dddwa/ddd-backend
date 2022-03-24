@@ -30,6 +30,11 @@ namespace DDD.Functions
             EloVotingConfig eloVoting
         )
         {
+            if (!eloVoting.EloEnabled)
+            {
+                log.LogWarning("Attempt to access EloVotingSubmitPair endpoint while EloEnabled feature flag is disabled.");
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
             var vote = await req.Content.ReadAsAsync<EloVoteRequest>();
             var ip = req.GetIpAddress();
 
@@ -44,8 +49,34 @@ namespace DDD.Functions
             var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
 
-            var winner = vote.WinnerSessionId;
-            var loser = vote.LoserSessionId;
+            var (winnerVoteId, winner, winnerUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.WinnerSessionId, eloVoting.EloPasswordPhrase);
+            var (loserVoteId, loser, loserUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.LoserSessionId, eloVoting.EloPasswordPhrase);
+
+            // we encode the vote into the encrypted payload, so make sure that the pair match, otherwise we're
+            // dealing with a weird scenario where someone has two values from different requests
+            if (!winnerVoteId.Equals(loserVoteId))
+            {
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched vote ids.");
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
+
+            if (loserUnixTimeSeconds != winnerUnixTimeSeconds)
+            {
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched expiry timestamps.");
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
+
+            // pick one or the other, we've already made sure that they match
+            var voteId = winnerVoteId;
+            var allowedTimeToAcceptTheVote = keyDates.Now.AddSeconds(-eloVoting.EloAllowedTimeInSecondsToSubmit).ToUnixTimeSeconds();
+
+            // make sure the submission is not more 5 minutes form the retrieveing these pair
+            if (winnerUnixTimeSeconds < allowedTimeToAcceptTheVote || loserUnixTimeSeconds < allowedTimeToAcceptTheVote)
+            {
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after {allowedTimeToAcceptTheVote} seconds of GetPair (got {winnerTime} and {loserTime}).", allowedTimeToAcceptTheVote, winnerUnixTimeSeconds, loserUnixTimeSeconds);
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
+
             // Valid session ids
             if ((!allSubmissionIds.Contains(winner) || !allSubmissionIds.Contains(loser)) || winner == loser)
             {
@@ -55,28 +86,26 @@ namespace DDD.Functions
 
             // No existing vote
             var repo = await eloVoting.GetRepositoryAsync();
-            var existing = await repo.GetAsync(conference.ConferenceInstance, vote.Id.ToString());
+            var existing = await repo.GetAsync(conference.ConferenceInstance, voteId);
             if (existing != null)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate vote (got {voteId}).", vote.Id);
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate vote (got {voteId}).", voteId);
                 return new StatusCodeResult((int)HttpStatusCode.Conflict);
             }
 
             // Save vote
-            log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", vote.Id);
-            var eloVoteToPersist = new EloVote(conference.ConferenceInstance, vote.Id, winner, loser, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
+            log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", voteId);
+            var eloVoteToPersist = new EloVote(conference.ConferenceInstance, Guid.Parse(voteId), winner, loser, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
             await repo.CreateAsync(eloVoteToPersist);
 
             return new StatusCodeResult((int)HttpStatusCode.NoContent);
         }
     }
-        public class EloVoteRequest
-        {
-            public Guid Id { get; set; }
-            public string WinnerSessionId { get; set; }
-            public string LoserSessionId { get; set; }
-            public bool IsDraw { get; set; }
-            public string VoterSessionId { get; set; }
-        }
-
+    public class EloVoteRequest
+    {
+        public string WinnerSessionId { get; set; }
+        public string LoserSessionId { get; set; }
+        public bool IsDraw { get; set; }
+        public string VoterSessionId { get; set; }
+    }
 }
