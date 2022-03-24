@@ -30,6 +30,11 @@ namespace DDD.Functions
             EloVotingConfig eloVoting
         )
         {
+            if (!eloVoting.EloEnabled)
+            {
+                log.LogWarning("Attempt to access EloVotingSubmitPair endpoint while EloEnabled feature flag is disabled.");
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
             var vote = await req.Content.ReadAsAsync<EloVoteRequest>();
             var ip = req.GetIpAddress();
 
@@ -43,7 +48,7 @@ namespace DDD.Functions
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
-            
+
             var (winnerVoteId, winner, winnerUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.WinnerSessionId, eloVoting.EloPasswordPhrase);
             var (loserVoteId, loser, loserUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.LoserSessionId, eloVoting.EloPasswordPhrase);
 
@@ -60,15 +65,15 @@ namespace DDD.Functions
                 log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched expiry timestamps.");
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
-                
+
             // pick one or the other, we've already made sure that they match
             var voteId = winnerVoteId;
-            
-            var nowMinus5 = keyDates.Now.AddMinutes(-5).ToUnixTimeSeconds();
-            
+            var allowedTimeToAcceptTheVote = keyDates.Now.AddSeconds(-eloVoting.EloAllowedTimeInSecondsToSubmit).ToUnixTimeSeconds();
+
             // make sure the submission is not more 5 minutes form the retrieveing these pair
-            if(winnerUnixTimeSeconds < nowMinus5 ||  loserUnixTimeSeconds < nowMinus5){
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after 5 minutes of GetPair (got {winnerTime} and {loserTime}).", winnerUnixTimeSeconds, loserUnixTimeSeconds);
+            if (winnerUnixTimeSeconds < allowedTimeToAcceptTheVote || loserUnixTimeSeconds < allowedTimeToAcceptTheVote)
+            {
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after {allowedTimeToAcceptTheVote} seconds of GetPair (got {winnerTime} and {loserTime}).", allowedTimeToAcceptTheVote, winnerUnixTimeSeconds, loserUnixTimeSeconds);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 

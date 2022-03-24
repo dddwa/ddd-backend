@@ -13,6 +13,10 @@ namespace DDD.Functions.Extensions
         public string Table { get; set; }
         [AppSetting(Default = "EloPasswordPhrase")]
         public string EloPasswordPhrase { get; set; }
+        [AppSetting(Default = "EloAllowedTimeInSecondsToSubmit")]
+        public int EloAllowedTimeInSecondsToSubmit { get; set; }
+        [AppSetting(Default = "EloEnabled")]
+        public bool EloEnabled { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

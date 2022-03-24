@@ -9,6 +9,7 @@ using System;
 using DDD.Functions.Extensions;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace DDD.Functions
 {
@@ -31,6 +32,12 @@ namespace DDD.Functions
             EloVotingConfig eloVoting
         )
         {
+            if (!eloVoting.EloEnabled)
+            {
+                log.LogWarning("Attempt to access EloVotingSubmitPair endpoint while EloEnabled feature flag is disabled.");
+                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
+            }
+
             if (keyDates.Before(x => x.SubmissionsAvailableFromDate) || keyDates.After(x => x.SubmissionsAvailableToDate))
             {
                 log.LogWarning("Attempt to access EloVotingGetPair endpoint outside of allowed window of {start} -> {end}.", keyDates.SubmissionsAvailableFromDate, keyDates.SubmissionsAvailableToDate);
@@ -44,14 +51,14 @@ namespace DDD.Functions
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
 
             var voteId = Guid.NewGuid();
-            
+
             // first random submission
             var random = new Random();
             var submissionA = receivedSubmissions.Where(x => x.Session != null)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(),s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
+                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(), s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
