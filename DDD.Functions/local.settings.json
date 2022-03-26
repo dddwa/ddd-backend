@@ -39,14 +39,14 @@
     "WaitingListTable": "TitoWaitingList",
     "WaitingListConnectionString": "UseDevelopmentStorage=true",
     // GetSubmissions
-    "SubmissionsAvailableFrom": "2019-06-05T08:00:00+08:00",
-    "SubmissionsAvailableTo": "2019-06-17T23:59:59+08:00",
+    "SubmissionsAvailableFrom": "2022-01-05T08:00:00+08:00",
+    "SubmissionsAvailableTo": "2022-12-17T23:59:59+08:00",
     "AnonymousSubmissions": "true",
     // SubmitVote
     "VotesConnectionString": "UseDevelopmentStorage=true",
     "VotingTable": "Votes",
-    "VotingAvailableFrom": "2018-06-05T08:00:00+08:00",
-    "VotingAvailableTo": "2018-06-14T23:59:59+08:00",
+    "VotingAvailableFrom": "2022-01-05T08:00:00+08:00",
+    "VotingAvailableTo": "2022-12-14T23:59:59+08:00",
     "TicketNumberWhileVoting": "Required",
     "WaitingListCanVoteWithEmail": "true",
     "MinVotes": "6",
@@ -55,6 +55,8 @@
     "EloVotesConnectionString": "UseDevelopmentStorage=true",
     "EloVotingTable": "EloVotes",
     "EloPasswordPhrase":"Perth2022",
+    "EloEnabled": "true",
+    "EloAllowedTimeInSecondsToSubmit": "120",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",

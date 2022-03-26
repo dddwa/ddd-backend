@@ -13,18 +13,15 @@ public class Encryptor
         // we are adding a GUID as padding on the end to make the returned value even harder to reverse engineer
         var sessionUUIDAndTime = voteId + SEPARATOR + submissionId + SEPARATOR + unixMsNow + SEPARATOR + Guid.NewGuid().ToString();
         string encrypted = EncryptToBase64(sessionUUIDAndTime, passwordPhrase);
-
-        Console.WriteLine(encrypted);
-        return string.Empty;
+        return encrypted;
     }
 
     public static Tuple<string, string, long> DecryptSubmissionId(string encryptedId, string passwordPhrase)
     {
         string response = DecryptFromBase64(encryptedId, passwordPhrase);
-
-        Console.WriteLine(response);
         string[] parts = response.Split(SEPARATOR);
-        return Tuple.Create(parts[0], parts[1], long.Parse(parts[1]));
+        // parts contain: voteId|submissionId|unixMsNow|RandomGuid
+        return Tuple.Create(parts[0], parts[1], long.Parse(parts[2]));
     }
 
     private static byte[] GenerateValidKey(byte[] keyBytes)
