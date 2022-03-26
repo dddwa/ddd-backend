@@ -6,10 +6,11 @@ namespace DDD.Core.EloVoting
     {
         public EloVote() { }
 
-        public EloVote(string conferenceInstance, Guid voteId, string winnerSessionId, string loserSessionId, bool isDraw, string ipAddress, string voterSessionId, DateTimeOffset votingSubmittedTime)
+        public EloVote(string conferenceInstance, string voteId, string winnerSessionId, string loserSessionId, bool isDraw, string ipAddress, string voterSessionId, DateTimeOffset votingSubmittedTime)
         {
             PartitionKey = conferenceInstance;
-            RowKey = voteId.ToString();
+            RowKey = voteId;
+         
             WinnerSessionId = winnerSessionId;
             LoserSessionId = loserSessionId;
             IsDraw = isDraw;

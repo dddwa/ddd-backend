@@ -81,10 +81,10 @@ namespace DDD.Functions
             // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
             var now = keyDates.Now.ToUnixTimeSeconds();
-            var randomVoteId = Guid.NewGuid().ToString();
+            var voteId = Guid.NewGuid().ToString();
 
-            submissionA.Id = Encryptor.EncryptSubmissionId(randomVoteId, submissionA.Id, password, now);
-            submissionB.Id = Encryptor.EncryptSubmissionId(randomVoteId, submissionB.Id, password, now);
+            submissionA.Id = Encryptor.EncryptSubmissionId(voteId, submissionA.Id, password, now);
+            submissionB.Id = Encryptor.EncryptSubmissionId(voteId, submissionB.Id, password, now);
             
             var results = new PairOfSessions()
             {
