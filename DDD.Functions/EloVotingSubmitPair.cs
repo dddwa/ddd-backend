@@ -37,7 +37,7 @@ namespace DDD.Functions
 
             var vote = await req.Content.ReadAsAsync<EloVoteRequest>();
             var ip = req.GetIpAddress();
-            var conferenceYear = conference.ConferenceInstance; 
+            var conferenceYear = conference.ConferenceInstance;
 
             // Within voting window, allowing for 5 minutes of clock drift
             if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate, TimeSpan.FromMinutes(5)))
@@ -96,7 +96,7 @@ namespace DDD.Functions
 
             // Save vote
             log.LogInformation("Successfully received elo vote with Id {winnerVoteId}; persisting...", winnerVoteId);
-            var eloVoteToPersist = new EloVote(conferenceYear, winnerVoteId, winnerSessionId, loserSessionId, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
+            var eloVoteToPersist = new EloVote(conferenceYear, winnerVoteId, winnerSessionId, loserSessionId, vote.IsDraw, ip, vote.VoterSessionId);
             await repo.CreateAsync(eloVoteToPersist);
 
             return new StatusCodeResult((int)HttpStatusCode.NoContent);

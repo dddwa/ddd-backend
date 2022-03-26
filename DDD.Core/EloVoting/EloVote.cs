@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Azure.Cosmos.Table;
 namespace DDD.Core.EloVoting
 {
@@ -6,17 +5,15 @@ namespace DDD.Core.EloVoting
     {
         public EloVote() { }
 
-        public EloVote(string conferenceInstance, string voteId, string winnerSessionId, string loserSessionId, bool isDraw, string ipAddress, string voterSessionId, DateTimeOffset votingSubmittedTime)
+        public EloVote(string conferenceInstance, string voteId, string winnerSessionId, string loserSessionId, bool isDraw, string ipAddress, string voterSessionId)
         {
             PartitionKey = conferenceInstance;
             RowKey = voteId;
-         
             WinnerSessionId = winnerSessionId;
             LoserSessionId = loserSessionId;
             IsDraw = isDraw;
             IpAddress = ipAddress;
             VoterSessionId = voterSessionId;
-            VotingSubmittedTime = votingSubmittedTime;
         }
 
         public string WinnerSessionId { get; set; }
@@ -24,7 +21,6 @@ namespace DDD.Core.EloVoting
         public bool IsDraw { get; set; }
         public string IpAddress { get; set; }
         public string VoterSessionId { get; set; }
-        public DateTimeOffset VotingSubmittedTime { get; set; }
         public string VoteId => RowKey;
     }
 }
