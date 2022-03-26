@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System;
-using Microsoft.AspNetCore.Http;
 using System.Linq;
 using DDD.Functions.Extensions;
 using DDD.Core.EloVoting;
@@ -35,8 +34,10 @@ namespace DDD.Functions
                 log.LogWarning("Attempt to access EloVotingSubmitPair endpoint while EloEnabled feature flag is disabled.");
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
+
             var vote = await req.Content.ReadAsAsync<EloVoteRequest>();
             var ip = req.GetIpAddress();
+            var conferenceYear = conference.ConferenceInstance; 
 
             // Within voting window, allowing for 5 minutes of clock drift
             if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate, TimeSpan.FromMinutes(5)))
@@ -46,56 +47,56 @@ namespace DDD.Functions
             }
 
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
-            var allSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            var allSubmissions = await submissionsRepo.GetAllAsync(conferenceYear);
             var allSubmissionIds = allSubmissions.Where(s => s.Session != null).Select(s => s.Id.ToString()).ToArray();
 
-            var (winnerVoteId, winner, winnerUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.WinnerSessionId, eloVoting.EloPasswordPhrase);
-            var (loserVoteId, loser, loserUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.LoserSessionId, eloVoting.EloPasswordPhrase);
+            var (winnerVoteId, winnerSessionId, winnerInUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.WinnerSessionId, eloVoting.EloPasswordPhrase);
+            var (loserVoteId, loserSessionId, loserInUnixTimeSeconds) = Encryptor.DecryptSubmissionId(vote.LoserSessionId, eloVoting.EloPasswordPhrase);
 
             // we encode the vote into the encrypted payload, so make sure that the pair match, otherwise we're
             // dealing with a weird scenario where someone has two values from different requests
             if (!winnerVoteId.Equals(loserVoteId))
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched vote ids.");
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched vote ids. (Got {winnerVoteId} and {loserVoteId}", winnerVoteId, loserVoteId);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            if (loserUnixTimeSeconds != winnerUnixTimeSeconds)
+            if (loserInUnixTimeSeconds != winnerInUnixTimeSeconds)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched expiry timestamps.");
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair with mismatched expiry timestamps. (Got {winnerInUnixTimeSeconds} and {loserInUnixTimeSeconds}", winnerInUnixTimeSeconds, loserInUnixTimeSeconds);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            // pick one or the other, we've already made sure that they match
-            var voteId = winnerVoteId;
-            var allowedTimeToAcceptTheVote = keyDates.Now.AddSeconds(-eloVoting.EloAllowedTimeInSecondsToSubmit).ToUnixTimeSeconds();
-
+            // pick one or the other from (winnerInUnixTimeSeconds and loserInUnixTimeSeconds), we've already made sure that they match
+            var voteTime = DateTimeOffset.FromUnixTimeSeconds(winnerInUnixTimeSeconds);
+            var secondsSinceVote = (keyDates.Now - voteTime).TotalSeconds;
             // make sure the submission is not more 5 minutes form the retrieveing these pair
-            if (winnerUnixTimeSeconds < allowedTimeToAcceptTheVote || loserUnixTimeSeconds < allowedTimeToAcceptTheVote)
+            if (eloVoting.EloAllowedTimeInSecondsToSubmit < secondsSinceVote)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after {allowedTimeToAcceptTheVote} seconds of GetPair (got {winnerTime} and {loserTime}).", allowedTimeToAcceptTheVote, winnerUnixTimeSeconds, loserUnixTimeSeconds);
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after {secondsSinceVote} seconds and the maximum allowed is {eloVoting.EloAllowedTimeInSecondsToSubmit} seconds (EloPair was retrived at {voteTime} ).", secondsSinceVote, eloVoting.EloAllowedTimeInSecondsToSubmit, voteTime);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
             // Valid session ids
-            if ((!allSubmissionIds.Contains(winner) || !allSubmissionIds.Contains(loser)) || winner == loser)
+            if ((!allSubmissionIds.Contains(winnerSessionId) || !allSubmissionIds.Contains(loserSessionId)) || winnerSessionId == loserSessionId)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with at least one invalid or duplicate submission id (got {winnerId} and {loserId}).", winner, loser);
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with at least one invalid or duplicate submission ids (got {winnerSessionId} and {loserSessionId}).", winnerSessionId, loserSessionId);
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
+            // pick one or the other from (winnerVoteId and loserVoteId), we've already made sure that they match
             // No existing vote
             var repo = await eloVoting.GetRepositoryAsync();
-            var existing = await repo.GetAsync(conference.ConferenceInstance, voteId);
+            var existing = await repo.GetAsync(conferenceYear, winnerVoteId);
             if (existing != null)
             {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate vote (got {voteId}).", voteId);
+                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint with a duplicate voteId(got {winnerVoteId}).", winnerVoteId);
                 return new StatusCodeResult((int)HttpStatusCode.Conflict);
             }
 
             // Save vote
-            log.LogInformation("Successfully received elo vote with Id {voteId}; persisting...", voteId);
-            var eloVoteToPersist = new EloVote(conference.ConferenceInstance, Guid.Parse(voteId), winner, loser, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
+            log.LogInformation("Successfully received elo vote with Id {winnerVoteId}; persisting...", winnerVoteId);
+            var eloVoteToPersist = new EloVote(conferenceYear, winnerVoteId, winnerSessionId, loserSessionId, vote.IsDraw, ip, vote.VoterSessionId, keyDates.Now);
             await repo.CreateAsync(eloVoteToPersist);
 
             return new StatusCodeResult((int)HttpStatusCode.NoContent);

@@ -38,9 +38,9 @@ namespace DDD.Functions
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            if (keyDates.Before(x => x.SubmissionsAvailableFromDate) || keyDates.After(x => x.SubmissionsAvailableToDate))
+            if (keyDates.Before(x => x.VotingAvailableFromDate) || keyDates.After(x => x.VotingAvailableToDate))
             {
-                log.LogWarning("Attempt to access EloVotingGetPair endpoint outside of allowed window of {start} -> {end}.", keyDates.SubmissionsAvailableFromDate, keyDates.SubmissionsAvailableToDate);
+                log.LogWarning("Attempt to access EloVotingGetPair endpoint outside of allowed Voting window of {start} -> {end}.", keyDates.VotingAvailableFromDate, keyDates.VotingAvailableToDate);
                 return new StatusCodeResult(404);
             }
 
@@ -50,7 +50,11 @@ namespace DDD.Functions
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
 
-            var voteId = Guid.NewGuid();
+            if (!receivedSubmissions.Any())
+            {
+                log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
+                return new StatusCodeResult(400);
+            }
 
             // first random submission
             var random = new Random();
@@ -58,7 +62,7 @@ namespace DDD.Functions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(), s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
+                    Id = s.Id.ToString(),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
@@ -68,12 +72,20 @@ namespace DDD.Functions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
-                    Id = Encryptor.EncryptSubmissionId(voteId.ToString(), s.Id.ToString(), eloVoting.EloPasswordPhrase, keyDates.Now.ToUnixTimeSeconds()),
+                    Id = s.Id.ToString(),
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
                 .ElementAt(random.Next(receivedSubmissions.Count));
 
+            // encrypt the two ids at once
+            var password = eloVoting.EloPasswordPhrase;
+            var now = keyDates.Now.ToUnixTimeSeconds();
+            var voteId = Guid.NewGuid().ToString();
+
+            submissionA.Id = Encryptor.EncryptSubmissionId(voteId, submissionA.Id, password, now);
+            submissionB.Id = Encryptor.EncryptSubmissionId(voteId, submissionB.Id, password, now);
+            
             var results = new PairOfSessions()
             {
                 SubmissionA = submissionA,

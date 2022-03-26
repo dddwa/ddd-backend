@@ -9,14 +9,21 @@ namespace DDD.Functions.Extensions
     {
         [AppSetting(Default = "EloVotesConnectionString")]
         public string ConnectionString { get; set; }
+
         [AppSetting(Default = "EloVotingTable")]
         public string Table { get; set; }
+
         [AppSetting(Default = "EloPasswordPhrase")]
         public string EloPasswordPhrase { get; set; }
+
         [AppSetting(Default = "EloAllowedTimeInSecondsToSubmit")]
-        public int EloAllowedTimeInSecondsToSubmit { get; set; }
+        public string EloAllowedTimeInSecondsToSubmitSetting { get; set; }
+        public int EloAllowedTimeInSecondsToSubmit => EloAllowedTimeInSecondsToSubmitSetting != null ? Int32.Parse(EloAllowedTimeInSecondsToSubmitSetting) : 0;
+
         [AppSetting(Default = "EloEnabled")]
-        public bool EloEnabled { get; set; }
+        public string EloEnabledSetting { get; set; }
+        public bool EloEnabled => EloEnabledSetting != "false";
+
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
