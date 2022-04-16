@@ -56,9 +56,11 @@ namespace DDD.Functions
                 return new StatusCodeResult(400);
             }
 
+            var validSessions = receivedSubmissions.Where(x => x.Session != null);
+
             // first random submission
             var random = new Random();
-            var submissionA = receivedSubmissions.Where(x => x.Session != null)
+            var submissionA = validSessions
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
@@ -66,9 +68,9 @@ namespace DDD.Functions
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
-                .ElementAt(random.Next(receivedSubmissions.Count));
+                .ElementAt(random.Next(validSessions.Count()));
 
-            var submissionB = receivedSubmissions.Where(x => x.Session != null && x.Id.ToString() != submissionA.Id)
+            var submissionB = validSessions.Where(x => x.Id.ToString() != submissionA.Id)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
@@ -76,7 +78,8 @@ namespace DDD.Functions
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
-                .ElementAt(random.Next(receivedSubmissions.Count));
+                // need to -1 here because we have removed one from contention with the first choice                
+                .ElementAt(random.Next(validSessions.Count() - 1));  
 
             // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
