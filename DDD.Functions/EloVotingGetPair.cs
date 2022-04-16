@@ -56,30 +56,25 @@ namespace DDD.Functions
                 return new StatusCodeResult(400);
             }
 
-            var validSessions = receivedSubmissions.Where(x => x.Session != null);
+            // I believe this should operate as one query using the underlying provider which /should/ be more efficient
+            var validSessions = receivedSubmissions
+                .Where(x => x.Session != null)
+                // ordering by a guid is the same as effectively randomising the selection
+                .OrderBy(x => Guid.NewGuid())
+                // limiting it to two items ensures that we don't get any duplicates and we don't waste time deserializing more objects than required                
+                .Take(2)
+                .Select(x => x.GetSession())
+                .Select(s => new Submission
+                {
+                    Id = s.Id.ToString(),
+                    Title = s.Title,
+                    Abstract = s.Abstract,
+                })                
+                .ToList();
 
             // first random submission
-            var random = new Random();
-            var submissionA = validSessions
-                .Select(x => x.GetSession())
-                .Select(s => new Submission
-                {
-                    Id = s.Id.ToString(),
-                    Title = s.Title,
-                    Abstract = s.Abstract,
-                })
-                .ElementAt(random.Next(validSessions.Count()));
-
-            var submissionB = validSessions.Where(x => x.Id.ToString() != submissionA.Id)
-                .Select(x => x.GetSession())
-                .Select(s => new Submission
-                {
-                    Id = s.Id.ToString(),
-                    Title = s.Title,
-                    Abstract = s.Abstract,
-                })
-                // need to -1 here because we have removed one from contention with the first choice                
-                .ElementAt(random.Next(validSessions.Count() - 1));  
+            var submissionA = validSessions[0];
+            var submissionB = validSessions[1];
 
             // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
