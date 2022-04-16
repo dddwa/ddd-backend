@@ -66,7 +66,7 @@ namespace DDD.Functions
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
-                .ElementAt(random.Next(receivedSubmissions.Count));
+                .ElementAt(random.Next(receivedSubmissions.Count - 1));
 
             var submissionB = receivedSubmissions.Where(x => x.Session != null && x.Id.ToString() != submissionA.Id)
                 .Select(x => x.GetSession())
@@ -76,7 +76,7 @@ namespace DDD.Functions
                     Title = s.Title,
                     Abstract = s.Abstract,
                 })
-                .ElementAt(random.Next(receivedSubmissions.Count));
+                .ElementAt(random.Next(receivedSubmissions.Count - 1));
 
             // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
