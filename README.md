@@ -37,6 +37,8 @@ This project contains backend functionality to run the DDD conferences, includin
   * `SessionizeReadModelSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for submissions
   * `SessionizeAgendaSync`: C# Azure Function triggered by a cron schedule defined in config that performs a sync from Sessionize to Azure Table Storage for approved sessions
   * `SubmitVote`: : C# Azure Function that allows a vote for submissions to be submitted, where it is validated and persisted to Azure Table Storage
+  * `EloVotingGetPair`: C# Azure Function that returns two sessions to vote on
+  * `EloVotingSubmitPair`: C# Azure Function that allows Elo vote to be submitted
 * `DDD.Sessionize`: Syncing logic to sync data from sessionize to Azure Table Storage
 * `DDD.Sessionize.Tests`: Unit tests for the Sessionize Syncing code
 * `infrastructure`: Azure ARM deployment scripts to provision the backend environment

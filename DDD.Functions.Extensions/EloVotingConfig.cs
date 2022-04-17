@@ -16,10 +16,6 @@ namespace DDD.Functions.Extensions
         [AppSetting(Default = "EloPasswordPhrase")]
         public string EloPasswordPhrase { get; set; }
 
-        [AppSetting(Default = "EloAllowedTimeInSecondsToSubmit")]
-        public string EloAllowedTimeInSecondsToSubmitSetting { get; set; }
-        public int EloAllowedTimeInSecondsToSubmit => EloAllowedTimeInSecondsToSubmitSetting != null ? Int32.Parse(EloAllowedTimeInSecondsToSubmitSetting) : 0;
-
         [AppSetting(Default = "EloEnabled")]
         public string EloEnabledSetting { get; set; }
         public bool EloEnabled => EloEnabledSetting != "false";

@@ -56,7 +56,6 @@
     "EloVotingTable": "EloVotes",
     "EloPasswordPhrase":"Perth2022",
     "EloEnabled": "true",
-    "EloAllowedTimeInSecondsToSubmit": "120",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",

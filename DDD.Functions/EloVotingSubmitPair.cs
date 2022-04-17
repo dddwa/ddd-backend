@@ -67,16 +67,6 @@ namespace DDD.Functions
                 return new StatusCodeResult((int)HttpStatusCode.BadRequest);
             }
 
-            // pick one or the other from (winnerInUnixTimeSeconds and loserInUnixTimeSeconds), we've already made sure that they match
-            var voteTime = DateTimeOffset.FromUnixTimeSeconds(winnerInUnixTimeSeconds);
-            var secondsSinceVote = (keyDates.Now - voteTime).TotalSeconds;
-            // make sure the submission is not more 5 minutes form the retrieveing these pair
-            if (eloVoting.EloAllowedTimeInSecondsToSubmit < secondsSinceVote)
-            {
-                log.LogWarning("Attempt to submit to EloVotingSubmitPair endpoint after {secondsSinceVote} seconds and the maximum allowed is {eloVoting.EloAllowedTimeInSecondsToSubmit} seconds (EloPair was retrived at {voteTime} ).", secondsSinceVote, eloVoting.EloAllowedTimeInSecondsToSubmit, voteTime);
-                return new StatusCodeResult((int)HttpStatusCode.BadRequest);
-            }
-
             // Valid session ids
             if ((!allSubmissionIds.Contains(winnerSessionId) || !allSubmissionIds.Contains(loserSessionId)) || winnerSessionId == loserSessionId)
             {
