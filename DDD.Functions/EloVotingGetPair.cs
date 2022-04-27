@@ -69,6 +69,9 @@ namespace DDD.Functions
                     Id = s.Id.ToString(),
                     Title = s.Title,
                     Abstract = s.Abstract,
+                    Format = s.Format,
+                    Level = s.Level,
+                    Tags = s.Tags,
                 })                
                 .ToList();
 
@@ -106,6 +109,9 @@ namespace DDD.Functions
             public string Id { get; set; }
             public string Title { get; set; }
             public string Abstract { get; set; }
+            public string Format { get; set; }
+            public string Level { get; set; }
+            public string[] Tags { get; set; }
         }
     }
 }
