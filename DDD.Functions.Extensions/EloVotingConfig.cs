@@ -20,11 +20,6 @@ namespace DDD.Functions.Extensions
         public string EloAllowedTimeInSecondsToSubmitSetting { get; set; }
         public int EloAllowedTimeInSecondsToSubmit => EloAllowedTimeInSecondsToSubmitSetting != null ? Int32.Parse(EloAllowedTimeInSecondsToSubmitSetting) : 0;
 
-        [AppSetting(Default = "EloMinimumThinkingTimeSeconds")]
-        public string EloMinimumThinkingTimeSecondsSetting { get; set; }
-
-        public int EloMinimumThinkingTimeSeconds => string.IsNullOrEmpty(EloMinimumThinkingTimeSecondsSetting) ? 0 : Int32.Parse(EloMinimumThinkingTimeSecondsSetting);
-        
         [AppSetting(Default = "EloEnabled")]
         public string EloEnabledSetting { get; set; }
         public bool EloEnabled => EloEnabledSetting != "false";

@@ -81,22 +81,6 @@ namespace DDD.Functions
                 }
             }
 
-            // only bother doing this check if the configuration value is set to greater than 0, otherwise it's disabled
-            if (eloVoting.EloMinimumThinkingTimeSeconds > 0)
-            {
-                var currentTime = keyDates.Now.ToUnixTimeSeconds();
-                var thinkingTime = currentTime - winnerInUnixTimeSeconds;
-                
-                // this introduces a "minimum" time that the user has to wait between submitting a vote, we are effectively forcing
-                // the user to slow down and read the entries - as the payload includes the unix time that the pair was generated we 
-                // can get away with using either the winner or loser timestamp.
-                if ((thinkingTime) < eloVoting.EloMinimumThinkingTimeSeconds)
-                {
-                    log.LogWarning("Attempt to submit EloVotingSubmitPar endpoint after {secondsSinceVote} seconds and the minimum allowed is {minimumSeconds}", thinkingTime, eloVoting.EloMinimumThinkingTimeSeconds);
-                    return new StatusCodeResult((int) HttpStatusCode.TooManyRequests);
-                }
-            }
-
             // Valid session ids
             if ((!allSubmissionIds.Contains(winnerSessionId) || !allSubmissionIds.Contains(loserSessionId)) || winnerSessionId == loserSessionId)
             {
