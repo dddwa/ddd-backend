@@ -61,9 +61,11 @@ namespace DDD.Functions
                 .Where(x => x.Session != null)
                 // ordering by a guid is the same as effectively randomising the selection
                 .OrderBy(x => Guid.NewGuid())
-                // limiting it to two items ensures that we don't get any duplicates and we don't waste time deserializing more objects than required                
-                .Take(2)
+                // we need to filter out "Keynote" from voting, which means we need to deserialize them all first
                 .Select(x => x.GetSession())
+                .Where(x => x.Format != "Keynote")
+                // limiting it to two items ensures that we don't get any duplicates
+                .Take(2)
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
