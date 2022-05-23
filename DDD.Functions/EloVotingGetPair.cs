@@ -12,16 +12,17 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
 using DDD.Core.AzureStorage;
+using DDD.Core.Domain;
 using DDD.Core.EloVoting;
 
 namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private static EloVoteShuffler<SessionEntity> _shufflerInstance;
+        private static EloVoteShuffler<Session> _shufflerInstance;
         private static readonly object _lock = new object();
 
-        private static async Task<EloVoteShuffler<SessionEntity>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        private static async Task<EloVoteShuffler<Session>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
         {
             // if it's set then just return it, it's okay as we will only ever set it once.
             if (_shufflerInstance != null)
@@ -42,9 +43,11 @@ namespace DDD.Functions
                 }
 
                 var validSessions = receivedSubmissions
-                    .Where(x => x.Session != null);
+                    .Where(x => x.Session != null)
+                    .Select(x => x.GetSession())
+                    .Where(x => x.Format != "Keynote");
 
-                _shufflerInstance = new EloVoteShuffler<SessionEntity>(ShufflerConfig.Default, validSessions.ToList());
+                _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
             }
 
             return _shufflerInstance;
@@ -84,11 +87,9 @@ namespace DDD.Functions
                 log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
                 return new StatusCodeResult(400);
             }
-                //
+
             var validSessions = sessions
-                // make it a singleton shufflable, so the order is preserved inside of this host.
                 .Take(2)
-                .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
