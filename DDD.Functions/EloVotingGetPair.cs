@@ -45,7 +45,8 @@ namespace DDD.Functions
                 var validSessions = receivedSubmissions
                     .Where(x => x.Session != null)
                     .Select(x => x.GetSession())
-                    .Where(x => x.Format != "Keynote");
+                    .Where(x => x.Format != "Keynote")
+                    .Where(x => !KeynoteExternalIds.Contains(x.ExternalId));
 
                 _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
             }
@@ -53,6 +54,11 @@ namespace DDD.Functions
             return _shufflerInstance;
         }
 
+
+        private static readonly string[] KeynoteExternalIds = new[]
+        {
+            "337380"
+        };
 
         [FunctionName("EloVotingGetPair")]
         public static async Task<IActionResult> Run(
