@@ -13,6 +13,8 @@ namespace DDD.Core.EloVoting
         
         // the lock object to use for instances of the shuffler with the configured name
         public object Lock { get; set; } = new object();
+
+        public Random Random { get; set; } = new Random();
     }
     
     public class EloVoteShuffler<T>
@@ -24,11 +26,11 @@ namespace DDD.Core.EloVoting
 
         public EloVoteShuffler(ShufflerConfig config, IEnumerable<T> sourceSet)
         {
-            _config = config;
+            _config = config ?? ShufflerConfig.Default;
             _source = sourceSet.ToList();
 
             _workingSet = new List<T>();
-            _workingSet.AddRange(_source.OrderBy(x => Guid.NewGuid()));
+            _workingSet.AddRange(_source.OrderBy(x => _config.Random.Next()));
         }
         
         public IEnumerable<T> Take(int count)
@@ -38,7 +40,7 @@ namespace DDD.Core.EloVoting
             {
                 if (_workingSet.Count < _config.LowWatermark)
                 {
-                    _workingSet.AddRange(_source.OrderBy(x => Guid.NewGuid()));
+                    _workingSet.AddRange(_source.OrderBy(x => _config.Random.Next()));
                 }
 
                 List<T> result = new List<T>();
