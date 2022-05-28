@@ -12,51 +12,45 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
 using DDD.Core.AzureStorage;
+using DDD.Core.EloVoting;
 
 namespace DDD.Functions
 {
-    //  container for extension methods that adds AsShuffleable and AsSingletonShuffleable to the
-    // LINQ queries
-    public static class IShuffleableExtensions
+    public static class EloVotingGetPair
     {
+        private static InfiniteShuffler<SessionEntity> _shufflerInstance;
         private static readonly object _lock = new object();
 
-        private static readonly IDictionary<string, InfiniteShuffler<SessionEntity>> _instances =
-            new Dictionary<string, InfiniteShuffler<SessionEntity>>();
-        public static InfiniteShuffler<SessionEntity> AsShuffleable(this IEnumerable<SessionEntity> entity, ShufflerConfig config)
+        private static async Task<InfiniteShuffler<SessionEntity>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
         {
-            return new InfiniteShuffler<SessionEntity>(config, entity);
-        }
-
-        public static InfiniteShuffler<SessionEntity> AsSingletonShuffleable(this IEnumerable<SessionEntity> entity,
-            ShufflerConfig config)
-        {
-            // it's safe to do this outside of the lock as we know it's a write-once scenario
-            if (_instances.ContainsKey(config.Name))
+            // if it's set then just return it, it's okay as we will only ever set it once.
+            if (_shufflerInstance != null)
             {
-                return _instances[config.Name];
+                return _shufflerInstance;
             }
+
+            // do these outside of the lock because...
+            var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
+            var receivedSubmissions = await submissionsRepo.GetAllAsync();
             
             lock (_lock)
             {
-                if (!_instances.ContainsKey(config.Name))
+                // do a double check here, it may have been initialised while we were waiting to acquire the lock
+                if (_shufflerInstance != null)
                 {
-                    _instances[config.Name] = new InfiniteShuffler<SessionEntity>(config, entity);
+                    return _shufflerInstance;
                 }
+
+                var validSessions = receivedSubmissions
+                    .Where(x => x.Session != null);
+
+                _shufflerInstance = new InfiniteShuffler<SessionEntity>(ShufflerConfig.Default, validSessions.ToList());
             }
-            
-            // it's okay to read, we know it's written to now
-            return _instances[config.Name];
+
+            return _shufflerInstance;
         }
-    }
-    public static class EloVotingGetPair
-    {
-        private static readonly ShufflerConfig EloVotingShufflerConfig = new ShufflerConfig()
-        {
-            Name = typeof(EloVotingGetPair).AssemblyQualifiedName,
-            LowWatermark = 10
-        };
-        
+
+
         [FunctionName("EloVotingGetPair")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
@@ -84,23 +78,15 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            // the original GetSubmission relies on conference.AnonymousSubmissions flag to return submitters or not
-            // This new Elo voting will not return the submisster to make it faster 
-            //   and DDD is always uses anonymous voting so ignoring the submitter by using _            
-            var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
-            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
-
-            if (!receivedSubmissions.Any())
+            var sessions = await InitialiseSessions(submissions, conference);
+            if (!sessions.Any())
             {
                 log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
                 return new StatusCodeResult(400);
             }
-
-            // I believe this should operate as one query using the underlying provider which /should/ be more efficient
-            var validSessions = receivedSubmissions
-                .Where(x => x.Session != null)
+                //
+            var validSessions = sessions
                 // make it a singleton shufflable, so the order is preserved inside of this host.
-                .AsSingletonShuffleable(EloVotingShufflerConfig)
                 .Take(2)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission

@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using DDD.Core.AzureStorage;
 
-namespace DDD.Core.AzureStorage
+namespace DDD.Core.EloVoting
 {
     public static class CollectionExtensions
     {
@@ -20,12 +16,8 @@ namespace DDD.Core.AzureStorage
     
     public class ShufflerConfig
     {
-        public static readonly ShufflerConfig Default = new ShufflerConfig()
-        {
-            Name = "Default"
-        };
+        public static readonly ShufflerConfig Default = new ShufflerConfig();
         
-        public string Name { get; set; }
         // when the working set gets below this number of entries remaining, we will refill it from the base collection
         public long LowWatermark { get; set; } = 10;
         
@@ -33,17 +25,15 @@ namespace DDD.Core.AzureStorage
         public object Lock { get; set; } = new object();
     }
     
-    public class InfiniteShuffler<T> : List<T>
+    public class InfiniteShuffler<T>
     {
-        public readonly double LowWatermark = 0.05;
-        
         private readonly IList<T> _source;
         private readonly IList<T> _workingSet;
-        public ShufflerConfig Config { get; set; }
+        private readonly ShufflerConfig _config;
 
         public InfiniteShuffler(ShufflerConfig config, IEnumerable<T> sourceSet)
         {
-            Config = config;
+            _config = config;
             _source = sourceSet.ToList();
 
             _workingSet = new List<T>();
@@ -52,15 +42,22 @@ namespace DDD.Core.AzureStorage
         
         public IEnumerable<T> Take(int count)
         {
-            lock (Config.Lock)
+            // Given Take modifies the underlying list, perform all of this inside the lock
+            lock (_config.Lock)
             {
-                if (_workingSet.Count < Config.LowWatermark)
+                if (_workingSet.Count < _config.LowWatermark)
                 {
                     _workingSet.AddRange(_source.OrderBy(x => Guid.NewGuid()));
                 }
 
                 return _workingSet.Take(count);
             }
+        }
+
+
+        public bool Any()
+        {
+            return _workingSet.Any();
         }
     }
 }
