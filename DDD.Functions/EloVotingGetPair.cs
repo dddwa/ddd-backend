@@ -45,8 +45,7 @@ namespace DDD.Functions
                 var validSessions = receivedSubmissions
                     .Where(x => x.Session != null)
                     .Select(x => x.GetSession())
-                    .Where(x => x.Format != "Keynote")
-                    .Where(x => !KeynoteExternalIds.Contains(x.ExternalId));
+                    .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
 
                 _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
             }
