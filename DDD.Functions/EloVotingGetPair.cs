@@ -6,17 +6,57 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using DDD.Functions.Extensions;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
+using DDD.Core.AzureStorage;
 
 namespace DDD.Functions
 {
+    //  container for extension methods that adds AsShuffleable and AsSingletonShuffleable to the
+    // LINQ queries
+    public static class IShuffleableExtensions
+    {
+        private static readonly object _lock = new object();
+
+        private static readonly IDictionary<string, InfiniteShuffler<SessionEntity>> _instances =
+            new Dictionary<string, InfiniteShuffler<SessionEntity>>();
+        public static InfiniteShuffler<SessionEntity> AsShuffleable(this IEnumerable<SessionEntity> entity, ShufflerConfig config)
+        {
+            return new InfiniteShuffler<SessionEntity>(config, entity);
+        }
+
+        public static InfiniteShuffler<SessionEntity> AsSingletonShuffleable(this IEnumerable<SessionEntity> entity,
+            ShufflerConfig config)
+        {
+            // it's safe to do this outside of the lock as we know it's a write-once scenario
+            if (_instances.ContainsKey(config.Name))
+            {
+                return _instances[config.Name];
+            }
+            
+            lock (_lock)
+            {
+                if (!_instances.ContainsKey(config.Name))
+                {
+                    _instances[config.Name] = new InfiniteShuffler<SessionEntity>(config, entity);
+                }
+            }
+            
+            // it's okay to read, we know it's written to now
+            return _instances[config.Name];
+        }
+    }
     public static class EloVotingGetPair
     {
-        private static readonly Random Random = new Random();
-
+        private static readonly ShufflerConfig EloVotingShufflerConfig = new ShufflerConfig()
+        {
+            Name = typeof(EloVotingGetPair).AssemblyQualifiedName,
+            LowWatermark = 10
+        };
+        
         [FunctionName("EloVotingGetPair")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
@@ -59,9 +99,8 @@ namespace DDD.Functions
             // I believe this should operate as one query using the underlying provider which /should/ be more efficient
             var validSessions = receivedSubmissions
                 .Where(x => x.Session != null)
-                // ordering by a guid is the same as effectively randomising the selection
-                .OrderBy(x => Guid.NewGuid())
-                // limiting it to two items ensures that we don't get any duplicates and we don't waste time deserializing more objects than required                
+                // make it a singleton shufflable, so the order is preserved inside of this host.
+                .AsSingletonShuffleable(EloVotingShufflerConfig)
                 .Take(2)
                 .Select(x => x.GetSession())
                 .Select(s => new Submission
