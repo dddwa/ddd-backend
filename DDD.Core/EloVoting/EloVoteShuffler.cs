@@ -4,16 +4,6 @@ using System.Linq;
 
 namespace DDD.Core.EloVoting
 {
-    public static class CollectionExtensions
-    {
-        public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> enumerable) {
-            foreach (var cur in enumerable) {
-                collection.Add(cur);
-            }
-        }
-        
-    }
-    
     public class ShufflerConfig
     {
         public static readonly ShufflerConfig Default = new ShufflerConfig();
@@ -27,8 +17,9 @@ namespace DDD.Core.EloVoting
     
     public class EloVoteShuffler<T>
     {
-        private readonly IList<T> _source;
-        private readonly IList<T> _workingSet;
+        // i'd rather use IList, but because reasons
+        private readonly List<T> _source;
+        private readonly List<T> _workingSet;
         private readonly ShufflerConfig _config;
 
         public EloVoteShuffler(ShufflerConfig config, IEnumerable<T> sourceSet)
@@ -50,7 +41,15 @@ namespace DDD.Core.EloVoting
                     _workingSet.AddRange(_source.OrderBy(x => Guid.NewGuid()));
                 }
 
-                return _workingSet.Take(count);
+                List<T> result = new List<T>();
+                while (result.Count < count)
+                {
+                    T val = _workingSet[0];
+                    result.Add(val);
+                    _workingSet.RemoveAt(0);
+                }
+
+                return result;
             }
         }
 
