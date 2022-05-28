@@ -12,7 +12,6 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
 using DDD.Core.AzureStorage;
-using DDD.Core.Domain;
 using DDD.Core.EloVoting;
 
 namespace DDD.Functions
