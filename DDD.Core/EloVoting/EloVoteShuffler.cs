@@ -25,13 +25,13 @@ namespace DDD.Core.EloVoting
         public object Lock { get; set; } = new object();
     }
     
-    public class InfiniteShuffler<T>
+    public class EloVoteShuffler<T>
     {
         private readonly IList<T> _source;
         private readonly IList<T> _workingSet;
         private readonly ShufflerConfig _config;
 
-        public InfiniteShuffler(ShufflerConfig config, IEnumerable<T> sourceSet)
+        public EloVoteShuffler(ShufflerConfig config, IEnumerable<T> sourceSet)
         {
             _config = config;
             _source = sourceSet.ToList();

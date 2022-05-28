@@ -18,10 +18,10 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private static InfiniteShuffler<SessionEntity> _shufflerInstance;
+        private static EloVoteShuffler<SessionEntity> _shufflerInstance;
         private static readonly object _lock = new object();
 
-        private static async Task<InfiniteShuffler<SessionEntity>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        private static async Task<EloVoteShuffler<SessionEntity>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
         {
             // if it's set then just return it, it's okay as we will only ever set it once.
             if (_shufflerInstance != null)
@@ -44,7 +44,7 @@ namespace DDD.Functions
                 var validSessions = receivedSubmissions
                     .Where(x => x.Session != null);
 
-                _shufflerInstance = new InfiniteShuffler<SessionEntity>(ShufflerConfig.Default, validSessions.ToList());
+                _shufflerInstance = new EloVoteShuffler<SessionEntity>(ShufflerConfig.Default, validSessions.ToList());
             }
 
             return _shufflerInstance;
