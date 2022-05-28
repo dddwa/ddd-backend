@@ -6,21 +6,58 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using DDD.Functions.Extensions;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
+using DDD.Core.AzureStorage;
+using DDD.Core.Domain;
+using DDD.Core.EloVoting;
 
 namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private static readonly Random Random = new Random();
-
         private static readonly string[] KeynoteExternalIds = new[]
         {
+            // TODO : make this a configuration setting eventually.
             "337380"
         };
+
+        private static EloVoteShuffler<Session> _shufflerInstance;
+        private static readonly object _lock = new object();
+
+        private static async Task<EloVoteShuffler<Session>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        {
+            // if it's set then just return it, it's okay as we will only ever set it once.
+            if (_shufflerInstance != null)
+            {
+                return _shufflerInstance;
+            }
+
+            // do these outside of the lock because...
+            var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
+            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
+            
+            lock (_lock)
+            {
+                // do a double check here, it may have been initialised while we were waiting to acquire the lock
+                if (_shufflerInstance != null)
+                {
+                    return _shufflerInstance;
+                }
+
+                var validSessions = receivedSubmissions
+                    .Where(x => x.Session != null)
+                    .Select(x => x.GetSession())
+                    .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
+
+                _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
+            }
+
+            return _shufflerInstance;
+        }
 
         [FunctionName("EloVotingGetPair")]
         public static async Task<IActionResult> Run(
@@ -49,29 +86,14 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            // the original GetSubmission relies on conference.AnonymousSubmissions flag to return submitters or not
-            // This new Elo voting will not return the submisster to make it faster 
-            //   and DDD is always uses anonymous voting so ignoring the submitter by using _            
-            var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
-            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
-
-            if (!receivedSubmissions.Any())
+            var sessions = await InitialiseSessions(submissions, conference);
+            if (!sessions.Any())
             {
                 log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
                 return new StatusCodeResult(400);
             }
 
-            // I believe this should operate as one query using the underlying provider which /should/ be more efficient
-            var validSessions = receivedSubmissions
-                .Where(x => x.Session != null)
-                // ordering by a guid is the same as effectively randomising the selection
-                .OrderBy(x => Guid.NewGuid())
-                // we need to filter out "Keynote" from voting, which means we need to deserialize them all first
-                .Select(x => x.GetSession())
-                .Where(x => x.Format != "Keynote")
-                // this is a back-up in case the format mapping doesn't work
-                .Where(x => !KeynoteExternalIds.Contains(x.ExternalId))
-                // limiting it to two items ensures that we don't get any duplicates
+            var validSessions = sessions
                 .Take(2)
                 .Select(s => new Submission
                 {
