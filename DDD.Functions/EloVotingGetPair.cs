@@ -38,7 +38,7 @@ namespace DDD.Functions
 
             // do these outside of the lock because...
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
-            var receivedSubmissions = await submissionsRepo.GetAllAsync();
+            var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             
             lock (_lock)
             {
