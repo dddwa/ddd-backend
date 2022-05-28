@@ -19,6 +19,12 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
+        private static readonly string[] KeynoteExternalIds = new[]
+        {
+            // TODO : make this a configuration setting eventually.
+            "337380"
+        };
+
         private static EloVoteShuffler<Session> _shufflerInstance;
         private static readonly object _lock = new object();
 
@@ -52,12 +58,6 @@ namespace DDD.Functions
 
             return _shufflerInstance;
         }
-
-
-        private static readonly string[] KeynoteExternalIds = new[]
-        {
-            "337380"
-        };
 
         [FunctionName("EloVotingGetPair")]
         public static async Task<IActionResult> Run(
