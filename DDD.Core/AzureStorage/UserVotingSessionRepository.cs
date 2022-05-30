@@ -60,7 +60,7 @@ namespace DDD.Core.EloVoting
     
     public class UserVotingSessionRepository : IUserVotingSessionRepository
     {
-        public static readonly int SessionCountLowWatermark = 2;
+        private static readonly int SessionCountLowWatermark = 2;
         
         private readonly CosmosClient _cosmosClient;
         private readonly Random _random;
@@ -70,8 +70,8 @@ namespace DDD.Core.EloVoting
 
         public UserVotingSessionRepository(CosmosClient client)
         {
-            this._cosmosClient = client;
-            this._random = new Random();
+            _cosmosClient = client;
+            _random = new Random();
         }
 
         public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null)
@@ -97,7 +97,7 @@ namespace DDD.Core.EloVoting
                 var result = user.Next();
 
                 // update the entry in the cosmos store, we've removed two items (and potentially added in a whole shuffled set again)
-                await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id, new PartitionKey(user.PartitionKey));
+                await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
 
                 return result;
             }
@@ -130,7 +130,7 @@ namespace DDD.Core.EloVoting
         public async Task InitialiseAsync(string databaseId, string containerId)
         {
             var databaseResponse = await this._cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
-            this._database = databaseResponse.Database;
+            _database = databaseResponse.Database;
             
             ContainerProperties properties = new ContainerProperties()
             {
@@ -141,7 +141,7 @@ namespace DDD.Core.EloVoting
             };
 
             var containerResponse = await this._database.CreateContainerIfNotExistsAsync(properties);
-            this._container = containerResponse.Container;            
+            _container = containerResponse.Container;            
         }
     }
 }
