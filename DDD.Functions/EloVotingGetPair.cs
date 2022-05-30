@@ -19,44 +19,26 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
+        private const string CookieName = "DDDPerth.VotingSessionId";
+
         private static readonly string[] KeynoteExternalIds = new[]
         {
             // TODO : make this a configuration setting eventually.
             "337380"
         };
-
-        private static EloVoteShuffler<Session> _shufflerInstance;
-        private static readonly object _lock = new object();
-
-        private static async Task<EloVoteShuffler<Session>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        
+        private static async Task<List<Session>> LoadSessions(SubmissionsConfig submissions, ConferenceConfig conference)
         {
-            // if it's set then just return it, it's okay as we will only ever set it once.
-            if (_shufflerInstance != null)
-            {
-                return _shufflerInstance;
-            }
-
             // do these outside of the lock because...
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             
-            lock (_lock)
-            {
-                // do a double check here, it may have been initialised while we were waiting to acquire the lock
-                if (_shufflerInstance != null)
-                {
-                    return _shufflerInstance;
-                }
+            var validSessions = receivedSubmissions
+                .Where(x => x.Session != null)
+                .Select(x => x.GetSession())
+                .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
 
-                var validSessions = receivedSubmissions
-                    .Where(x => x.Session != null)
-                    .Select(x => x.GetSession())
-                    .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
-
-                _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
-            }
-
-            return _shufflerInstance;
+            return validSessions.ToList();
         }
 
         [FunctionName("EloVotingGetPair")]
@@ -86,15 +68,19 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var sessions = await InitialiseSessions(submissions, conference);
-            if (!sessions.Any())
-            {
-                log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
-                return new StatusCodeResult(400);
-            }
+            UserVotingSessionRepository repo = new UserVotingSessionRepository();
+            Lazy<Task<List<Session>>> sessions = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
 
-            var validSessions = sessions
-                .Take(2)
+            var userSessionId = string.IsNullOrEmpty(
+                req.Cookies[CookieName])
+                ? Guid.NewGuid().ToString()
+                : req.Cookies[CookieName];
+            
+            var sessionIds = await repo.GetSessionIds(sessions, userSessionId);
+
+            var allSessions = await sessions.Value;
+            var validSessions = allSessions
+                .Where(x => x.Id.ToString() == sessionIds.Item1 || x.Id.ToString() == sessionIds.Item2)
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
@@ -124,8 +110,12 @@ namespace DDD.Functions
                 SubmissionB = submissionB
             };
 
-            var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver();
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver()
+            };
+
+            req.HttpContext.Response.Cookies.Append(CookieName, userSessionId);
 
             return new JsonResult(results, settings);
         }
