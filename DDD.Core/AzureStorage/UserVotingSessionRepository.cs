@@ -30,6 +30,8 @@ namespace DDD.Core.EloVoting
 
         public string PartitionKey
         {
+            // this is required for cosmos, given we're using GUID's as keys just use the first letter to partition
+            // the data - should give us an even spread of (26+10) buckets pretty much randomly filled
             get => string.IsNullOrEmpty(_partitionKey) ? Id.Substring(0, 1) : _partitionKey;
             set => _partitionKey = value;
         }
@@ -46,11 +48,8 @@ namespace DDD.Core.EloVoting
                 
                 return new Tuple<string, string>(one, two);
             }
-            else
-            {
-                throw new ApplicationException("Not enough vote ids in the set to get the next pair.");
-            }
-                
+
+            return null;
         }
     }
 
@@ -78,7 +77,7 @@ namespace DDD.Core.EloVoting
         public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null)
         {
             // add a check for safety here, if it's null we will fall through the catch block and create a new one for
-            // the user anyway
+            // the user with the provided id
             id ??= Guid.NewGuid().ToString();
             
             try
@@ -89,26 +88,33 @@ namespace DDD.Core.EloVoting
                 if (user.SessionIds.Count <= SessionCountLowWatermark)
                 {
                     var sessions = await feed.Value;
-                    user.SessionIds.AddRange(sessions.Select(x =>x.Id.ToString()).OrderBy(x => _random.Next()).ToList());
+                    user.SessionIds.AddRange(sessions
+                        .Select(x =>x.Id.ToString())
+                        .OrderBy(x => _random.Next())
+                        .ToList());
                 }
-                
 
-                // take the next two items out of the user's session collection and then write back to the store
                 var result = user.Next();
 
+                // update the entry in the cosmos store, we've removed two items (and potentially added in a whole shuffled set again)
                 await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id, new PartitionKey(user.PartitionKey));
 
                 return result;
             }
             catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
+                // the session has either expired, or we have a new session to work with, so insert a record with a new
+                // sample
                 var sessions = await feed.Value;
 
                 var user = new UserVotingSession()
                 {
-                    SessionIds = sessions.Select(x => x.Id.ToString()).OrderBy(x => _random.Next()).ToList(),
                     Id = id,
-                    PartitionKey = UserVotingSession.CreatePartitionKey(id)
+                    PartitionKey = UserVotingSession.CreatePartitionKey(id),
+                    SessionIds = sessions
+                        .Select(x => x.Id.ToString())
+                        .OrderBy(x => _random.Next())
+                        .ToList(),
                 };
 
                 // take the first two before we create it so we dont waste time updating

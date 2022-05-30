@@ -14,14 +14,14 @@ namespace DDD.Functions.Extensions
         [AppSetting(Default = "SubmittersTable")]
         public string SubmittersTable { get; set; }
 
-        [AppSetting(Default = "CosmosDbConnectionString")]
-        public string CosmosDbConnectionString { get; set; }
+        [AppSetting(Default = "UserVotingSessionsConnectionString")]
+        public string UserVotingSessionsString { get; set; }
 
-        [AppSetting(Default = "VoteSessionDatabaseId")]
-        public string VoteSessionDatabaseId { get; set; }
+        [AppSetting(Default = "UserVotingSessionsDatabaseId")]
+        public string UserVotingSessionsDatabaseId { get; set; }
 
-        [AppSetting(Default = "VoteSessionContainerId")]
-        public string VoteSessionContainerId { get; set; }
+        [AppSetting(Default = "UserVotingSessionsContainerId")]
+        public string UserVotingSessionsContainerId { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

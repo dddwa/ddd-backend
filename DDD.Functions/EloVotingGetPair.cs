@@ -83,6 +83,12 @@ namespace DDD.Functions
             // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
             var sessionIds = await userVoteSessionRepository.NextSessionPair(allSessionsLoader, userSessionId);
 
+            if (sessionIds == null)
+            {
+                log.LogWarning("Could not get session pair for user voting session with id {userVoteSessionId}.", userSessionId);
+                return new StatusCodeResult(400);
+            }
+            
             // get the Session information from the underlying storage and convert it to a format that we're expecting to return
             var validSessions = (await allSessionsLoader.Value)
                 .Where(x => x.Id.ToString() == sessionIds.Item1 || x.Id.ToString() == sessionIds.Item2)
@@ -97,6 +103,12 @@ namespace DDD.Functions
                 })                
                 .ToList();
 
+            if (!validSessions.Any() || validSessions.Count != 2)
+            {
+                log.LogWarning("Could not get sessions for User session id {userSessionId}, got {sessionCount} Sessions.", userSessionId, validSessions.Count);
+                return new StatusCodeResult(400);
+            }
+            
             // first random submission
             var submissionA = validSessions[0];
             var submissionB = validSessions[1];
@@ -117,7 +129,7 @@ namespace DDD.Functions
                 SubmissionB = submissionB
             };
 
-            var settings = new JsonSerializerSettings
+            var settings = new JsonSerializerSettings()
             {
                 ContractResolver = new DefaultContractResolver()
             };
@@ -137,6 +149,7 @@ namespace DDD.Functions
             public Submission SubmissionA { get; set; }
             public Submission SubmissionB { get; set; }
         }
+        
         public class Submission
         {
             public string Id { get; set; }
