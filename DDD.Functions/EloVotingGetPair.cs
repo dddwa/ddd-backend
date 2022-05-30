@@ -68,18 +68,17 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            UserVotingSessionRepository repo = new UserVotingSessionRepository();
-            Lazy<Task<List<Session>>> sessions = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
+            var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
+            Lazy<Task<List<Session>>> allSessions = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
 
             var userSessionId = string.IsNullOrEmpty(
                 req.Cookies[CookieName])
                 ? Guid.NewGuid().ToString()
                 : req.Cookies[CookieName];
             
-            var sessionIds = await repo.GetSessionIds(sessions, userSessionId);
+            var sessionIds = await userVoteSessionRepository.NextSessionPair(allSessions, userSessionId);
 
-            var allSessions = await sessions.Value;
-            var validSessions = allSessions
+            var validSessions = (await allSessions.Value)
                 .Where(x => x.Id.ToString() == sessionIds.Item1 || x.Id.ToString() == sessionIds.Item2)
                 .Select(s => new Submission
                 {

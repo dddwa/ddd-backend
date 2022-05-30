@@ -45,34 +45,36 @@ namespace DDD.Core.EloVoting
                 
         }
     }
+
+    public interface IUserVotingSessionRepository
+    {
+        Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null);
+    }
     
-    public class UserVotingSessionRepository
+    public class UserVotingSessionRepository : IUserVotingSessionRepository
     {
         private readonly CosmosClient _cosmosClient;
-        private readonly string _databaseId;
-        private readonly string _containerId;
         private readonly Random _random;
 
-        public UserVotingSessionRepository(CosmosClient client, string databaseId, string containerId)
+        private Database _database;
+        private Container _container;
+
+        public UserVotingSessionRepository(CosmosClient client)
         {
             this._cosmosClient = client;
-            this._databaseId = databaseId;
-            this._containerId = containerId;
             this._random = new Random();
         }
 
-        public async Task<Tuple<string, string>> GetSessionIds(Lazy<Task<List<Session>>> feed, string id = null)
+        public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null)
         {
             // add a check for safety here, if it's null we will fall through the catch block and create a new one for
             // the user anyway
             id ??= Guid.NewGuid().ToString();
             
-            var (_, container) = await Init();
-
             try
             {
                 ItemResponse<UserVotingSession> userResponse =
-                    await container.ReadItemAsync<UserVotingSession>(id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
+                    await _container.ReadItemAsync<UserVotingSession>(id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
 
                 UserVotingSession user = userResponse.Resource;
                 
@@ -85,7 +87,7 @@ namespace DDD.Core.EloVoting
                 // take the next two items out of the user's session collection and then write back to the store
                 var result = user.Next();
 
-                await container.ReplaceItemAsync<UserVotingSession>(user, user.Id,
+                await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id,
                     new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
 
                 return result;
@@ -102,21 +104,20 @@ namespace DDD.Core.EloVoting
                 // take the first two before we create it so we dont waste time updating
                 var result = user.Next();
 
-                await container.CreateItemAsync<UserVotingSession>(user, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
+                await _container.CreateItemAsync<UserVotingSession>(user, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
 
                 return result;
             }
         }
+        
 
-        private async Task<(Database, Container)> Init()
+        public async Task InitialiseAsync(string databaseId, string containerId)
         {
-            var databaseResponse = await this._cosmosClient.CreateDatabaseIfNotExistsAsync(_databaseId);
-            var database = databaseResponse.Database;
+            var databaseResponse = await this._cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
+            this._database = databaseResponse.Database;
             
-            var containerResponse = await database.CreateContainerIfNotExistsAsync(_containerId, "/PartitionKey");
-            var container = containerResponse.Container;
-
-            return (database, container);
+            var containerResponse = await this._database.CreateContainerIfNotExistsAsync(containerId, "/PartitionKey");
+            this._container = containerResponse.Container;            
         }
     }
 }
