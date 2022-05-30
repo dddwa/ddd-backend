@@ -9,7 +9,7 @@
     "ConferenceInstance": "2019",
     // SessionizeReadModelSync
     "SessionizeReadModelSyncSchedule": "* * * * *",
-    "SessionsConnectionString": "UseDevelopmentStorage=true",
+    "SessionsConnectionString": "DefaultEndpointsProtocol=https;AccountName=dddperthdatatest;AccountKey=gxUQ5OeKRqmmS4qdz0w1xsPaA09fX+RrkzkCK4LAodq//kwJm0kj8Y9FGbyimtrVZahrQq7MmubncW+f68+FCg==;EndpointSuffix=core.windows.net",
     "SubmissionsTable": "Submissions",
     "SubmittersTable": "Submitters",
     "SessionsTable": "Sessions",
@@ -52,11 +52,14 @@
     "MinVotes": "6",
     "MaxVotes": "12",
     // EloVoting
-    "EloVotesConnectionString": "UseDevelopmentStorage=true",
+    "EloVotesConnectionString": "DefaultEndpointsProtocol=https;AccountName=dddperthdatatest;AccountKey=gxUQ5OeKRqmmS4qdz0w1xsPaA09fX+RrkzkCK4LAodq//kwJm0kj8Y9FGbyimtrVZahrQq7MmubncW+f68+FCg==;EndpointSuffix=core.windows.net",
     "EloVotingTable": "EloVotes",
     "EloPasswordPhrase":"Perth2022",
     "EloEnabled": "true",
     "EloAllowedTimeInSecondsToSubmit": "120",
+    "CosmosDbConnectionString": "AccountEndpoint=https://dddperthdatatest.documents.azure.com:443/;AccountKey=UbR2GBvA5PPok2ctY7t5aXetTCDPokB9Z4BxJoeKj51JwfKsr97ql2022IUawL12QJAx9VJmM2nVq7jq94yeTg==;",
+    "VoteSessionDatabaseId": "dddperthdatatest",
+    "VoteSessionContainerId": "votesessions",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",

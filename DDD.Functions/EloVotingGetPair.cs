@@ -124,7 +124,10 @@ namespace DDD.Functions
 
             // make sure we set the voting session id back into the cookie so the next time the endpoint is called
             // we will load from existing set rather than creating a new one
-            req.HttpContext.Response.Cookies.Append(CookieName, userSessionId);
+            req.HttpContext.Response.Cookies.Append(CookieName, userSessionId, new CookieOptions()
+            {
+                Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl)
+            });
 
             return new JsonResult(results, settings);
         }

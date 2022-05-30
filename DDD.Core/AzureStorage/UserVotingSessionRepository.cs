@@ -12,6 +12,8 @@ namespace DDD.Core.EloVoting
 {
     public class UserVotingSession
     {
+        public static readonly long DefaultTtl = 24 * 60 * 60;
+        
         public static string CreatePartitionKey(string id)
         {
             return id.Substring(0, 1);
@@ -21,10 +23,16 @@ namespace DDD.Core.EloVoting
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
         [JsonProperty(PropertyName = "ttl")]
-        public DateTimeOffset Expiry { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
+        public long Expiry { get; set; } = DefaultTtl;
         public List<string> SessionIds { get; set; } = new List<string>();
 
-        public string PartitionKey => Id.Substring(0, 1);
+        private string _partitionKey;
+
+        public string PartitionKey
+        {
+            get => string.IsNullOrEmpty(_partitionKey) ? Id.Substring(0, 1) : _partitionKey;
+            set => _partitionKey = value;
+        }
 
         public Tuple<string, string> Next()
         {
@@ -34,7 +42,7 @@ namespace DDD.Core.EloVoting
                 var two = SessionIds[1];
                 
                 SessionIds.RemoveRange(0,2);
-                Expiry = DateTimeOffset.UtcNow.AddDays(1);
+                Expiry = DefaultTtl;
                 
                 return new Tuple<string, string>(one, two);
             }
@@ -53,6 +61,8 @@ namespace DDD.Core.EloVoting
     
     public class UserVotingSessionRepository : IUserVotingSessionRepository
     {
+        public static readonly int SessionCountLowWatermark = 2;
+        
         private readonly CosmosClient _cosmosClient;
         private readonly Random _random;
 
@@ -73,22 +83,20 @@ namespace DDD.Core.EloVoting
             
             try
             {
-                ItemResponse<UserVotingSession> userResponse =
-                    await _container.ReadItemAsync<UserVotingSession>(id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
-
+                ItemResponse<UserVotingSession> userResponse = await _container.ReadItemAsync<UserVotingSession>(id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
                 UserVotingSession user = userResponse.Resource;
-                
-                if (user.SessionIds.Count <= 2)
+
+                if (user.SessionIds.Count <= SessionCountLowWatermark)
                 {
                     var sessions = await feed.Value;
                     user.SessionIds.AddRange(sessions.Select(x =>x.Id.ToString()).OrderBy(x => _random.Next()).ToList());
                 }
+                
 
                 // take the next two items out of the user's session collection and then write back to the store
                 var result = user.Next();
 
-                await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id,
-                    new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
+                await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id, new PartitionKey(user.PartitionKey));
 
                 return result;
             }
@@ -98,7 +106,9 @@ namespace DDD.Core.EloVoting
 
                 var user = new UserVotingSession()
                 {
-                    SessionIds = sessions.Select(x => x.Id.ToString()).OrderBy(x => _random.Next()).ToList()
+                    SessionIds = sessions.Select(x => x.Id.ToString()).OrderBy(x => _random.Next()).ToList(),
+                    Id = id,
+                    PartitionKey = UserVotingSession.CreatePartitionKey(id)
                 };
 
                 // take the first two before we create it so we dont waste time updating
@@ -119,7 +129,7 @@ namespace DDD.Core.EloVoting
             ContainerProperties properties = new ContainerProperties()
             {
                 Id = containerId,
-                PartitionKeyPath = "/PartitonKey",
+                PartitionKeyPath = "/PartitionKey",
                 // Expire all documents after 1 day by default
                 DefaultTimeToLive = 24 * 60 * 60
             };
