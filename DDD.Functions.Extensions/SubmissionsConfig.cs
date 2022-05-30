@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.WebJobs.Description;
 using Microsoft.Azure.WebJobs.Host.Config;
 
@@ -12,6 +13,15 @@ namespace DDD.Functions.Extensions
         public string SubmissionsTable { get; set; }
         [AppSetting(Default = "SubmittersTable")]
         public string SubmittersTable { get; set; }
+
+        [AppSetting(Default = "CosmosDbConnectionString")]
+        public string CosmosDbConnectionString { get; set; }
+
+        [AppSetting(Default = "VoteSessionDatabaseId")]
+        public string VoteSessionDatabaseId { get; set; }
+
+        [AppSetting(Default = "VoteSessionContainerId")]
+        public string VoteSessionContainerId { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

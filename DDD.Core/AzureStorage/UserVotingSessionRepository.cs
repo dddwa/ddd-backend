@@ -20,7 +20,7 @@ namespace DDD.Core.EloVoting
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
-        [JsonProperty(PropertyName = "_ttl")]
+        [JsonProperty(PropertyName = "ttl")]
         public DateTimeOffset Expiry { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
         public List<string> SessionIds { get; set; } = new List<string>();
 
@@ -116,7 +116,15 @@ namespace DDD.Core.EloVoting
             var databaseResponse = await this._cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
             this._database = databaseResponse.Database;
             
-            var containerResponse = await this._database.CreateContainerIfNotExistsAsync(containerId, "/PartitionKey");
+            ContainerProperties properties = new ContainerProperties()
+            {
+                Id = containerId,
+                PartitionKeyPath = "/PartitonKey",
+                // Expire all documents after 1 day by default
+                DefaultTimeToLive = 24 * 60 * 60
+            };
+
+            var containerResponse = await this._database.CreateContainerIfNotExistsAsync(properties);
             this._container = containerResponse.Container;            
         }
     }

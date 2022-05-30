@@ -29,7 +29,6 @@ namespace DDD.Functions
         
         private static async Task<List<Session>> LoadSessions(SubmissionsConfig submissions, ConferenceConfig conference)
         {
-            // do these outside of the lock because...
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
             
@@ -69,16 +68,23 @@ namespace DDD.Functions
             }
 
             var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
-            Lazy<Task<List<Session>>> allSessions = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
+            
+            // using a Lazy here intentionally to avoid making the call to the underlying store more than once
+            // rather than loading just for the sake of it, we can instead use the factory to initialise the list
+            // once when we actually need it and then re-use the result over and over.
+            var allSessionsLoader = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
 
+            // get the voting session id from the cookie from the user's browser, creating a new one if it doesn't exist
             var userSessionId = string.IsNullOrEmpty(
                 req.Cookies[CookieName])
                 ? Guid.NewGuid().ToString()
                 : req.Cookies[CookieName];
             
-            var sessionIds = await userVoteSessionRepository.NextSessionPair(allSessions, userSessionId);
+            // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
+            var sessionIds = await userVoteSessionRepository.NextSessionPair(allSessionsLoader, userSessionId);
 
-            var validSessions = (await allSessions.Value)
+            // get the Session information from the underlying storage and convert it to a format that we're expecting to return
+            var validSessions = (await allSessionsLoader.Value)
                 .Where(x => x.Id.ToString() == sessionIds.Item1 || x.Id.ToString() == sessionIds.Item2)
                 .Select(s => new Submission
                 {
@@ -95,11 +101,13 @@ namespace DDD.Functions
             var submissionA = validSessions[0];
             var submissionB = validSessions[1];
 
-            // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
             var now = keyDates.Now.ToUnixTimeSeconds();
             var voteId = Guid.NewGuid().ToString();
 
+            // encrypt the id's that we're going to send in the payload, this will prevent naughty people
+            // from spamming the endpoint as each vote can only be submitted once as the vote id is encoded
+            // into the payload so we can detect a replay attack
             submissionA.Id = Encryptor.EncryptSubmissionId(voteId, submissionA.Id, password, now);
             submissionB.Id = Encryptor.EncryptSubmissionId(voteId, submissionB.Id, password, now);
             
@@ -114,6 +122,8 @@ namespace DDD.Functions
                 ContractResolver = new DefaultContractResolver()
             };
 
+            // make sure we set the voting session id back into the cookie so the next time the endpoint is called
+            // we will load from existing set rather than creating a new one
             req.HttpContext.Response.Cookies.Append(CookieName, userSessionId);
 
             return new JsonResult(results, settings);

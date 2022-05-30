@@ -26,8 +26,9 @@ namespace DDD.Functions.Extensions
 
         public static async Task<IUserVotingSessionRepository> GetUserVoteSessionRepositoryAsync(this SubmissionsConfig config)
         {
-            var client = CosmosClient.CreateAndInitializeAsync(config.ConnectionString, config.Table);
-            
+            var client = new CosmosClient(config.CosmosDbConnectionString, new CosmosClientOptions()
+            {
+            });            
             var repo = new UserVotingSessionRepository(client);
             await repo.InitialiseAsync(config.VoteSessionDatabaseId, config.VoteSessionContainerId);
 
