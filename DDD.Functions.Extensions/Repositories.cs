@@ -6,6 +6,7 @@ using DDD.Core.Voting;
 using StorageAccount = Microsoft.Azure.Storage.CloudStorageAccount;
 using CosmosAccount = Microsoft.Azure.Cosmos.Table.CloudStorageAccount;
 using DDD.Core.EloVoting;
+using Microsoft.Azure.Cosmos;
 
 namespace DDD.Functions.Extensions
 {
@@ -21,6 +22,15 @@ namespace DDD.Functions.Extensions
         public static Task<(ITableStorageRepository<SessionEntity>, ITableStorageRepository<PresenterEntity>)> GetRepositoryAsync(this SubmissionsConfig config)
         {
             return GetSessionRepositoryAsync(config.ConnectionString, config.SubmissionsTable, config.SubmittersTable);
+        }
+
+        public static async Task<IUserVotingSessionRepository> GetUserVoteSessionRepositoryAsync(this SubmissionsConfig config)
+        {
+            var client = new CosmosClient(config.UserVotingSessionsString, new CosmosClientOptions(){});            
+            var repo = new UserVotingSessionRepository(client);
+            await repo.InitialiseAsync(config.UserVotingSessionsDatabaseId, config.UserVotingSessionsContainerId);
+
+            return repo;
         }
 
         public static Task<(ITableStorageRepository<SessionEntity>, ITableStorageRepository<PresenterEntity>)> GetRepositoryAsync(this SessionsConfig config)

@@ -19,44 +19,26 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
+        private const string DefaultCookieName = "DDDPerth.VotingSessionId";
+
         private static readonly string[] KeynoteExternalIds = new[]
         {
             // TODO : make this a configuration setting eventually.
             "337380"
         };
-
-        private static EloVoteShuffler<Session> _shufflerInstance;
-        private static readonly object _lock = new object();
-
-        private static async Task<EloVoteShuffler<Session>> InitialiseSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        
+        private static async Task<List<string>> LoadSessionIds(SubmissionsConfig submissions, ConferenceConfig conference)
         {
-            // if it's set then just return it, it's okay as we will only ever set it once.
-            if (_shufflerInstance != null)
-            {
-                return _shufflerInstance;
-            }
-
-            // do these outside of the lock because...
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
-            
-            lock (_lock)
-            {
-                // do a double check here, it may have been initialised while we were waiting to acquire the lock
-                if (_shufflerInstance != null)
-                {
-                    return _shufflerInstance;
-                }
 
-                var validSessions = receivedSubmissions
-                    .Where(x => x.Session != null)
-                    .Select(x => x.GetSession())
-                    .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
+            var validSessionIds = receivedSubmissions
+                .Where(x => x.Session != null)
+                .Select(x => x.GetSession())
+                .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId))
+                .Select(x => x.Id.ToString());
 
-                _shufflerInstance = new EloVoteShuffler<Session>(ShufflerConfig.Default, validSessions.ToList());
-            }
-
-            return _shufflerInstance;
+            return validSessionIds.ToList();
         }
 
         [FunctionName("EloVotingGetPair")]
@@ -86,15 +68,40 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var sessions = await InitialiseSessions(submissions, conference);
-            if (!sessions.Any())
+            // using a Lazy here intentionally to avoid making the call to the underlying store more than once
+            // rather than loading just for the sake of it, we can instead use the factory to initialise the list
+            // once when we actually need it and then re-use the result over and over, it also stops the logic that
+            // loads the sessions from being propagated through the stack - effectively a lambda with caching for free
+            var sessionIdsLoader = new Lazy<Task<List<string>>>(async () => await LoadSessionIds(submissions, conference));
+
+            // get the voting session id from the cookie from the user's browser, creating a new one if it doesn't exist
+            var userSessionId = string.IsNullOrEmpty(
+                req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName])
+                ? Guid.NewGuid().ToString()
+                : req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName];
+
+            // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
+            var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
+            var sessionIds = await userVoteSessionRepository.NextSessionPair(sessionIdsLoader, userSessionId);
+
+            if (sessionIds == null)
             {
-                log.LogWarning("There is no submission for {year} conference.", conference.ConferenceInstance);
+                log.LogWarning("Could not get session pair for user voting session with id {userVoteSessionId}.", userSessionId);
                 return new StatusCodeResult(400);
             }
 
-            var validSessions = sessions
-                .Take(2)
+            // we have the id's of two sessions, so load them directly from the underlying table store rather than loading everything
+            // and iterating which is a pain
+            var (sessionRepository, _) = await submissions.GetRepositoryAsync();
+            var loadedSessions = new List<SessionEntity>()
+            {
+                await sessionRepository.GetAsync(conference.ConferenceInstance, sessionIds.Item1),
+                await sessionRepository.GetAsync(conference.ConferenceInstance, sessionIds.Item2)
+            };
+            
+            // convert the sessions into submission entries
+            var validSessions = loadedSessions
+                .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
@@ -106,15 +113,23 @@ namespace DDD.Functions
                 })                
                 .ToList();
 
+            if (!validSessions.Any() || validSessions.Count != 2)
+            {
+                log.LogWarning("Could not get sessions for User session id {userSessionId}, got {sessionCount} Sessions.", userSessionId, validSessions.Count);
+                return new StatusCodeResult(400);
+            }
+            
             // first random submission
             var submissionA = validSessions[0];
             var submissionB = validSessions[1];
 
-            // encrypt the two ids at once
             var password = eloVoting.EloPasswordPhrase;
             var now = keyDates.Now.ToUnixTimeSeconds();
             var voteId = Guid.NewGuid().ToString();
 
+            // encrypt the id's that we're going to send in the payload, this will prevent naughty people
+            // from spamming the endpoint as each vote can only be submitted once as the vote id is encoded
+            // into the payload so we can detect a replay attack
             submissionA.Id = Encryptor.EncryptSubmissionId(voteId, submissionA.Id, password, now);
             submissionB.Id = Encryptor.EncryptSubmissionId(voteId, submissionB.Id, password, now);
             
@@ -124,8 +139,17 @@ namespace DDD.Functions
                 SubmissionB = submissionB
             };
 
-            var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver();
+            var settings = new JsonSerializerSettings()
+            {
+                ContractResolver = new DefaultContractResolver()
+            };
+
+            // make sure we set the voting session id back into the cookie so the next time the endpoint is called
+            // we will load from existing set rather than creating a new one, also will update the TTL of the cookie
+            req.HttpContext.Response.Cookies.Append(submissions.UserVotingSessionCookieName ?? DefaultCookieName, userSessionId, new CookieOptions()
+            {
+                Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl)
+            });
 
             return new JsonResult(results, settings);
         }
@@ -135,6 +159,7 @@ namespace DDD.Functions
             public Submission SubmissionA { get; set; }
             public Submission SubmissionB { get; set; }
         }
+        
         public class Submission
         {
             public string Id { get; set; }
