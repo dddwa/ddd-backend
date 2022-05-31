@@ -148,7 +148,8 @@ namespace DDD.Functions
             // we will load from existing set rather than creating a new one, also will update the TTL of the cookie
             req.HttpContext.Response.Cookies.Append(submissions.UserVotingSessionCookieName ?? DefaultCookieName, userSessionId, new CookieOptions()
             {
-                Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl)
+                Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl),
+                SameSite = SameSiteMode.None
             });
 
             return new JsonResult(results, settings);
