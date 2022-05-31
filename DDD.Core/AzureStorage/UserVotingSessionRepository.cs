@@ -12,6 +12,7 @@ namespace DDD.Core.EloVoting
 {
     public class UserVotingSession
     {
+        // default session duration of 1 day
         public static readonly long DefaultTtl = 24 * 60 * 60;
         
         public static string CreatePartitionKey(string id)
@@ -23,12 +24,13 @@ namespace DDD.Core.EloVoting
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
         [JsonProperty(PropertyName = "ttl")]
-        public long Expiry { get; set; } = DefaultTtl;
+        public long Ttl { get; set; } = DefaultTtl;
         public List<string> SessionIds { get; set; } = new List<string>();
 
         private string _partitionKey;
 
-        public string PartitionKey
+        [JsonProperty(PropertyName = "pk")]
+        public string Pk
         {
             // this is required for cosmos, given we're using GUID's as keys just use the first letter to partition
             // the data - should give us an even spread of (26+10) buckets pretty much randomly filled
@@ -44,7 +46,7 @@ namespace DDD.Core.EloVoting
                 var two = SessionIds[1];
                 
                 SessionIds.RemoveRange(0,2);
-                Expiry = DefaultTtl;
+                Ttl = DefaultTtl;
                 
                 return new Tuple<string, string>(one, two);
             }
@@ -109,7 +111,7 @@ namespace DDD.Core.EloVoting
                 var user = new UserVotingSession()
                 {
                     Id = id,
-                    PartitionKey = UserVotingSession.CreatePartitionKey(id),
+                    Pk = UserVotingSession.CreatePartitionKey(id),
                     SessionIds = sessions
                         .OrderBy(x => _random.Next())
                         .ToList(),
@@ -133,9 +135,9 @@ namespace DDD.Core.EloVoting
             ContainerProperties properties = new ContainerProperties()
             {
                 Id = containerId,
-                PartitionKeyPath = "/PartitionKey",
-                // Expire all documents after 1 day by default
-                DefaultTimeToLive = 24 * 60 * 60
+                PartitionKeyPath = "/pk",
+                // turn on TTL for the container, but have the ttl managed by the instances themselves
+                DefaultTimeToLive = -1
             };
 
             var containerResponse = await this._database.CreateContainerIfNotExistsAsync(properties);
