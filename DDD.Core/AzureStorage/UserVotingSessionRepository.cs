@@ -55,7 +55,7 @@ namespace DDD.Core.EloVoting
 
     public interface IUserVotingSessionRepository
     {
-        Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null);
+        Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<string>>> sessionIds, string id = null);
     }
     
     public class UserVotingSessionRepository : IUserVotingSessionRepository
@@ -74,7 +74,7 @@ namespace DDD.Core.EloVoting
             _random = new Random();
         }
 
-        public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<Session>>> feed, string id = null)
+        public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<string>>> sessionIds, string id = null)
         {
             // add a check for safety here, if it's null we will fall through the catch block and create a new one for
             // the user with the provided id
@@ -87,9 +87,8 @@ namespace DDD.Core.EloVoting
 
                 if (user.SessionIds.Count <= SessionCountLowWatermark)
                 {
-                    var sessions = await feed.Value;
+                    var sessions = await sessionIds.Value;
                     user.SessionIds.AddRange(sessions
-                        .Select(x =>x.Id.ToString())
                         .OrderBy(x => _random.Next())
                         .ToList());
                 }
@@ -105,14 +104,13 @@ namespace DDD.Core.EloVoting
             {
                 // the session has either expired, or we have a new session to work with, so insert a record with a new
                 // sample
-                var sessions = await feed.Value;
+                var sessions = await sessionIds.Value;
 
                 var user = new UserVotingSession()
                 {
                     Id = id,
                     PartitionKey = UserVotingSession.CreatePartitionKey(id),
                     SessionIds = sessions
-                        .Select(x => x.Id.ToString())
                         .OrderBy(x => _random.Next())
                         .ToList(),
                 };

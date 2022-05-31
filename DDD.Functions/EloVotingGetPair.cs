@@ -27,17 +27,18 @@ namespace DDD.Functions
             "337380"
         };
         
-        private static async Task<List<Session>> LoadSessions(SubmissionsConfig submissions, ConferenceConfig conference)
+        private static async Task<List<string>> LoadSessionIds(SubmissionsConfig submissions, ConferenceConfig conference)
         {
             var (submissionsRepo, _) = await submissions.GetRepositoryAsync();
             var receivedSubmissions = await submissionsRepo.GetAllAsync(conference.ConferenceInstance);
-            
-            var validSessions = receivedSubmissions
+
+            var validSessionIds = receivedSubmissions
                 .Where(x => x.Session != null)
                 .Select(x => x.GetSession())
-                .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId));
+                .Where(x => x.Format != "Keynote" && !KeynoteExternalIds.Contains(x.ExternalId))
+                .Select(x => x.Id.ToString());
 
-            return validSessions.ToList();
+            return validSessionIds.ToList();
         }
 
         [FunctionName("EloVotingGetPair")]
@@ -67,31 +68,40 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
-            
             // using a Lazy here intentionally to avoid making the call to the underlying store more than once
             // rather than loading just for the sake of it, we can instead use the factory to initialise the list
-            // once when we actually need it and then re-use the result over and over.
-            var allSessionsLoader = new Lazy<Task<List<Session>>>(async () => await LoadSessions(submissions, conference));
+            // once when we actually need it and then re-use the result over and over, it also stops the logic that
+            // loads the sessions from being propagated through the stack - effectively a lambda with caching for free
+            var sessionIdsLoader = new Lazy<Task<List<string>>>(async () => await LoadSessionIds(submissions, conference));
 
             // get the voting session id from the cookie from the user's browser, creating a new one if it doesn't exist
             var userSessionId = string.IsNullOrEmpty(
                 req.Cookies[CookieName])
                 ? Guid.NewGuid().ToString()
                 : req.Cookies[CookieName];
-            
+
             // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
-            var sessionIds = await userVoteSessionRepository.NextSessionPair(allSessionsLoader, userSessionId);
+            var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
+            var sessionIds = await userVoteSessionRepository.NextSessionPair(sessionIdsLoader, userSessionId);
 
             if (sessionIds == null)
             {
                 log.LogWarning("Could not get session pair for user voting session with id {userVoteSessionId}.", userSessionId);
                 return new StatusCodeResult(400);
             }
+
+            // we have the id's of two sessions, so load them directly from the underlying table store rather than loading everything
+            // and iterating which is a pain
+            var (sessionRepository, _) = await submissions.GetRepositoryAsync();
+            var loadedSessions = new List<SessionEntity>()
+            {
+                await sessionRepository.GetAsync(conference.ConferenceInstance, sessionIds.Item1),
+                await sessionRepository.GetAsync(conference.ConferenceInstance, sessionIds.Item2)
+            };
             
-            // get the Session information from the underlying storage and convert it to a format that we're expecting to return
-            var validSessions = (await allSessionsLoader.Value)
-                .Where(x => x.Id.ToString() == sessionIds.Item1 || x.Id.ToString() == sessionIds.Item2)
+            // convert the sessions into submission entries
+            var validSessions = loadedSessions
+                .Select(x => x.GetSession())
                 .Select(s => new Submission
                 {
                     Id = s.Id.ToString(),
@@ -135,7 +145,7 @@ namespace DDD.Functions
             };
 
             // make sure we set the voting session id back into the cookie so the next time the endpoint is called
-            // we will load from existing set rather than creating a new one
+            // we will load from existing set rather than creating a new one, also will update the TTL of the cookie
             req.HttpContext.Response.Cookies.Append(CookieName, userSessionId, new CookieOptions()
             {
                 Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl)
