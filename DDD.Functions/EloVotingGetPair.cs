@@ -19,7 +19,7 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private const string CookieName = "DDDPerth.VotingSessionId";
+        private const string DefaultCookieName = "DDDPerth.VotingSessionId";
 
         private static readonly string[] KeynoteExternalIds = new[]
         {
@@ -76,9 +76,9 @@ namespace DDD.Functions
 
             // get the voting session id from the cookie from the user's browser, creating a new one if it doesn't exist
             var userSessionId = string.IsNullOrEmpty(
-                req.Cookies[CookieName])
+                req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName])
                 ? Guid.NewGuid().ToString()
-                : req.Cookies[CookieName];
+                : req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName];
 
             // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
             var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
@@ -146,7 +146,7 @@ namespace DDD.Functions
 
             // make sure we set the voting session id back into the cookie so the next time the endpoint is called
             // we will load from existing set rather than creating a new one, also will update the TTL of the cookie
-            req.HttpContext.Response.Cookies.Append(CookieName, userSessionId, new CookieOptions()
+            req.HttpContext.Response.Cookies.Append(submissions.UserVotingSessionCookieName ?? DefaultCookieName, userSessionId, new CookieOptions()
             {
                 Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl)
             });

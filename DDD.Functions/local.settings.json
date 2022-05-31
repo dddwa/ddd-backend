@@ -5,29 +5,24 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-
     // Conference
-    "ConferenceInstance": "2019",
-
+    "ConferenceInstance": "2022",
     // SessionizeReadModelSync
     "SessionizeReadModelSyncSchedule": "* * * * *",
-    "SessionsConnectionString": "DefaultEndpointsProtocol=https;AccountName=dddperthdatatest;AccountKey=gxUQ5OeKRqmmS4qdz0w1xsPaA09fX+RrkzkCK4LAodq//kwJm0kj8Y9FGbyimtrVZahrQq7MmubncW+f68+FCg==;EndpointSuffix=core.windows.net",
+    "SessionsConnectionString": "UseDevelopmentStorage=true",
     "SubmissionsTable": "Submissions",
     "SubmittersTable": "Submitters",
     "SessionsTable": "Sessions",
     "PresentersTable": "Presenters",
     "StopSyncingSessionsFrom": "2019-06-16T00:00:00+08:00",
     "SessionizeApiKey": "{token}",
-
     // SessionizeAgendaSync
     "StopSyncingAgendaFrom": "2018-08-04T18:00:00+08:00",
     "SessionizeAgendaApiKey": "fx26jbjt",
-
     // NewSessionNotification
     "NewSessionNotificationSchedule": "* * * * *",
     "NewSessionNotificationLogicAppUrl": "http://localhost",
     "NotifiedSessionsTable": "NotifiedSessions",
-
     // TitoWebhook
     "TitoWebhookSecret": "{webhook_secret}",
     "TitoWebhookConnectionString": "UseDevelopmentStorage=true",
@@ -35,7 +30,6 @@
     "TitoWebhookOrderNotificationQueue": "ordernotification",
     "TitoWebhookTicketNotificationQueue": "ticketnotification",
     "TitoApiBearerToken": "{api_token}",
-
     // TitoSync
     "TitoSyncSchedule": "* * * * *",
     "TitoTable": "Tito",
@@ -44,12 +38,10 @@
     "StopSyncingTitoFrom": "2019-06-18T23:59:59+08:00",
     "WaitingListTable": "TitoWaitingList",
     "WaitingListConnectionString": "UseDevelopmentStorage=true",
-
     // GetSubmissions
     "SubmissionsAvailableFrom": "2022-01-05T08:00:00+08:00",
     "SubmissionsAvailableTo": "2022-12-17T23:59:59+08:00",
     "AnonymousSubmissions": "true",
-
     // SubmitVote
     "VotesConnectionString": "UseDevelopmentStorage=true",
     "VotingTable": "Votes",
@@ -59,17 +51,16 @@
     "WaitingListCanVoteWithEmail": "true",
     "MinVotes": "6",
     "MaxVotes": "12",
-
     // EloVoting
-    "EloVotesConnectionString": "DefaultEndpointsProtocol=https;AccountName=dddperthdatatest;AccountKey=gxUQ5OeKRqmmS4qdz0w1xsPaA09fX+RrkzkCK4LAodq//kwJm0kj8Y9FGbyimtrVZahrQq7MmubncW+f68+FCg==;EndpointSuffix=core.windows.net",
+    "EloVotesConnectionString": "UseDevelopmentStorage=true",
     "EloVotingTable": "EloVotes",
     "EloPasswordPhrase":"Perth2022",
     "EloEnabled": "true",
     "EloAllowedTimeInSecondsToSubmit": "120",
-    "UserVotingSessionsConnectionString": "AccountEndpoint=https://dddperthdatatest.documents.azure.com:443/;AccountKey=UbR2GBvA5PPok2ctY7t5aXetTCDPokB9Z4BxJoeKj51JwfKsr97ql2022IUawL12QJAx9VJmM2nVq7jq94yeTg==;",
+    "UserVotingSessionsConnectionString": "",
     "UserVotingSessionsDatabaseId": "dddperthdatatest",
     "UserVotingSessionsContainerId": "votesessions",
-
+    "UserVotingSessionsCookieName": "DDDPerth.2022.UserSession",
     // App Insights
     "AppInsightsSyncSchedule": "* * * * *",
     "AppInsightsTable": "AppInsights",
@@ -77,7 +68,6 @@
     "AppInsightsApplicationKey": "{key}",
     "StartSyncingAppInsightsFrom": "2018-06-05T08:00:00+08:00",
     "StopSyncingAppInsightsFrom": "2018-06-18T23:59:59+08:00",
-
     // Feedback
     "FeedbackConnectionString": "UseDevelopmentStorage=true",
     "SessionFeedbackTable": "SessionFeedback",
