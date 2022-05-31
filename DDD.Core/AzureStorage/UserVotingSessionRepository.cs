@@ -30,7 +30,7 @@ namespace DDD.Core.EloVoting
         private string _partitionKey;
 
         [JsonProperty(PropertyName = "pk")]
-        public string Pk
+        public string PartitionKey
         {
             // this is required for cosmos, given we're using GUID's as keys just use the first letter to partition
             // the data - should give us an even spread of (26+10) buckets pretty much randomly filled
@@ -111,7 +111,6 @@ namespace DDD.Core.EloVoting
                 var user = new UserVotingSession()
                 {
                     Id = id,
-                    Pk = UserVotingSession.CreatePartitionKey(id),
                     SessionIds = sessions
                         .OrderBy(x => _random.Next())
                         .ToList(),
