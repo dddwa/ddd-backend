@@ -137,6 +137,15 @@
         },
         "eloPasswordPhrase": {
             "type": "string"
+        },
+        "eloUserSessionStoreName": {
+            "type": "string"
+        },
+        "eloUserSessionStoreDatabaseName": {
+            "type": "string"
+        },
+        "eloUserSessionStoreContainerName": {
+            "type": "string"
         }
     },
     "variables": {
@@ -202,6 +211,25 @@
             "location": "[resourceGroup().location]"
         },
         {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "location": "[resourceGroup().location]",
+            "name": "[parameters('eloUserSessionStoreName')]",
+            "kind": "GlobalDocumentDB",
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "locations": [
+                    {
+                      "locationName": "[resourceGroup().location]"
+                    }
+                  ],
+                "capabilities": [
+                    {
+                      "name": "EnableServerless"
+                    }
+                  ]
+            }
+        },
+        {
             "type": "Microsoft.Web/sites",
             "name": "[parameters('functionsAppName')]",
             "kind": "functionapp",
@@ -226,7 +254,8 @@
                         "[parameters('functionsAppName')]",
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('dataStorageName'))]"                        
                     ],
                     "properties": {
                         "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
@@ -293,7 +322,10 @@
                         "MinNumSessionFeedbackForPrizeDraw": "[variables('minNumSessionFeedbackForPrizeDraw')]",
                         "IsSingleVoteEligibleForPrizeDraw": "[parameters('isSingleVoteEligibleForPrizeDraw')]",
                         "FeedbackAvailableFrom": "[parameters('feedbackAvailableFrom')]",
-                        "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]"
+                        "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]",
+                        "UserVotingSessionsConnectionString": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreName')), '2019-12-12').connectionStrings[0].connectionString]",
+                        "UserVotingSessionsDatabaseId": "[parameters('eloUserSessionStoreDatabaseName')]",
+                        "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]"
                     }
                 },
                 {
