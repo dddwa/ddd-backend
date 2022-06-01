@@ -87,6 +87,9 @@ function Get-Parameters() {
     "feedbackAvailableFrom"             = $FeedbackAvailableFrom;
     "feedbackAvailableTo"               = $FeedbackAvailableTo;
     "eloPasswordPhrase"                 = $EloPasswordPhrase;
+    "eloUserSessionStoreName"                       = $EloUserSessionStoreName;
+    "eloUserSessionStoreDatabaseName"               = $EloUserSessionStoreDatabaseName;
+    "eloUserSessionStoreContainerName"              = $EloUserSessionStoreContainerName;
   }
 }
 

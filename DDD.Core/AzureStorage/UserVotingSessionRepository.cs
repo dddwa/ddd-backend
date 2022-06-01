@@ -12,9 +12,7 @@ namespace DDD.Core.EloVoting
 {
     public class UserVotingSession
     {
-        // default session duration of 1 day
-        public static readonly long DefaultTtl = 24 * 60 * 60;
-        
+      
         public static string CreatePartitionKey(string id)
         {
             return id.Substring(0, 1);
@@ -24,7 +22,7 @@ namespace DDD.Core.EloVoting
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
         [JsonProperty(PropertyName = "ttl")]
-        public long Ttl { get; set; } = DefaultTtl;
+        public long Ttl { get; set; } = -1;
         public List<string> SessionIds { get; set; } = new List<string>();
 
         private string _partitionKey;
@@ -38,7 +36,7 @@ namespace DDD.Core.EloVoting
             set => _partitionKey = value;
         }
 
-        public Tuple<string, string> Next()
+        public Tuple<string, string> Next(long ttl)
         {
             if (SessionIds.Count > 2)
             {
@@ -46,7 +44,7 @@ namespace DDD.Core.EloVoting
                 var two = SessionIds[1];
                 
                 SessionIds.RemoveRange(0,2);
-                Ttl = DefaultTtl;
+                this.Ttl = ttl;
                 
                 return new Tuple<string, string>(one, two);
             }
@@ -62,18 +60,21 @@ namespace DDD.Core.EloVoting
     
     public class UserVotingSessionRepository : IUserVotingSessionRepository
     {
+        private static readonly long DefaultTtl = 24 * 60 * 60;
         private static readonly int SessionCountLowWatermark = 2;
         
         private readonly CosmosClient _cosmosClient;
         private readonly Random _random;
+        private readonly long _ttl;
 
         private Database _database;
         private Container _container;
 
-        public UserVotingSessionRepository(CosmosClient client)
+        public UserVotingSessionRepository(CosmosClient client, long? defaultTtl)
         {
             _cosmosClient = client;
             _random = new Random();
+            _ttl = defaultTtl ?? DefaultTtl;
         }
 
         public async Task<Tuple<string, string>> NextSessionPair(Lazy<Task<List<string>>> sessionIds, string id = null)
@@ -95,7 +96,7 @@ namespace DDD.Core.EloVoting
                         .ToList());
                 }
 
-                var result = user.Next();
+                var result = user.Next(_ttl);
 
                 // update the entry in the cosmos store, we've removed two items (and potentially added in a whole shuffled set again)
                 await _container.ReplaceItemAsync<UserVotingSession>(user, user.Id, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
@@ -117,7 +118,7 @@ namespace DDD.Core.EloVoting
                 };
 
                 // take the first two before we create it so we dont waste time updating
-                var result = user.Next();
+                var result = user.Next(_ttl);
 
                 await _container.CreateItemAsync<UserVotingSession>(user, new PartitionKey(UserVotingSession.CreatePartitionKey(id)));
 
