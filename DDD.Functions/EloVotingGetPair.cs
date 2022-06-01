@@ -20,7 +20,7 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private const string DefaultSessionIdHeaderName = "DDDPerth.VotingSessionId";
+        private const string DefaultSessionIdHeaderName = "X-DDDPerth-VotingSessionId";
 
         private static readonly string[] KeynoteExternalIds = new[]
         {

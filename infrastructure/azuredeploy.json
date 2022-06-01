@@ -213,7 +213,7 @@
         {
             "type": "Microsoft.DocumentDB/databaseAccounts",
             "location": "[resourceGroup().location]",
-            "name": "[parameters('eloUserSessionStoreName')]",
+            "name": "[parameters('eloUserSessionStoreAccountName')]",
             "kind": "GlobalDocumentDB",
             "properties": {
                 "databaseAccountOfferType": "Standard",
@@ -255,7 +255,7 @@
                         "[resourceId('Microsoft.Insights/components', parameters('functionsAppName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('dataStorageName'))]"                        
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreAccountName'))]"                        
                     ],
                     "properties": {
                         "WEBSITE_USE_ZIP": "[parameters('deploymentZipUrl')]",
@@ -323,7 +323,7 @@
                         "IsSingleVoteEligibleForPrizeDraw": "[parameters('isSingleVoteEligibleForPrizeDraw')]",
                         "FeedbackAvailableFrom": "[parameters('feedbackAvailableFrom')]",
                         "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]",
-                        "UserVotingSessionsConnectionString": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreName')), '2019-12-12').connectionStrings[0].connectionString]",
+                        "UserVotingSessionsConnectionString": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreAccountName')), '2019-12-12').connectionStrings[0].connectionString]",
                         "UserVotingSessionsDatabaseId": "[parameters('eloUserSessionStoreDatabaseName')]",
                         "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]"
                     }
@@ -351,9 +351,7 @@
                         "azureApplicationLogsFileSystemEnabled": true,
                         "cors": {
                             "allowedOrigins": [
-                                "http://localhost:3000",
-                                "https://dddperth-website-test.azurewebsites.net",
-                                "https://dddperth.com"
+                                "*"
                             ]
                         }
                     }
