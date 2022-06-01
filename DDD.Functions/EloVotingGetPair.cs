@@ -79,7 +79,13 @@ namespace DDD.Functions
             var headerKey = string.IsNullOrEmpty(submissions.UserVotingSessionHeaderName)
                 ? DefaultSessionIdHeaderName
                 : submissions.UserVotingSessionHeaderName;
-            var userSessionId = req.Headers[headerKey];
+
+            string userSessionId = null;
+            if (req.Headers.ContainsKey(headerKey))
+            {
+                userSessionId = req.Headers[headerKey];
+            }
+            
             if (string.IsNullOrEmpty(userSessionId))
             {
                 log.LogWarning("Could not get session identifier from header {headerName}.", headerKey);
