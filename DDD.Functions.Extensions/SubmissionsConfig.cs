@@ -25,6 +25,9 @@ namespace DDD.Functions.Extensions
 
         [AppSetting(Default = "UserVotingSessionsCookieName")]
         public string UserVotingSessionHeaderName { get; set; } = null;
+
+        [AppSetting(Default = "UserVotingSessionTtlSeconds")]
+        public long UserVotingSessionTtlSeconds { get; set; } = 3 * 24 * 60 * 60;
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
