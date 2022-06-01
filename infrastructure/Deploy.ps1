@@ -1,16 +1,4 @@
 Param (
-  [string]
-  [Parameter(ParameterSetName = "SpecifyServicePrincipal", Mandatory = $true)]
-  $ServicePrincipalId,
-
-  [string]
-  [Parameter(ParameterSetName = "SpecifyServicePrincipal", Mandatory = $true)]
-  $ServicePrincipalPassword,
-
-  [switch]
-  [Parameter(ParameterSetName = "AlreadyLoggedIn", Mandatory = $true)]
-  $AlreadyLoggedIn,
-
   [string] [Parameter(Mandatory = $true)] $SubscriptionId,
   [string] [Parameter(Mandatory = $true)] $TenantId,
   [string] [Parameter(Mandatory = $true)] $Location,
@@ -94,40 +82,45 @@ function Get-Parameters() {
 }
 
 try {
+  #Requires -Version 7.0.0
   Set-StrictMode -Version "Latest"
   $ErrorActionPreference = "Stop"
 
-  if (-not $AlreadyLoggedIn) {
-    Write-Output "Authenticating to ARM as service principal $ServicePrincipalId"
-    $securePassword = ConvertTo-SecureString $ServicePrincipalPassword -AsPlainText -Force
-    $servicePrincipalCredentials = New-Object System.Management.Automation.PSCredential ($ServicePrincipalId, $securePassword)
-    Login-AzureRmAccount -ServicePrincipal -TenantId $TenantId -Credential $servicePrincipalCredentials | Out-Null
+  Import-Module Az.Accounts -Verbose:$false
+
+  $azureContext = Get-AzContext
+  if (-not $azureContext) {
+    throw "Execute Connect-AzAccount to establish your Azure connection"
+  }
+  if ($azureContext.Subscription.Id -ne $SubscriptionId) {
+    Write-Verbose "Ensuring Azure context is set to specified Azure subscription $($SubscriptionId)"
+    Set-AzContext -Tenant $TenantId -SubscriptionId $SubscriptionId
+  }
+  if ($azureContext.Subscription.Id -ne $SubscriptionId) {
+    throw "Error trying to set Azure context to specified Azure subscription $($SubscriptionId)"
   }
     
-  Write-Output "Selecting subscription $SubscriptionId"
-  Select-AzureRmSubscription -SubscriptionId $SubscriptionId -TenantId $TenantId | Out-Null
-
   Write-Output "Ensuring resource group $ResourceGroupName exists"
-  New-AzureRmResourceGroup -Location $Location -Name $ResourceGroupName -Force | Out-Null
+  New-AzResourceGroup -Location $Location -Name $ResourceGroupName -Force | Out-Null
 
   Write-Output "Checking if it's the first run"
   $Parameters = Get-Parameters
   $firstRun = $false
   try {
-    Get-AzureRmResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Web/sites" -ResourceName $Parameters["functionsAppName"] | Out-Null
+    Get-AzResource -ResourceGroupName $ResourceGroupName -ResourceType "Microsoft.Web/sites" -ResourceName $Parameters["functionsAppName"] | Out-Null
   } catch {
     $firstRun = $true
   }
 
   Write-Output "Deploying to ARM"
-  $result = New-AzureRmResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
+  $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -SkipTemplateParameterPrompt -ErrorAction Continue -Verbose
   Write-Output $result
 
   if ($firstRun) {
     Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app"
     Restart-AzureRmWebApp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
     Start-Sleep -Seconds 30
-    $result = New-AzureRmResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
+    $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
     Write-Output $result
   }
 
