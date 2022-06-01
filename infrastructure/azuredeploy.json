@@ -241,7 +241,8 @@
                 "serverFarmId": "[parameters('serverFarmResourceId')]"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreAccountName'))]"
             ],
             "tags": {
                 "[concat('hidden-related:', parameters('serverFarmResourceId'))]": "Resource"
