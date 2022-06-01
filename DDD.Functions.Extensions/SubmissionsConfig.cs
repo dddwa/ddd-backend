@@ -24,7 +24,7 @@ namespace DDD.Functions.Extensions
         public string UserVotingSessionsContainerId { get; set; }
 
         [AppSetting(Default = "UserVotingSessionsCookieName")]
-        public string UserVotingSessionCookieName { get; set; } = null;
+        public string UserVotingSessionHeaderName { get; set; } = null;
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

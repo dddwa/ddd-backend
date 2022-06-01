@@ -11,6 +11,7 @@ using DDD.Functions.Extensions;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using DDD.Core.AzureStorage;
 using DDD.Core.Domain;
 using DDD.Core.EloVoting;
@@ -19,7 +20,7 @@ namespace DDD.Functions
 {
     public static class EloVotingGetPair
     {
-        private const string DefaultCookieName = "DDDPerth.VotingSessionId";
+        private const string DefaultSessionIdHeaderName = "DDDPerth.VotingSessionId";
 
         private static readonly string[] KeynoteExternalIds = new[]
         {
@@ -75,10 +76,15 @@ namespace DDD.Functions
             var sessionIdsLoader = new Lazy<Task<List<string>>>(async () => await LoadSessionIds(submissions, conference));
 
             // get the voting session id from the cookie from the user's browser, creating a new one if it doesn't exist
-            var userSessionId = string.IsNullOrEmpty(
-                req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName])
-                ? Guid.NewGuid().ToString()
-                : req.Cookies[submissions.UserVotingSessionCookieName ?? DefaultCookieName];
+            var headerKey = string.IsNullOrEmpty(submissions.UserVotingSessionHeaderName)
+                ? DefaultSessionIdHeaderName
+                : submissions.UserVotingSessionHeaderName;
+            var userSessionId = req.Headers[headerKey];
+            if (string.IsNullOrEmpty(userSessionId))
+            {
+                log.LogWarning("Could not get session identifier from header {headerName}.", headerKey);
+                return new StatusCodeResult(400);
+            }
 
             // retrieve a pair of vote session ids from the data stored against the id in the user's cookie
             var userVoteSessionRepository = await submissions.GetUserVoteSessionRepositoryAsync();
@@ -143,14 +149,6 @@ namespace DDD.Functions
             {
                 ContractResolver = new DefaultContractResolver()
             };
-
-            // make sure we set the voting session id back into the cookie so the next time the endpoint is called
-            // we will load from existing set rather than creating a new one, also will update the TTL of the cookie
-            req.HttpContext.Response.Cookies.Append(submissions.UserVotingSessionCookieName ?? DefaultCookieName, userSessionId, new CookieOptions()
-            {
-                Expires = DateTimeOffset.UtcNow.AddSeconds(UserVotingSession.DefaultTtl),
-                SameSite = SameSiteMode.None
-            });
 
             return new JsonResult(results, settings);
         }
