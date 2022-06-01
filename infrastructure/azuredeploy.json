@@ -215,6 +215,7 @@
             "location": "[resourceGroup().location]",
             "name": "[parameters('eloUserSessionStoreAccountName')]",
             "kind": "GlobalDocumentDB",
+            "apiVersion": "2019-12-12",
             "properties": {
                 "databaseAccountOfferType": "Standard",
                 "locations": [
