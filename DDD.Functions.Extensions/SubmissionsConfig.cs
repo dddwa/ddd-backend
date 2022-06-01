@@ -27,7 +27,8 @@ namespace DDD.Functions.Extensions
         public string UserVotingSessionHeaderName { get; set; } = null;
 
         [AppSetting(Default = "UserVotingSessionTtlSeconds")]
-        public long UserVotingSessionTtlSeconds { get; set; } = 3 * 24 * 60 * 60;
+        public string UserVotingSessionTtlSecondsSetting { get; set; } = "259200";
+        public long UserVotingSessionTtlSeconds => long.Parse(UserVotingSessionTtlSecondsSetting);
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]

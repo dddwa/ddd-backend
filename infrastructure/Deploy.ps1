@@ -46,6 +46,9 @@ Param (
   [string] [Parameter(Mandatory = $true)] $IsSingleVoteEligibleForPrizeDraw,
   [string] [Parameter(Mandatory = $true)] $FeedbackAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $FeedbackAvailableTo,
+  [string] [Parameter(Mandatory = $true)] $EloUserSessionStoreAccountName,
+  [string] [Parameter(Mandatory = $true)] $EloUserSessionStoreDatabaseName,
+  [string] [Parameter(Mandatory = $true)] $EloUserSessionStoreContainerName,
   [string] [Parameter(Mandatory = $true)] $EloPasswordPhrase,
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
@@ -87,7 +90,7 @@ function Get-Parameters() {
     "feedbackAvailableFrom"             = $FeedbackAvailableFrom;
     "feedbackAvailableTo"               = $FeedbackAvailableTo;
     "eloPasswordPhrase"                 = $EloPasswordPhrase;
-    "eloUserSessionStoreName"                       = $EloUserSessionStoreName;
+    "eloUserSessionStoreAccountName"                = $EloUserSessionStoreAccountName;
     "eloUserSessionStoreDatabaseName"               = $EloUserSessionStoreDatabaseName;
     "eloUserSessionStoreContainerName"              = $EloUserSessionStoreContainerName;
   }
