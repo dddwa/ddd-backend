@@ -23,12 +23,11 @@ namespace DDD.Functions.Extensions
         [AppSetting(Default = "UserVotingSessionsContainerId")]
         public string UserVotingSessionsContainerId { get; set; }
 
-        [AppSetting(Default = "UserVotingSessionsCookieName")]
-        public string UserVotingSessionHeaderName { get; set; } = null;
+        [AppSetting(Default = "X-DDDPerth-VotingSessionId")]
+        public string UserVotingSessionHeaderName { get; set; }
 
-        [AppSetting(Default = "UserVotingSessionTtlSeconds")]
-        public string UserVotingSessionTtlSecondsSetting { get; set; } = "259200";
-        public long UserVotingSessionTtlSeconds => long.Parse(UserVotingSessionTtlSecondsSetting);
+        [AppSetting(Default = "259200")]
+        public string UserVotingSessionTtlSeconds { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
