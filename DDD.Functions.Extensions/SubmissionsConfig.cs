@@ -23,10 +23,10 @@ namespace DDD.Functions.Extensions
         [AppSetting(Default = "UserVotingSessionsContainerId")]
         public string UserVotingSessionsContainerId { get; set; }
 
-        [AppSetting(Default = "X-DDDPerth-VotingSessionId")]
+        [AppSetting(Default = "UserVotingSessionHeaderName")]
         public string UserVotingSessionHeaderName { get; set; }
 
-        [AppSetting(Default = "259200")]
+        [AppSetting(Default = "UserVotingSessionTtlSeconds")]
         public string UserVotingSessionTtlSeconds { get; set; }
     }
 

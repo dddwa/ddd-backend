@@ -12,6 +12,8 @@ namespace DDD.Functions.Extensions
 {
     public static class SessionData
     {
+        private static readonly string DefaultSessionTimeoutSeconds = "259200";
+
         public static async Task<ITableStorageRepository<NotifiedSessionEntity>> GetRepositoryAsync(this NewSessionNotificationConfig config)
         {
             var repo = new TableStorageRepository<NotifiedSessionEntity>(CosmosAccount.Parse(config.ConnectionString), config.Table);
@@ -42,8 +44,7 @@ namespace DDD.Functions.Extensions
         public static async Task<IUserVotingSessionRepository> GetUserVoteSessionRepositoryAsync(this SubmissionsConfig config)
         {
             var client = GetCosmosClient(config.UserVotingSessionsString);            
-            var repo = new UserVotingSessionRepository(client, long.Parse(config.UserVotingSessionTtlSeconds));
-
+            var repo = new UserVotingSessionRepository(client, long.Parse(string.IsNullOrEmpty(config.UserVotingSessionTtlSeconds) ? DefaultSessionTimeoutSeconds : config.UserVotingSessionTtlSeconds));
             await repo.InitialiseAsync(config.UserVotingSessionsDatabaseId, config.UserVotingSessionsContainerId);
 
             return repo;
