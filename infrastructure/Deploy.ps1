@@ -87,6 +87,7 @@ try {
   $ErrorActionPreference = "Stop"
 
   Import-Module Az.Accounts -Verbose:$false
+  Import-Module Az.Websites
 
   $azureContext = Get-AzContext
   if (-not $azureContext) {
@@ -118,7 +119,7 @@ try {
 
   if ($firstRun) {
     Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app"
-    Restart-AzureRmWebApp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
+    Restart-AzWebapp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
     Start-Sleep -Seconds 30
     $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
     Write-Output $result
