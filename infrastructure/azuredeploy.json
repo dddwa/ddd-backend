@@ -327,7 +327,9 @@
                         "FeedbackAvailableTo": "[parameters('feedbackAvailableTo')]",
                         "UserVotingSessionsConnectionString": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('eloUserSessionStoreAccountName')), '2019-12-12').connectionStrings[0].connectionString]",
                         "UserVotingSessionsDatabaseId": "[parameters('eloUserSessionStoreDatabaseName')]",
-                        "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]"
+                        "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]",
+                        "UserVotingSessionTtlSeconds": "259200",
+                        "UserVotingSessionHeaderName": "X-DDDPerth-VotingSessionId"
                     }
                 },
                 {

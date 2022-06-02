@@ -29,7 +29,7 @@ namespace DDD.Functions.Extensions
             var client = new CosmosClient(config.UserVotingSessionsString, new CosmosClientOptions(){});            
 
 
-            var repo = new UserVotingSessionRepository(client, config.UserVotingSessionTtlSeconds);
+            var repo = new UserVotingSessionRepository(client, long.Parse(config.UserVotingSessionTtlSeconds));
             await repo.InitialiseAsync(config.UserVotingSessionsDatabaseId, config.UserVotingSessionsContainerId);
 
             return repo;
