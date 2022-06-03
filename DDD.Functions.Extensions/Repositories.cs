@@ -45,6 +45,7 @@ namespace DDD.Functions.Extensions
         {
             var client = GetCosmosClient(config.UserVotingSessionsString);            
             var repo = new UserVotingSessionRepository(client, long.Parse(string.IsNullOrEmpty(config.UserVotingSessionTtlSeconds) ? DefaultSessionTimeoutSeconds : config.UserVotingSessionTtlSeconds));
+            
             await repo.InitialiseAsync(config.UserVotingSessionsDatabaseId, config.UserVotingSessionsContainerId);
 
             return repo;
