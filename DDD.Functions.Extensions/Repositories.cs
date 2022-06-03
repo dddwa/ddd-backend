@@ -24,11 +24,24 @@ namespace DDD.Functions.Extensions
             return GetSessionRepositoryAsync(config.ConnectionString, config.SubmissionsTable, config.SubmittersTable);
         }
 
+        private static CosmosClient _cosmosClient;
+        private static readonly object _cosmosClientLock = new object();
+        private static CosmosClient GetCosmosClient(string connectionString)
+        {
+            if (_cosmosClient != null)
+            {
+                return _cosmosClient;
+            }
+
+            lock (_cosmosClientLock)
+            {
+                return _cosmosClient ??= new CosmosClient(connectionString, new CosmosClientOptions());
+            } 
+        }
+        
         public static async Task<IUserVotingSessionRepository> GetUserVoteSessionRepositoryAsync(this SubmissionsConfig config)
         {
-            var client = new CosmosClient(config.UserVotingSessionsString, new CosmosClientOptions(){});            
-
-
+            var client = GetCosmosClient(config.UserVotingSessionsString);            
             var repo = new UserVotingSessionRepository(client, config.UserVotingSessionTtlSeconds);
             await repo.InitialiseAsync(config.UserVotingSessionsDatabaseId, config.UserVotingSessionsContainerId);
 
