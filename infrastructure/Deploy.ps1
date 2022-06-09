@@ -35,6 +35,7 @@ Param (
   [string] [Parameter(Mandatory = $true)] $FeedbackAvailableFrom,
   [string] [Parameter(Mandatory = $true)] $FeedbackAvailableTo,
   [string] [Parameter(Mandatory = $true)] $EloPasswordPhrase,
+  [string] [Parameter(Mandatory = $true)] $EloAllowedTimeInSecondsToSubmit,  
   [string] $ResourceGroupName = "$ConferenceName-backend-$AppEnvironment"
 )
 
@@ -75,6 +76,7 @@ function Get-Parameters() {
     "feedbackAvailableFrom"             = $FeedbackAvailableFrom;
     "feedbackAvailableTo"               = $FeedbackAvailableTo;
     "eloPasswordPhrase"                 = $EloPasswordPhrase;
+    "eloAllowedTimeInSecondsToSubmit"   = $EloAllowedTimeInSecondsToSubmit;
     "eloUserSessionStoreAccountName"                = "$($ConferenceName)data$AppEnvironment".ToLower();
     "eloUserSessionStoreDatabaseName"               = "$($ConferenceName)data$AppEnvironment".ToLower();
     "eloUserSessionStoreContainerName"              = "$($ConferenceName)-$AppEnvironment-sessions".ToLower();
