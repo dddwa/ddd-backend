@@ -39,11 +39,12 @@ namespace DDD.Functions
                 .Select(s => new Session
                 {
                     Id = s.Id.ToString(),
-                    Title = s.Title, 
+                    Title = s.Title,
                     Abstract = s.Abstract,
                     Format = s.Format,
                     Level = s.Level,
                     Tags = s.Tags,
+                    ExternalId = s.ExternalId,
                     Presenters = s.PresenterIds.Select(pId => presenters.Where(p => p.Id == pId).Select(p => p.GetPresenter()).Select(p => new Presenter
                     {
                         Id = p.Id.ToString(),
@@ -71,6 +72,7 @@ namespace DDD.Functions
             public string Abstract { get; set; }
             public string Format { get; set; }
             public string Level { get; set; }
+            public string ExternalId { get; set; }
             public string[] Tags { get; set; }
             public Presenter[] Presenters { get; set; }
         }
