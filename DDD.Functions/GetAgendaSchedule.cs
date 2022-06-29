@@ -10,6 +10,8 @@ using DDD.Functions.Extensions;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using Azure.Storage.Blobs;
+using System.Runtime;
+using System.Text;
 
 namespace DDD.Functions
 {
@@ -33,7 +35,7 @@ namespace DDD.Functions
                 return new StatusCodeResult(404);
             }
 
-            var agendaScheduleContent = null;
+            var agendaScheduleContent = new StringBuilder();
             var blobServiceClient = new BlobServiceClient(agendaScheduleConfig.ConnectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(agendaScheduleConfig.Container);
             var blobClient = containerClient.GetBlobClient(conference.ConferenceInstance);
@@ -44,7 +46,7 @@ namespace DDD.Functions
                 {
                     while (!streamReader.EndOfStream)
                     {
-                        agendaScheduleContent = await streamReader.ReadLineAsync();
+                        agendaScheduleContent.Append(await streamReader.ReadLineAsync());
                     }
                 }
             }
@@ -52,7 +54,7 @@ namespace DDD.Functions
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new DefaultContractResolver();
 
-            return new JsonResult(agendaScheduleContent, settings);
+            return new JsonResult(agendaScheduleContent.ToString(), settings);
         }
 
         public class AgendaSchedule
