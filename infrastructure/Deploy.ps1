@@ -116,14 +116,14 @@ try {
   }
 
   Write-Output "Deploying to ARM"
-  $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -SkipTemplateParameterPrompt -ErrorAction Continue -Verbose
+  $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -SkipTemplateParameterPrompt -Verbose
   Write-Output $result
 
   if ($firstRun) {
     Write-Warning "First run: working around Azure Functions WEBSITE_USE_ZIP first start limitations by restarting app"
     Restart-AzWebapp -ResourceGroupName $ResourceGroupName -Name $Parameters["functionsAppName"]
     Start-Sleep -Seconds 30
-    $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -ErrorAction Continue -Verbose
+    $result = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile "$PSScriptRoot\azuredeploy.json" -TemplateParameterObject $Parameters -Name ("$ConferenceName-$AppEnvironment-" + (Get-Date -Format "yyyy-MM-dd-HH-mm-ss")) -Verbose
     Write-Output $result
   }
 
