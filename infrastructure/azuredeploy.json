@@ -333,7 +333,7 @@
                         "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]",
                         "UserVotingSessionTtlSeconds": "259200",
                         "UserVotingSessionHeaderName": "X-DDDPerth-VotingSessionId",
-                        "AgendaScheduleConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AgendaScheduleConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "AgendaScheduleContainer":"[variables('agendaScheduleContainer')]"
                     }
                 },
