@@ -31,6 +31,7 @@ This project contains backend functionality to run the DDD conferences, includin
   * `TitoNotification`: Node.js Azure Function that exposes a web hook URL that can be added to Tito (via Account Settings > Webhooks) for the `order.placed` action that will then de-duplicate webhook events and push them to queue storage for further processing (e.g. via a Logic App)
   * `TitoSync`: C# Azure Function that syncs Tito order IDs to Azure Table Storage for a configured event
   * `GetAgenda`: C# Azure Function that returns sessions and presenters that have been approved for agenda
+  * `GetAgendaSchedule`: C# Azure Function that returns agenda schedule from sessionize
   * `GetSubmissions`: C# Azure Function that returns submissions and submitters for use with either voting or showing submitted sessions
   * `GetVotes`: C# Azure Function that returns analysed vote information; can be piped into Microsoft Power BI or similar for further processing and visualisation
   * `NewSessionNotification`: C# Azure Function that responds to new submissions in Azure Table Storage and then calls a Logic App Web Hook URL (from config) with the session and presenter information (marking that session as notified to avoid duplicate notifications)

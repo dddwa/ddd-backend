@@ -146,6 +146,9 @@
         },
         "eloUserSessionStoreContainerName": {
             "type": "string"
+        },
+        "eloAllowedTimeInSecondsToSubmit": {
+            "type": "string"
         }
     },
     "variables": {
@@ -155,7 +158,6 @@
         "titoSyncSchedule": "0 */5 * * * *",
         "titoTable": "Tito",
         "eloVotingTable": "EloVotes",
-        "eloAllowedTimeInSecondsToSubmit": "120",
         "eloEnabled": "true",
         "waitingListTable": "TitoWaitingList",
         "appInsightsSyncSchedule": "0 */5 * * * *",
@@ -287,7 +289,7 @@
                         "EloVotingTable": "[variables('eloVotingTable')]",
                         "EloVotesConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('dataStorageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('dataStorageName')), '2015-06-15').key1)]",
                         "EloPasswordPhrase": "[parameters('eloPasswordPhrase')]",
-                        "EloAllowedTimeInSecondsToSubmit": "[variables('eloAllowedTimeInSecondsToSubmit')]",
+                        "EloAllowedTimeInSecondsToSubmit": "[parameters('eloAllowedTimeInSecondsToSubmit')]",
                         "EloEnabled": "[variables('eloEnabled')]",
                         "TicketNumberWhileVoting": "[parameters('ticketNumberWhileVoting')]",
                         "WaitingListCanVoteWithEmail": "[parameters('waitingListCanVoteWithEmail')]",
