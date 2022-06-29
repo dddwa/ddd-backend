@@ -171,7 +171,8 @@
         "minNumSessionFeedbackForPrizeDraw": "4",
         "titoWebhookDeDupeTable": "WebhookDeDupe",
         "titoWebhookOrderNotificationQueue": "ordernotification",
-        "titoWebhookTicketNotificationQueue": "ticketnotification"
+        "titoWebhookTicketNotificationQueue": "ticketnotification",
+        "agendaScheduleContainer": "agenda-schedule"
     },
     "resources": [
         {
@@ -329,7 +330,9 @@
                         "UserVotingSessionsDatabaseId": "[parameters('eloUserSessionStoreDatabaseName')]",
                         "UserVotingSessionsContainerId": "[parameters('eloUserSessionStoreContainerName')]",
                         "UserVotingSessionTtlSeconds": "259200",
-                        "UserVotingSessionHeaderName": "X-DDDPerth-VotingSessionId"
+                        "UserVotingSessionHeaderName": "X-DDDPerth-VotingSessionId",
+                        "AgendaScheduleConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageName'), ';AccountKey=', listkeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-06-15').key1)]",
+                        "AgendaScheduleContainer":"[variables('agendaScheduleContainer')]"
                     }
                 },
                 {
